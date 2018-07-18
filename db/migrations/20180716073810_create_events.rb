@@ -7,7 +7,7 @@ Sequel.migration do
       column :id, :uuid, unique: true, null: false, default: Sequel.lit('uuid_generate_v4()')
       column :aggregate_id, :uuid, null: false
       column :type, :varchar, null: false
-      column :body, :json, null: false
+      column :body, :jsonb, null: false
       column :created_at, :timestamptz, null: false, default: Sequel.lit("now()")
     end
   end
