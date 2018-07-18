@@ -1,0 +1,5 @@
+development:
+  database_url: postgres://localhost/survey_event_store
+
+test:
+  database_url: postgres://localhost/survey_event_store_test
