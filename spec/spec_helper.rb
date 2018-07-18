@@ -1,3 +1,5 @@
+require 'pry-byebug'
+
 spec_dir = File.dirname(__FILE__)
 Dir['spec/support/*.rb'].each do |f|
   require File.join(spec_dir, '..', f)
