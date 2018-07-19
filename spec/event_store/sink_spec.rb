@@ -10,7 +10,11 @@ RSpec.describe EventFramework::EventStore::Sink do
     attribute :scale, EventFramework::Types::Integer
   end
 
-  it 'persists events to the database' do
+  def sequence_id(column)
+    EventFramework::EventStore.database["SELECT last_value FROM #{column}"].to_a.last[:last_value]
+  end
+
+  it 'persists events to the database', aggregate_failures: true do
     event = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42)
 
     described_class.sink(
@@ -18,10 +22,20 @@ RSpec.describe EventFramework::EventStore::Sink do
       events: [event],
     )
 
-    persisted_event = events_for_aggregate(aggregate_id).first
+    persisted_events = events_for_aggregate(aggregate_id)
 
-    expect(persisted_event[:body]).to eql('scale' => 42)
-    expect(persisted_event[:type]).to eql 'FooAdded'
+    expect(persisted_events.map { |row| row.reject { |k, v| %i[created_at id].include?(k) } }).to eq [
+      {
+        sequence_id: sequence_id('events_sequence_id_seq'),
+        aggregate_sequence_id: 1,
+        aggregate_id: aggregate_id,
+        type: "FooAdded",
+        body: Sequel::Postgres::JSONBHash.new('scale' => 42),
+      },
+    ]
+
+    expect(persisted_events.first[:id]).to match EventFramework::Types::UUID_REGEX
+    expect(persisted_events.first[:created_at]).to be_within(1).of Time.now
   end
 
   it 'allows persisting multiple events to the database' do
@@ -72,5 +86,6 @@ RSpec.describe EventFramework::EventStore::Sink do
       .from(:events)
       .where(aggregate_id: aggregate_id)
       .order(:sequence_id)
+      .all
   end
 end
