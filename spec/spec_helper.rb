@@ -1,3 +1,5 @@
+ENV['RAILS_ENV'] = 'test'
+
 require 'pry-byebug'
 
 spec_dir = File.dirname(__FILE__)
