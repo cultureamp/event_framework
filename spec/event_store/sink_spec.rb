@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'event_framework'
 require 'event_store/sink'
 
 EventMocked = Struct.new(:aggregate_id, :scale)
@@ -9,7 +10,11 @@ RSpec.describe EventFramework::EventStore::Sink do
   it 'persists events to the database' do
     event = EventMocked.new(aggregate_id, 42)
 
-    described_class.sink aggregate_id: aggregate_id, events: [event]
+    described_class.sink(
+      aggregate_id: aggregate_id,
+      events: [event],
+      expected_max_sequence_id: nil,
+    )
 
     persisted_event = events_for_aggregate(aggregate_id).first
 
@@ -21,7 +26,11 @@ RSpec.describe EventFramework::EventStore::Sink do
     event_1 = EventMocked.new(aggregate_id, 42)
     event_2 = EventMocked.new(aggregate_id, 43)
 
-    described_class.sink aggregate_id: aggregate_id, events: [event_1, event_2]
+    described_class.sink(
+      aggregate_id: aggregate_id,
+      events: [event_1, event_2],
+      expected_max_sequence_id: nil,
+    )
 
     persisted_events = events_for_aggregate(aggregate_id)
 
@@ -29,6 +38,56 @@ RSpec.describe EventFramework::EventStore::Sink do
       ['EventMocked', {'scale' => 42}],
       ['EventMocked', {'scale' => 43}],
     ]
+  end
+
+  describe 'optimistic locking' do
+    context 'when the expected_max_sequence_id matches' do
+      it 'persists events to the database' do
+        event = EventMocked.new(aggregate_id, 42)
+
+        described_class.sink(
+          aggregate_id: aggregate_id,
+          events: [event],
+          expected_max_sequence_id: nil,
+        )
+
+        persisted_event = events_for_aggregate(aggregate_id).first
+
+        described_class.sink(
+          aggregate_id: aggregate_id,
+          events: [event],
+          expected_max_sequence_id: persisted_event[:sequence_id],
+        )
+
+        persisted_event = events_for_aggregate(aggregate_id).first
+
+        expect(persisted_event[:body]).to eql('scale' => 42)
+        expect(persisted_event[:type]).to eql 'EventMocked'
+      end
+    end
+
+    context 'when the expected_max_sequence_id is different' do
+      it 'raises a concurrency error' do
+        event = EventMocked.new(aggregate_id, 42)
+
+        described_class.sink(
+          aggregate_id: aggregate_id,
+          events: [event],
+          expected_max_sequence_id: nil,
+        )
+
+        persisted_event = events_for_aggregate(aggregate_id).first
+
+        expect {
+          described_class.sink(
+            aggregate_id: aggregate_id,
+            events: [event],
+            expected_max_sequence_id: persisted_event[:sequence_id] - 1,
+          )
+        }.to raise_error EventFramework::EventStore::Sink::ConcurrencyError,
+          "expected max sequence_id #{persisted_event[:sequence_id] - 1}, was #{persisted_event[:sequence_id]}"
+      end
+    end
   end
 
   def events_for_aggregate(aggregate_id)
