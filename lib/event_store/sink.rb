@@ -7,6 +7,8 @@ module EventFramework
       ConcurrencyError = Class.new(Error)
 
       def self.sink(aggregate_id:, events:, expected_max_sequence_id:)
+        # TODO: Lock table instead of a transaction, the transaction won't save
+        # us here.
         database.transaction do
           actual_max_sequence_id = database[:events].where(aggregate_id: aggregate_id).max(:sequence_id)
 
