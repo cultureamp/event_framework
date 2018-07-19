@@ -6,22 +6,25 @@ module EventFramework
     class Sink
       ConcurrencyError = Class.new(Error)
 
-      def self.sink(aggregate_id:, events:, expected_max_sequence_id:)
-        # TODO: Lock table instead of a transaction, the transaction won't save
-        # us here.
+      def self.sink(aggregate_id:, events:)
         database.transaction do
-          actual_max_sequence_id = database[:events].where(aggregate_id: aggregate_id).max(:sequence_id)
-
-          if expected_max_sequence_id != actual_max_sequence_id
-            raise ConcurrencyError, "expected max sequence_id #{expected_max_sequence_id.inspect}, was #{actual_max_sequence_id.inspect}"
-          end
-
           events.each do |event|
-            database[:events].insert(
-              aggregate_id: aggregate_id,
-              type: event.class.name,
-              body: Sequel.pg_jsonb(event.to_h.tap { |h| h.delete :aggregate_id })
-            )
+            body = event.to_h.tap do |h|
+              h.delete :aggregate_id
+              h.delete :aggregate_sequence_id
+            end
+
+            begin
+              database[:events].insert(
+                aggregate_id: aggregate_id,
+                aggregate_sequence_id: event.aggregate_sequence_id,
+                type: event.class.name,
+                body: Sequel.pg_jsonb(body)
+              )
+            rescue Sequel::UniqueConstraintViolation
+              raise ConcurrencyError,
+                "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence_id mismatch"
+            end
           end
         end
       end
