@@ -11,11 +11,7 @@ RSpec.describe EventFramework::EventStore::Sink do
 
     described_class.sink aggregate_id: aggregate_id, events: [event]
 
-    persisted_event = EventFramework::EventStore
-                        .database
-                        .from(:events)
-                        .where(aggregate_id: aggregate_id)
-                        .first
+    persisted_event = events_for_aggregate(aggregate_id).first
 
     expect(persisted_event[:body]).to eql('scale' => 42)
     expect(persisted_event[:type]).to eql 'EventMocked'
@@ -27,14 +23,18 @@ RSpec.describe EventFramework::EventStore::Sink do
 
     described_class.sink aggregate_id: aggregate_id, events: [event_1, event_2]
 
-    persisted_events = EventFramework::EventStore
-                        .database
-                        .from(:events)
-                        .where(aggregate_id: aggregate_id)
+    persisted_events = events_for_aggregate(aggregate_id)
 
     expect(persisted_events.map { |e| [e[:type], e[:body]] }).to eq [
       ['EventMocked', {'scale' => 42}],
       ['EventMocked', {'scale' => 43}],
     ]
+  end
+
+  def events_for_aggregate(aggregate_id)
+    EventFramework::EventStore
+      .database
+      .from(:events)
+      .where(aggregate_id: aggregate_id)
   end
 end
