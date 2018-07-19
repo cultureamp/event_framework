@@ -36,7 +36,7 @@ namespace :event_store do
     end
 
     desc "Reset database"
-    task reset: [:drop, :create]
+    task reset: [:drop, :create, :migrate]
 
     desc "Create database"
     task :create do
