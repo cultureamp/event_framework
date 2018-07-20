@@ -1,4 +1,4 @@
-require 'database'
+require_relative '../database'
 
 module EventFramework
   class EventStore

@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'event_framework'
-require 'event'
-require 'event_store/sink'
+require_relative '../../lib/event_framework'
+require_relative '../../lib/event'
+require_relative '../../lib/event_store/sink'
 
 ScaleAdded = Class.new(EventFramework::Event) do
   attribute :scale, EventFramework::Types::Integer

@@ -1,8 +1,7 @@
-require 'spec_helper'
-require 'event_framework'
-require 'event'
-require 'event_store/source'
-require 'event_store/sink'
+require_relative '../../lib/event_framework'
+require_relative '../../lib/event'
+require_relative '../../lib/event_store/source'
+require_relative '../../lib/event_store/sink'
 require 'securerandom'
 
 module EventFramework
