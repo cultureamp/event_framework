@@ -15,7 +15,12 @@ RSpec.describe EventFramework::EventStore::Sink do
   end
 
   it 'persists events to the database', aggregate_failures: true do
-    event = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42)
+    correlation_id = SecureRandom.uuid
+
+    event = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {
+      correlation_id: correlation_id,
+      "foo'bar" => "baz'qux",
+    })
 
     described_class.sink(
       aggregate_id: aggregate_id,
@@ -24,7 +29,7 @@ RSpec.describe EventFramework::EventStore::Sink do
 
     persisted_events = events_for_aggregate(aggregate_id)
 
-    expect(persisted_events.map { |row| row.reject { |k, v| %i[created_at id].include?(k) } }).to eq [
+    expect(persisted_events.map { |row| row.reject { |k, v| %i[metadata id].include?(k) } }).to eq [
       {
         sequence_id: sequence_id('events_sequence_id_seq'),
         aggregate_sequence_id: 1,
@@ -35,12 +40,13 @@ RSpec.describe EventFramework::EventStore::Sink do
     ]
 
     expect(persisted_events.first[:id]).to match EventFramework::Types::UUID_REGEX
-    expect(persisted_events.first[:created_at]).to be_within(1).of Time.now
+    expect(Time.parse(persisted_events.first[:metadata]['created_at'] + 'Z')).to be_within(1).of Time.now.utc
+    expect(persisted_events.first[:metadata]["foo'bar"]).to eq "baz'qux"
   end
 
   it 'allows persisting multiple events to the database' do
-    event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42)
-    event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, scale: 43)
+    event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
+    event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, scale: 43, metadata: {})
 
     described_class.sink(
       aggregate_id: aggregate_id,
@@ -58,7 +64,7 @@ RSpec.describe EventFramework::EventStore::Sink do
   describe 'optimistic locking' do
     context 'when the supplied aggregate_sequence_id has already been used' do
       it 'raises a concurrency error' do
-        event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42)
+        event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
 
         described_class.sink(
           aggregate_id: aggregate_id,
@@ -67,7 +73,7 @@ RSpec.describe EventFramework::EventStore::Sink do
 
         # When the event was passed in the aggregate didn't know that we
         # already had a event with an aggregate_sequence_id of "1".
-        event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42)
+        event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
 
         expect {
           described_class.sink(

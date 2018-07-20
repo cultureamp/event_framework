@@ -6,5 +6,6 @@ module EventFramework
 
     attribute :aggregate_id, Types::UUID
     attribute :aggregate_sequence_id, Types::Integer
+    attribute :metadata, Types::Hash
   end
 end

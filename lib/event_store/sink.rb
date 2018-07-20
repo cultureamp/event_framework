@@ -10,8 +10,12 @@ module EventFramework
           %i[
             aggregate_id
             aggregate_sequence_id
+            metadata
           ].include?(k)
         end
+      }
+      MetadataSerializer = -> (metadata) {
+        ['created_at', Sequel.lit("now() at time zone 'utc'")] + metadata.to_a.flatten.map(&:to_s)
       }
 
       def self.sink(aggregate_id:, events:)
@@ -22,7 +26,8 @@ module EventFramework
                 aggregate_id: aggregate_id,
                 aggregate_sequence_id: event.aggregate_sequence_id,
                 type: event.class.name,
-                body: Sequel.pg_jsonb(EventBodySerializer.call(event))
+                body: Sequel.pg_jsonb(EventBodySerializer.call(event)),
+                metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(event.metadata)),
               )
             rescue Sequel::UniqueConstraintViolation
               raise ConcurrencyError,

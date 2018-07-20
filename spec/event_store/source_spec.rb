@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'event_framework'
 require 'event'
 require 'event_store/source'
+require 'event_store/sink'
+require 'securerandom'
 
 module EventFramework
   class EventStore
@@ -13,17 +15,17 @@ module EventFramework
       let(:aggregate_id) { SecureRandom.uuid }
 
       it 'returns events' do
-        event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar')
-        event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz')
+        event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {})
+        event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {})
 
         Sink.sink(
           aggregate_id: aggregate_id,
           events: [event_1, event_2],
         )
 
-        expect(Source.get(0)).to eq [
-          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar'),
-          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz'),
+        expect(Source.get(0)).to match_events [
+          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {}),
+          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {}),
         ]
       end
     end

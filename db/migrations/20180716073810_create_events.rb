@@ -9,7 +9,7 @@ Sequel.migration do
       column :aggregate_id, :uuid, null: false
       column :type, :varchar, null: false
       column :body, :jsonb, null: false
-      column :created_at, :timestamptz, null: false, default: Sequel.lit("now()")
+      column :metadata, :jsonb, null: false
 
       index [:aggregate_id, :aggregate_sequence_id], unique: true
     end
