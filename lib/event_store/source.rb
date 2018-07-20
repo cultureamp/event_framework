@@ -16,7 +16,7 @@ module EventFramework
       }
 
       class << self
-        def get(sequence_id)
+        def get_from(sequence_id)
           database[:events]
             .where(Sequel.lit('sequence_id >= ?', sequence_id))
             .order(:sequence_id)
@@ -26,7 +26,7 @@ module EventFramework
             end
         end
 
-        def for_aggregate(aggregate_id)
+        def get_for_aggregate(aggregate_id)
           database[:events]
             .where(aggregate_id: aggregate_id)
             .order(:aggregate_sequence_id)
