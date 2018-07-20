@@ -14,18 +14,21 @@ module EventFramework
         )
       }
 
-      def self.get(sequence_id)
-        database[:events]
-          .where(Sequel.lit('sequence_id >= ?', sequence_id))
-          .order(:sequence_id)
-          .map do |row|
+      class << self
+        def get(sequence_id)
+          database[:events]
+            .where(Sequel.lit('sequence_id >= ?', sequence_id))
+            .order(:sequence_id)
+            .map do |row|
             EventBuilder.call(row)
           end
-      end
+        end
 
-      private_class_method \
-      def self.database
-        EventStore.database
+        private
+
+        def database
+          EventStore.database
+        end
       end
     end
   end
