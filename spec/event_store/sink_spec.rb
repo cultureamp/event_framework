@@ -47,7 +47,7 @@ module EventFramework
         ]
 
         expect(persisted_events.first[:id]).to match Types::UUID_REGEX
-        expect(Time.parse(persisted_events.first[:metadata]['created_at'] + 'Z')).to be_within(1).of Time.now.utc
+        expect(Time.parse(persisted_events.first[:metadata]['created_at'])).to be_within(1).of Time.now.utc
         expect(persisted_events.first[:metadata]["foo'bar"]).to eq "baz'qux"
       end
 

@@ -15,7 +15,7 @@ module EventFramework
         end
       }
       MetadataSerializer = -> (metadata) {
-        ['created_at', Sequel.lit("now() at time zone 'utc'")] +
+        ['created_at', Sequel.lit(%q{to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')})] +
           metadata.flat_map { |k, v| [k.to_s, v.to_s] }
       }
 
