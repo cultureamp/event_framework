@@ -9,8 +9,8 @@ module EventFramework
           row[:body].merge(
             aggregate_id: row[:aggregate_id],
             aggregate_sequence_id: row[:aggregate_sequence_id],
-            metadata: row[:metadata]
-          )
+            metadata: row[:metadata],
+          ),
         )
       }
 

@@ -19,10 +19,15 @@ module EventFramework
       it 'persists events to the database', aggregate_failures: true do
         correlation_id = SecureRandom.uuid
 
-        event = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {
-          correlation_id: correlation_id,
-          "foo'bar" => "baz'qux",
-        })
+        event = ScaleAdded.new(
+          aggregate_id: aggregate_id,
+          aggregate_sequence_id: 1,
+          scale: 42,
+          metadata: {
+            correlation_id: correlation_id,
+            "foo'bar" => "baz'qux",
+          },
+        )
 
         described_class.sink(
           aggregate_id: aggregate_id,
@@ -31,7 +36,7 @@ module EventFramework
 
         persisted_events = events_for_aggregate(aggregate_id)
 
-        expect(persisted_events.map { |row| row.reject { |k, v| %i[metadata id].include?(k) } }).to eq [
+        expect(persisted_events.map { |row| row.reject { |k, _v| %i[metadata id].include?(k) } }).to eq [
           {
             sequence_id: sequence_id('events_sequence_id_seq'),
             aggregate_sequence_id: 1,
@@ -58,8 +63,8 @@ module EventFramework
         persisted_events = events_for_aggregate(aggregate_id)
 
         expect(persisted_events.map { |e| [e[:type], e[:body]] }).to eq [
-          ['ScaleAdded', {'scale' => 42}],
-          ['ScaleAdded', {'scale' => 43}],
+          ['ScaleAdded', { 'scale' => 42 }],
+          ['ScaleAdded', { 'scale' => 43 }],
         ]
       end
 
@@ -83,7 +88,7 @@ module EventFramework
                 events: [event_2],
               )
             }.to raise_error Sink::ConcurrencyError,
-              "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence_id mismatch"
+                             "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence_id mismatch"
           end
         end
       end

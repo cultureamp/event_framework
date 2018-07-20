@@ -11,13 +11,13 @@ RSpec::Matchers.define :match_events do |expected_events|
   end
 
   failure_message do |actual_events|
-    <<~EOF
+    <<~MATCH_FAIL_MSG
       expected:
 
       #{actual_events.pretty_inspect}
       to eq:
 
       #{expected_events.pretty_inspect}
-    EOF
+    MATCH_FAIL_MSG
   end
 end
