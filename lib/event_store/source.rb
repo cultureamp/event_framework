@@ -24,6 +24,15 @@ module EventFramework
           end
         end
 
+        def for_aggregate(aggregate_id)
+          database[:events]
+            .where(aggregate_id: aggregate_id)
+            .order(:aggregate_sequence_id)
+            .map do |row|
+              EventBuilder.call(row)
+            end
+        end
+
         private
 
         def database

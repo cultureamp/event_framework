@@ -29,6 +29,23 @@ module EventFramework
           ]
         end
       end
+
+      describe 'for_aggregate' do
+        it 'returns events scoped to the aggregate' do
+          event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {})
+          event_2 = FooAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence_id: 2, foo: 'baz', metadata: {})
+          event_3 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'qux', metadata: {})
+
+          Sink.sink(aggregate_id: aggregate_id, events: [event_1])
+          Sink.sink(aggregate_id: event_2.aggregate_id, events: [event_2])
+          Sink.sink(aggregate_id: aggregate_id, events: [event_3])
+
+          expect(Source.for_aggregate(aggregate_id)).to match_events [
+            FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {}),
+            FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'qux', metadata: {}),
+          ]
+        end
+      end
     end
   end
 end
