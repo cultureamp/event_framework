@@ -3,10 +3,11 @@ namespace :event_store do
     desc "Run migrations"
     task :migrate, [:version] do |_t, args|
       require "sequel/core"
+      require_relative 'lib/event_framework'
       require_relative 'lib/database'
       Sequel.extension :migration
       version = args[:version].to_i if args[:version]
-      Sequel.connect(EventFramework::EventStore.database_url) do |db|
+      Sequel.connect(EventFramework.config.database_url) do |db|
         Sequel::Migrator.run(db, "db/migrations", target: version)
       end
     end
@@ -40,8 +41,9 @@ namespace :event_store do
 
     desc "Create database"
     task :create do
+      require_relative 'lib/event_framework'
       require_relative 'lib/database'
-      db_name = File.basename(URI.parse(EventFramework::EventStore.database_url).path)
+      db_name = File.basename(URI.parse(EventFramework.config.database_url).path)
       Sequel.connect('postgres:///template1') do |db|
         db.execute "CREATE DATABASE #{db_name}"
       end
@@ -49,8 +51,9 @@ namespace :event_store do
 
     desc "Drop database"
     task :drop do
+      require_relative 'lib/event_framework'
       require_relative 'lib/database'
-      db_name = File.basename(URI.parse(EventFramework::EventStore.database_url).path)
+      db_name = File.basename(URI.parse(EventFramework.config.database_url).path)
       Sequel.connect('postgres:///template1') do |db|
         db.execute "DROP DATABASE IF EXISTS #{db_name}"
       end
