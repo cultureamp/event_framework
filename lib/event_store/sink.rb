@@ -1,5 +1,4 @@
 require 'database'
-require 'securerandom'
 
 module EventFramework
   class EventStore
