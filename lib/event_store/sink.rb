@@ -9,7 +9,7 @@ module EventFramework
         event.to_h.reject do |k, _v|
           %i[
             aggregate_id
-            aggregate_sequence_id
+            aggregate_sequence
             metadata
           ].include?(k)
         end
@@ -31,14 +31,14 @@ module EventFramework
               begin
                 database[:events].insert(
                   aggregate_id: aggregate_id,
-                  aggregate_sequence_id: event.aggregate_sequence_id,
+                  aggregate_sequence: event.aggregate_sequence,
                   type: event.class.name,
                   body: Sequel.pg_jsonb(EventBodySerializer.call(event)),
                   metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(event.metadata)),
                 )
               rescue Sequel::UniqueConstraintViolation
                 raise ConcurrencyError,
-                  "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence_id mismatch"
+                  "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence mismatch"
               end
             end
           end

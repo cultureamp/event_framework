@@ -9,17 +9,17 @@ module EventFramework
         klass.new(
           row[:body].merge(
             aggregate_id: row[:aggregate_id],
-            aggregate_sequence_id: row[:aggregate_sequence_id],
+            aggregate_sequence: row[:aggregate_sequence],
             metadata: row[:metadata],
           ),
         )
       }
 
       class << self
-        def get_from(sequence_id)
+        def get_from(sequence)
           database[:events]
-            .where(Sequel.lit('sequence_id >= ?', sequence_id))
-            .order(:sequence_id)
+            .where(Sequel.lit('sequence >= ?', sequence))
+            .order(:sequence)
             .limit(LIMIT)
             .map do |row|
               EventBuilder.call(row)
@@ -29,7 +29,7 @@ module EventFramework
         def get_for_aggregate(aggregate_id)
           database[:events]
             .where(aggregate_id: aggregate_id)
-            .order(:aggregate_sequence_id)
+            .order(:aggregate_sequence)
             .map do |row|
               EventBuilder.call(row)
             end

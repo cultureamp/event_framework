@@ -12,7 +12,7 @@ module EventFramework
     RSpec.describe Sink do
       let(:aggregate_id) { SecureRandom.uuid }
 
-      def sequence_id(column)
+      def sequence(column)
         EventStore.database["SELECT last_value FROM #{column}"].to_a.last[:last_value]
       end
 
@@ -21,7 +21,7 @@ module EventFramework
 
         event = ScaleAdded.new(
           aggregate_id: aggregate_id,
-          aggregate_sequence_id: 1,
+          aggregate_sequence: 1,
           scale: 42,
           metadata: {
             correlation_id: correlation_id,
@@ -38,8 +38,8 @@ module EventFramework
 
         expect(persisted_events.map { |row| row.reject { |k, _v| %i[metadata id].include?(k) } }).to eq [
           {
-            sequence_id: sequence_id('events_sequence_id_seq'),
-            aggregate_sequence_id: 1,
+            sequence: sequence('events_sequence_seq'),
+            aggregate_sequence: 1,
             aggregate_id: aggregate_id,
             type: "ScaleAdded",
             body: Sequel::Postgres::JSONBHash.new('scale' => 42),
@@ -52,8 +52,8 @@ module EventFramework
       end
 
       it 'allows persisting multiple events to the database' do
-        event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
-        event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, scale: 43, metadata: {})
+        event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
+        event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, scale: 43, metadata: {})
 
         described_class.sink(
           aggregate_id: aggregate_id,
@@ -69,9 +69,9 @@ module EventFramework
       end
 
       describe 'optimistic locking' do
-        context 'when the supplied aggregate_sequence_id has already been used' do
+        context 'when the supplied aggregate_sequence has already been used' do
           it 'raises a concurrency error' do
-            event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
+            event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
 
             described_class.sink(
               aggregate_id: aggregate_id,
@@ -79,8 +79,8 @@ module EventFramework
             )
 
             # When the event was passed in the aggregate didn't know that we
-            # already had a event with an aggregate_sequence_id of "1".
-            event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
+            # already had a event with an aggregate_sequence of "1".
+            event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
 
             expect {
               described_class.sink(
@@ -88,15 +88,15 @@ module EventFramework
                 events: [event_2],
               )
             }.to raise_error Sink::ConcurrencyError,
-                             "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence_id mismatch"
+                             "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence mismatch"
           end
         end
       end
 
       context 'attempting to sink events from multiple aggregates' do
         it 'raises an error' do
-          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
-          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence_id: 1, scale: 43, metadata: {})
+          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
+          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, scale: 43, metadata: {})
 
           expect {
             described_class.sink(
@@ -113,7 +113,7 @@ module EventFramework
           .database
           .from(:events)
           .where(aggregate_id: aggregate_id)
-          .order(:sequence_id)
+          .order(:sequence)
           .all
       end
     end

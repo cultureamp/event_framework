@@ -4,7 +4,7 @@ RSpec::Matchers.define :match_events do |expected_events|
     expected_events.zip(actual_events).each do |expected_event, actual_event|
       expect(expected_event.class).to eq actual_event.class
       expect(expected_event.aggregate_id).to eq actual_event.aggregate_id
-      expect(expected_event.aggregate_sequence_id).to eq actual_event.aggregate_sequence_id
+      expect(expected_event.aggregate_sequence).to eq actual_event.aggregate_sequence
       expect(EventFramework::EventStore::Sink::EventBodySerializer.call(expected_event.to_h))
         .to eq EventFramework::EventStore::Sink::EventBodySerializer.call(actual_event.to_h)
     end
