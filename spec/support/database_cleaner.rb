@@ -1,5 +1,7 @@
 require 'sequel'
 require 'database_cleaner'
+require 'event_framework'
+require 'database'
 
 RSpec.configure do |config|
   config.before :suite do
