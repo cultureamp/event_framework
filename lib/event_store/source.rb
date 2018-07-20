@@ -22,8 +22,8 @@ module EventFramework
             .order(:sequence_id)
             .limit(LIMIT)
             .map do |row|
-            EventBuilder.call(row)
-          end
+              EventBuilder.call(row)
+            end
         end
 
         def for_aggregate(aggregate_id)
