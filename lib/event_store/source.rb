@@ -3,6 +3,7 @@ require_relative '../database'
 module EventFramework
   class EventStore
     class Source
+      LIMIT = 1000
       EventBuilder = -> (row) {
         klass = const_get(row[:type])
         klass.new(
@@ -19,6 +20,7 @@ module EventFramework
           database[:events]
             .where(Sequel.lit('sequence_id >= ?', sequence_id))
             .order(:sequence_id)
+            .limit(LIMIT)
             .map do |row|
             EventBuilder.call(row)
           end
