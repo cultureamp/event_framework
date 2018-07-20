@@ -6,7 +6,7 @@ module EventFramework
     class Sink
       ConcurrencyError = Class.new(Error)
       EventBodySerializer = -> (event) {
-        event.to_h.reject do |k, v|
+        event.to_h.reject do |k, _v|
           %i[
             aggregate_id
             aggregate_sequence_id
