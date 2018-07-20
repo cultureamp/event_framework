@@ -13,19 +13,21 @@ module EventFramework
 
       let(:aggregate_id) { SecureRandom.uuid }
 
-      it 'returns events' do
-        event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {})
-        event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {})
+      describe '.get' do
+        it 'returns events' do
+          event_1 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {})
+          event_2 = FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {})
 
-        Sink.sink(
-          aggregate_id: aggregate_id,
-          events: [event_1, event_2],
-        )
+          Sink.sink(
+            aggregate_id: aggregate_id,
+            events: [event_1, event_2],
+          )
 
-        expect(Source.get(0)).to match_events [
-          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {}),
-          FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {}),
-        ]
+          expect(Source.get(0)).to match_events [
+            FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, foo: 'bar', metadata: {}),
+            FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 2, foo: 'baz', metadata: {}),
+          ]
+        end
       end
     end
   end
