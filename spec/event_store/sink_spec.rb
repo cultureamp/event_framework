@@ -93,6 +93,21 @@ module EventFramework
         end
       end
 
+      context 'attempting to sink events from multiple aggregates' do
+        it 'raises an error' do
+          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence_id: 1, scale: 42, metadata: {})
+          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence_id: 1, scale: 43, metadata: {})
+
+          expect {
+            described_class.sink(
+              aggregate_id: aggregate_id,
+              events: [event_1, event_2],
+            )
+          }.to raise_error Sink::AggregateIdMismatch,
+            "error saving event for #{event_2.aggregate_id.inspect} to #{aggregate_id.inspect}"
+        end
+      end
+
       def events_for_aggregate(aggregate_id)
         EventStore
           .database

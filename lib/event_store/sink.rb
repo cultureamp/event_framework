@@ -4,6 +4,7 @@ module EventFramework
   class EventStore
     class Sink
       ConcurrencyError = Class.new(Error)
+      AggregateIdMismatch = Class.new(Error)
       EventBodySerializer = -> (event) {
         event.to_h.reject do |k, _v|
           %i[
@@ -22,6 +23,11 @@ module EventFramework
         def sink(aggregate_id:, events:)
           database.transaction do
             events.each do |event|
+              unless event.aggregate_id == aggregate_id
+                raise AggregateIdMismatch,
+                  "error saving event for #{event.aggregate_id.inspect} to #{aggregate_id.inspect}"
+              end
+
               begin
                 database[:events].insert(
                   aggregate_id: aggregate_id,
