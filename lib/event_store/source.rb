@@ -1,7 +1,5 @@
-require_relative '../database'
-
 module EventFramework
-  class EventStore
+  module EventStore
     class Source
       EventBuilder = -> (row) {
         klass = const_get(row[:type])

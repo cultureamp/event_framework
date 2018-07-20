@@ -1,6 +1,10 @@
 module EventFramework
   Error = Class.new(StandardError)
 
+  autoload :Types, 'types'
+  autoload :Event, 'event'
+  autoload :EventStore, 'event_store'
+
   class << self
     attr_accessor :config
 

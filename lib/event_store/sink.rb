@@ -1,7 +1,5 @@
-require_relative '../database'
-
 module EventFramework
-  class EventStore
+  module EventStore
     class Sink
       ConcurrencyError = Class.new(Error)
       AggregateIdMismatch = Class.new(Error)

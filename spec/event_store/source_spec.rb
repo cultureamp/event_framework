@@ -1,11 +1,7 @@
-require_relative '../../lib/event_framework'
-require_relative '../../lib/event'
-require_relative '../../lib/event_store/source'
-require_relative '../../lib/event_store/sink'
 require 'securerandom'
 
 module EventFramework
-  class EventStore
+  module EventStore
     RSpec.describe Source do
       FooAdded = Class.new(Event) do
         attribute :foo, Types::String

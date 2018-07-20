@@ -1,4 +1,4 @@
-require_relative 'types'
+require 'dry/struct'
 
 module EventFramework
   class Event < Dry::Struct
