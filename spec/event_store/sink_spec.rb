@@ -11,22 +11,18 @@ module EventFramework
   class EventStore
     RSpec.describe Sink do
       let(:aggregate_id) { SecureRandom.uuid }
+      let(:unpersisted_metadata) { Event::UnpersistedMetadata.new }
 
       def sequence(column)
         EventStore.database["SELECT last_value FROM #{column}"].to_a.last[:last_value]
       end
 
       it 'persists events to the database', aggregate_failures: true do
-        correlation_id = SecureRandom.uuid
-
         event = ScaleAdded.new(
           aggregate_id: aggregate_id,
           aggregate_sequence: 1,
           scale: 42,
-          metadata: {
-            correlation_id: correlation_id,
-            "foo'bar" => "baz'qux",
-          },
+          metadata: unpersisted_metadata,
         )
 
         described_class.sink(
@@ -48,12 +44,11 @@ module EventFramework
 
         expect(persisted_events.first[:id]).to match Types::UUID_REGEX
         expect(Time.parse(persisted_events.first[:metadata]['created_at'])).to be_within(1).of Time.now.utc
-        expect(persisted_events.first[:metadata]["foo'bar"]).to eq "baz'qux"
       end
 
       it 'allows persisting multiple events to the database' do
-        event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
-        event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, scale: 43, metadata: {})
+        event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+        event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, scale: 43, metadata: unpersisted_metadata)
 
         described_class.sink(
           aggregate_id: aggregate_id,
@@ -71,7 +66,7 @@ module EventFramework
       describe 'optimistic locking' do
         context 'when the supplied aggregate_sequence has already been used' do
           it 'raises a concurrency error' do
-            event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
+            event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
 
             described_class.sink(
               aggregate_id: aggregate_id,
@@ -80,7 +75,7 @@ module EventFramework
 
             # When the event was passed in the aggregate didn't know that we
             # already had a event with an aggregate_sequence of "1".
-            event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
+            event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
 
             expect {
               described_class.sink(
@@ -95,8 +90,8 @@ module EventFramework
 
       context 'attempting to sink events from multiple aggregates' do
         it 'raises an error' do
-          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: {})
-          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, scale: 43, metadata: {})
+          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, scale: 43, metadata: unpersisted_metadata)
 
           expect {
             described_class.sink(

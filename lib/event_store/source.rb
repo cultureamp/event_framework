@@ -10,7 +10,7 @@ module EventFramework
           row[:body].merge(
             aggregate_id: row[:aggregate_id],
             aggregate_sequence: row[:aggregate_sequence],
-            metadata: row[:metadata],
+            metadata: Event::Metadata.new(row[:metadata]),
           ),
         )
       }
