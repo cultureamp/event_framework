@@ -16,8 +16,21 @@ module EventFramework
   end
 
   class Configuration
-    attr_accessor :database_url
+    attr_accessor \
+      :database_url,
+      :event_namespace_class
+
+    def initialize
+      @event_namespace_class = Object
+    end
   end
+end
+
+# TODO: Move this config to domains/ as it's app specific
+Events = Module.new
+
+EventFramework.configure do |config|
+  config.event_namespace_class = Events
 end
 
 require_relative "../config/environments/#{EventFramework.environment}"

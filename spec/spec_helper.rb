@@ -24,3 +24,9 @@ RSpec.configure do |config|
 
   Kernel.srand config.seed
 end
+
+TestEvents = Module.new
+
+EventFramework.configure do |config|
+  config.event_namespace_class = TestEvents
+end

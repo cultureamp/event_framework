@@ -5,7 +5,7 @@ module EventFramework
     class Source
       LIMIT = 1000
       EventBuilder = -> (row) {
-        klass = const_get(row[:type])
+        klass = EventTypeDeserializer.call(row[:type])
         klass.new(
           row[:body].merge(
             aggregate_id: row[:aggregate_id],
@@ -13,6 +13,9 @@ module EventFramework
             metadata: Event::Metadata.new(row[:metadata]),
           ),
         )
+      }
+      EventTypeDeserializer = -> (event_type) {
+        EventFramework.config.event_namespace_class.const_get(event_type)
       }
 
       class << self

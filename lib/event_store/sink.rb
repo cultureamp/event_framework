@@ -18,6 +18,9 @@ module EventFramework
         ['created_at', Sequel.lit(%q{to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')})] +
           metadata.to_h.flat_map { |k, v| [k.to_s, v.to_s] }
       }
+      EventTypeSerializer = -> (event) {
+        event.class.name.split('::').last
+      }
 
       class << self
         def sink(aggregate_id:, events:)
@@ -32,7 +35,7 @@ module EventFramework
                 database[:events].insert(
                   aggregate_id: aggregate_id,
                   aggregate_sequence: event.aggregate_sequence,
-                  type: event.class.name,
+                  type: EventTypeSerializer.call(event),
                   body: Sequel.pg_jsonb(EventBodySerializer.call(event)),
                   metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(event.metadata)),
                 )

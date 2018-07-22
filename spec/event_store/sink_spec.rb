@@ -3,8 +3,10 @@ require_relative '../../lib/event_framework'
 require_relative '../../lib/event'
 require_relative '../../lib/event_store/sink'
 
-ScaleAdded = Class.new(EventFramework::Event) do
-  attribute :scale, EventFramework::Types::Integer
+module TestEvents
+  ScaleAdded = Class.new(EventFramework::Event) do
+    attribute :scale, EventFramework::Types::Integer
+  end
 end
 
 module EventFramework
@@ -18,7 +20,7 @@ module EventFramework
       end
 
       it 'persists events to the database', aggregate_failures: true do
-        event = ScaleAdded.new(
+        event = TestEvents::ScaleAdded.new(
           aggregate_id: aggregate_id,
           aggregate_sequence: 1,
           scale: 42,
@@ -47,8 +49,8 @@ module EventFramework
       end
 
       it 'allows persisting multiple events to the database' do
-        event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
-        event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, scale: 43, metadata: unpersisted_metadata)
+        event_1 = TestEvents::ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+        event_2 = TestEvents::ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, scale: 43, metadata: unpersisted_metadata)
 
         described_class.sink(
           aggregate_id: aggregate_id,
@@ -66,7 +68,7 @@ module EventFramework
       describe 'optimistic locking' do
         context 'when the supplied aggregate_sequence has already been used' do
           it 'raises a concurrency error' do
-            event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+            event_1 = TestEvents::ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
 
             described_class.sink(
               aggregate_id: aggregate_id,
@@ -75,7 +77,7 @@ module EventFramework
 
             # When the event was passed in the aggregate didn't know that we
             # already had a event with an aggregate_sequence of "1".
-            event_2 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+            event_2 = TestEvents::ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
 
             expect {
               described_class.sink(
@@ -90,8 +92,8 @@ module EventFramework
 
       context 'attempting to sink events from multiple aggregates' do
         it 'raises an error' do
-          event_1 = ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
-          event_2 = ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, scale: 43, metadata: unpersisted_metadata)
+          event_1 = TestEvents::ScaleAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, scale: 42, metadata: unpersisted_metadata)
+          event_2 = TestEvents::ScaleAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, scale: 43, metadata: unpersisted_metadata)
 
           expect {
             described_class.sink(
