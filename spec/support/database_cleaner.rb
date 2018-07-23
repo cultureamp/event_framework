@@ -1,14 +1,14 @@
 require 'sequel'
 require 'database_cleaner'
 require 'event_framework'
-require 'database'
 
 RSpec.configure do |config|
   config.before :suite do
+    # pre-emptively connect to the database, in case we haven't already
     EventFramework::EventStore.database
 
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with :truncation
+    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.clean
   end
 
   config.around :each do |example|

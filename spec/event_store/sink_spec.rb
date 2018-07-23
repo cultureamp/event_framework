@@ -1,7 +1,4 @@
-require 'spec_helper'
-require_relative '../../lib/event_framework'
-require_relative '../../lib/event'
-require_relative '../../lib/event_store/sink'
+require 'securerandom'
 
 module TestEvents
   ScaleAdded = Class.new(EventFramework::Event) do
@@ -10,7 +7,7 @@ module TestEvents
 end
 
 module EventFramework
-  class EventStore
+  module EventStore
     RSpec.describe Sink do
       let(:aggregate_id) { SecureRandom.uuid }
       let(:unpersisted_metadata) { Event::UnpersistedMetadata.new }

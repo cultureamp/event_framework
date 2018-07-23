@@ -1,7 +1,5 @@
-require_relative '../database'
-
 module EventFramework
-  class EventStore
+  module EventStore
     class Source
       LIMIT = 1000
       EventBuilder = -> (row) {
