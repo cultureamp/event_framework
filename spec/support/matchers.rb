@@ -1,30 +1,40 @@
 # NOTE: This does not check the metadata content.
 RSpec::Matchers.define :match_events do |expected_events|
   match do |actual_events|
-    actual_events.zip(expected_events).each do |actual_event, expected_event|
-      expect(actual_event.class).to eq expected_event.class
-      expect(actual_event.aggregate_id).to eq expected_event.aggregate_id
-      expect(actual_event.aggregate_sequence).to eq expected_event.aggregate_sequence
+    @errors = Hash.new { |h, k| h[k] = [] }
+
+    actual_events.zip(expected_events).each_with_index do |(actual_event, expected_event), i|
+      @errors[i] << :event_class unless actual_event.class == expected_event.class
+      @errors[i] << :aggregate_id unless actual_event.aggregate_id == expected_event.aggregate_id
+      @errors[i] << :aggregate_sequence unless actual_event.aggregate_sequence == expected_event.aggregate_sequence
 
       # body
-      expect(EventFramework::EventStore::Sink::EventBodySerializer.call(actual_event.to_h))
-        .to eq EventFramework::EventStore::Sink::EventBodySerializer.call(expected_event.to_h)
+      actual_event_body = EventFramework::EventStore::Sink::EventBodySerializer.call(actual_event.to_h)
+      expected_event_body = EventFramework::EventStore::Sink::EventBodySerializer.call(expected_event.to_h)
+      @errors[i] << :body unless actual_event_body == expected_event_body
 
       # metadata
-      expect(actual_event.metadata).to be_a EventFramework::Event::Metadata
-      expect(actual_event.metadata).to be_a expected_event.metadata.class
-      expect(actual_event.metadata.created_at).to be_a Time
+      @errors[i] << :metadata_class unless actual_event.metadata.class == EventFramework::Event::Metadata
+      @errors[i] << :metadata_created_at unless actual_event.metadata.created_at.class == expected_event.metadata.created_at.class
     end
+
+    @errors.empty?
   end
 
   failure_message do |actual_events|
-    <<~MATCH_FAIL_MSG
-      expected:
+    message = ""
 
-      #{actual_events.pretty_inspect}
-      to eq:
+    @errors.each do |i, errors|
+      message << <<~MATCH_FAIL_MSG
+        Event at index #{i} did not match, error(s): #{errors.join(', ')}
+          expected:
+            #{expected_events[i].inspect}
+          got:
+            #{actual_events[i].inspect}
 
-      #{expected_events.pretty_inspect}
-    MATCH_FAIL_MSG
+      MATCH_FAIL_MSG
+    end
+
+    message
   end
 end
