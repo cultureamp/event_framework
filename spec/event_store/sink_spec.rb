@@ -45,7 +45,7 @@ module EventFramework
         ]
 
         expect(persisted_events.first[:id]).to match Types::UUID_REGEX
-        expect(Time.parse(persisted_events.first[:metadata]['created_at'])).to be_within(1).of Time.now.utc
+        expect(Time.parse(persisted_events.first[:metadata]['created_at'])).to be_within(2).of Time.now.utc
       end
 
       it 'allows persisting multiple events to the database' do
