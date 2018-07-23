@@ -13,7 +13,7 @@ RSpec::Matchers.define :match_events do |expected_events|
       # metadata
       expect(actual_event.metadata).to be_a EventFramework::Event::Metadata
       expect(actual_event.metadata).to be_a expected_event.metadata.class
-      expect(actual_event.metadata.created_at).to be_within(1).of(expected_event.metadata.created_at)
+      expect(actual_event.metadata.created_at).to be_a Time
     end
   end
 
