@@ -16,9 +16,7 @@ module EventFramework
   end
 
   class Configuration
-    attr_accessor \
-      :database_url,
-      :event_namespace_class
+    attr_accessor :database_url, :event_namespace_class
 
     def initialize
       @event_namespace_class = Object
