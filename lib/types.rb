@@ -7,7 +7,7 @@ module EventFramework
     UUID_REGEX = /
       \A[0-9a-fA-F]{8}
       -[0-9a-fA-F]{4}
-      -4[0-9a-fA-F]{3}
+      -[0-9a-fA-F]{4}
       -[89abAB][0-9a-fA-F]{3}
       -[0-9a-fA-F]{12}\z
     /ix
