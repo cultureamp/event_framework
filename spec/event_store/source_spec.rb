@@ -9,19 +9,24 @@ end
 module EventFramework
   module EventStore
     RSpec.describe Source do
+      def insert_event(aggregate_id:, aggregate_sequence:, type:, body:)
+        EventStore.database[:events].insert(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: aggregate_sequence,
+          type: type,
+          body: Sequel.pg_jsonb(body),
+          metadata: Sequel.pg_jsonb(created_at: Time.now.utc),
+        )
+      end
+
       let(:aggregate_id) { SecureRandom.uuid }
       let(:unpersisted_metadata) { Event::UnpersistedMetadata.new }
       let(:metadata) { Event::Metadata.new(created_at: Time.now.utc) }
 
       describe '.get_from' do
         it 'returns events' do
-          event_1 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: unpersisted_metadata)
-          event_2 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'baz', metadata: unpersisted_metadata)
-
-          Sink.sink(
-            aggregate_id: aggregate_id,
-            events: [event_1, event_2],
-          )
+          insert_event aggregate_id: aggregate_id, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'bar' }
+          insert_event aggregate_id: aggregate_id, aggregate_sequence: 2, type: 'FooAdded', body: { foo: 'baz' }
 
           expect(Source.get_from(0)).to match_events [
             TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: metadata),
@@ -32,13 +37,9 @@ module EventFramework
 
       describe 'get_for_aggregate' do
         it 'returns events scoped to the aggregate' do
-          event_1 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: unpersisted_metadata)
-          event_2 = TestEvents::FooAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 2, foo: 'baz', metadata: unpersisted_metadata)
-          event_3 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'qux', metadata: unpersisted_metadata)
-
-          Sink.sink(aggregate_id: aggregate_id, events: [event_1])
-          Sink.sink(aggregate_id: event_2.aggregate_id, events: [event_2])
-          Sink.sink(aggregate_id: aggregate_id, events: [event_3])
+          insert_event aggregate_id: aggregate_id, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'bar' }
+          insert_event aggregate_id: SecureRandom.uuid, aggregate_sequence: 2, type: 'FooAdded', body: { foo: 'baz' }
+          insert_event aggregate_id: aggregate_id, aggregate_sequence: 2, type: 'FooAdded', body: { foo: 'qux' }
 
           expect(Source.get_for_aggregate(aggregate_id)).to match_events [
             TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: metadata),
