@@ -1,0 +1,57 @@
+module EventFramework
+  class Aggregate
+    attr_reader :id
+    attr_reader :new_events
+    attr_reader :aggregate_sequence
+
+    class << self
+      def apply(*event_classes, &block)
+        event_classes.each do |event_class|
+          event_handlers.add(event_class, block)
+        end
+      end
+
+      def load_from_history(aggregate_id, events)
+        new.tap do |aggregate|
+          aggregate.instance_variable_set('@id', aggregate_id)
+          aggregate.load_events(events)
+        end
+      end
+
+      def event_handlers
+        @event_handlers ||= EventHandlers.new
+      end
+    end
+
+    def initialize
+      @id = id
+      @aggregate_sequence = 0
+      @new_events = []
+    end
+
+    def add(domain_event)
+      handle_event(domain_event)
+      @new_events << domain_event
+    end
+
+    def load_events(events)
+      events.each do |event|
+        handle_event(event.domain_event)
+        @aggregate_sequence = event.aggregate_sequence
+      end
+    end
+
+    def clear_new_events
+      @clear_new_events.clear
+    end
+
+    private
+
+    def handle_event(domain_event)
+      self.class.event_handlers.for(domain_event.type).each do |handler|
+        # TODO: Check handler arity
+        instance_exec(domain_event, &handler)
+      end
+    end
+  end
+end

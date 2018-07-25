@@ -4,8 +4,10 @@ module EventFramework
   autoload :Types, 'types'
   autoload :DomainEvent, 'domain_event'
   autoload :Event, 'event'
+  autoload :EventHandlers, 'event_handlers'
   autoload :EventStore, 'event_store'
   autoload :Metadata, 'metadata'
+  autoload :Aggregate, 'aggregate'
 
   class << self
     attr_accessor :config
