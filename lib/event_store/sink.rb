@@ -21,21 +21,18 @@ module EventFramework
       }
 
       class << self
-        def sink(aggregate_id:, events:)
+        def sink(aggregate_id:, events:, metadata:, expected_current_aggregate_sequence:)
+          current_aggregate_sequence = expected_current_aggregate_sequence
+
           database.transaction do
             events.each do |event|
-              unless event.aggregate_id == aggregate_id
-                raise AggregateIdMismatch,
-                  "error saving event for #{event.aggregate_id.inspect} to #{aggregate_id.inspect}"
-              end
-
               begin
                 database[:events].insert(
                   aggregate_id: aggregate_id,
-                  aggregate_sequence: event.aggregate_sequence,
+                  aggregate_sequence: current_aggregate_sequence += 1,
                   type: EventTypeSerializer.call(event),
                   body: Sequel.pg_jsonb(EventBodySerializer.call(event)),
-                  metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(event.metadata)),
+                  metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(metadata)),
                 )
               rescue Sequel::UniqueConstraintViolation
                 raise ConcurrencyError,

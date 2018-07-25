@@ -5,13 +5,15 @@ module EventFramework
 
       LIMIT = 1000
       EventBuilder = -> (row) {
-        klass = EventTypeDeserializer.call(row[:type])
-        klass.new(
-          row[:body].merge(
-            aggregate_id: row[:aggregate_id],
-            aggregate_sequence: row[:aggregate_sequence],
-            metadata: Event::Metadata.new(row[:metadata]),
-          ),
+        domain_event = EventTypeDeserializer.call(row[:type]).new(row[:body])
+
+        Event.new(
+          id: row[:id],
+          sequence: row[:sequence],
+          aggregate_id: row[:aggregate_id],
+          aggregate_sequence: row[:aggregate_sequence],
+          metadata: Event::Metadata.new(row[:metadata]),
+          domain_event: domain_event,
         )
       }
 
