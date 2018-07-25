@@ -7,31 +7,43 @@ module EventFramework
     private
 
     def db_hostname
-      @_db_hostname ||= ssm_client.get_parameters_by_path(
-        path: "/#{farm_name}/murmur/event_store/db/hostname",
-        with_decryption: false,
-      )
+      @_db_hostname ||= begin
+        response = ssm_client.get_parameter(
+          path: "/#{farm_name}/murmur/event_store/db/hostname",
+          with_decryption: false,
+        )
+        response&.parameter&.value
+      end
     end
 
     def db_name
-      @_db_name ||= ssm_client.get_parameters_by_path(
-        path: "/#{aws_account}/murmur/event_store/db/name",
-        with_decryption: false,
-      )
+      @_db_name ||= begin
+        response = ssm_client.get_parameter(
+          path: "/#{aws_account}/murmur/event_store/db/name",
+          with_decryption: false,
+        )
+        response&.parameter&.value
+      end
     end
 
     def db_username
-      @_db_username ||= ssm_client.get_parameters_by_path(
-        path: "/#{aws_account}/murmur/event_store/db/username",
-        with_decryption: false,
-      )
+      @_db_username ||= begin
+        response = ssm_client.get_parameter(
+          path: "/#{aws_account}/murmur/event_store/db/username",
+          with_decryption: false,
+        )
+        response&.parameter&.value
+      end
     end
 
     def db_password
-      @_db_password ||= ssm_client.get_parameters_by_path(
-        path: "/#{aws_account}/murmur/event_store/db/password",
-        with_decryption: true,
-      )
+      @_db_password ||= begin
+        response = ssm_client.get_parameter(
+          path: "/#{aws_account}/murmur/event_store/db/password",
+          with_decryption: true,
+        )
+        response&.parameter&.value
+      end
     end
 
     def ssm_client
