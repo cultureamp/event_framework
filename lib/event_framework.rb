@@ -6,8 +6,11 @@ module EventFramework
   autoload :Event, 'event'
   autoload :EventHandlers, 'event_handlers'
   autoload :EventStore, 'event_store'
+  autoload :Command, 'command'
+  autoload :CommandHandler, 'command_handler'
   autoload :Metadata, 'metadata'
   autoload :Aggregate, 'aggregate'
+  autoload :Repository, 'repository'
 
   class << self
     attr_accessor :config
