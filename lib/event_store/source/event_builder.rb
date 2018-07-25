@@ -6,7 +6,7 @@ module EventFramework
       class EventBuilder
         class << self
           def call(row)
-            domain_event = EventTypeDeserializer.call(row[:type]).new(row[:body])
+            domain_event_class = EventTypeDeserializer.call(row[:type])
 
             Event.new(
               id: row[:id],
@@ -14,7 +14,7 @@ module EventFramework
               aggregate_id: row[:aggregate_id],
               aggregate_sequence: row[:aggregate_sequence],
               metadata: Event::Metadata.new(row[:metadata]),
-              domain_event: domain_event,
+              domain_event: domain_event_class.new(row[:body]),
             )
           end
         end
