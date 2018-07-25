@@ -1,3 +1,6 @@
+require 'aws-sdk-core'
+require 'aws-sdk-ssm'
+
 module EventFramework
   class ParameterStore
     def database_url
