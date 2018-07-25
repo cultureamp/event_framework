@@ -1,5 +1,5 @@
 require 'dotenv'
-Dotenv.load
+Dotenv.load '../.env'
 
 namespace :event_store do
   namespace :db do
