@@ -18,6 +18,7 @@ class SurveyAggregate < EventFramework::Aggregate
 
   # An example of a command that can be run against an aggregate.
   def create(name:)
+    add SurveyCreated.new(name: name)
   end
 end
 ```
