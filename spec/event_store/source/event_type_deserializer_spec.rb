@@ -1,7 +1,7 @@
 require 'event_store/source/event_type_deserializer'
 
 module TestEvents
-  EventTypeDeserializerTested = Class.new(EventFramework::Event)
+  EventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 end
 
 module EventFramework
