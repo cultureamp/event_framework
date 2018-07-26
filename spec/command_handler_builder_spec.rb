@@ -59,7 +59,7 @@ RSpec.describe EventFramework::CommandHandlerBuilder do
 
     context 'if no request_id is available in the controller' do
       it 'raises an error' do
-        expect { handler }.to raise_error("no request_id")
+        expect { handler }.to raise_error(described_class::MissingRequestIdError)
       end
     end
 

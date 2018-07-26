@@ -4,6 +4,8 @@ module EventFramework
   module CommandHandlerBuilder
     extend Dry::Configurable
 
+    MissingRequestIdError = Class.new(StandardError)
+
     setting :metadata_class
     setting :user_id_resolver, -> {}
     setting :account_id_resolver, -> {}
@@ -20,7 +22,7 @@ module EventFramework
           correlation_id: instance_exec(&c.request_id_resolver),
         )
 
-        raise "no request_id" if metadata.correlation_id.nil?
+        raise MissingRequestIdError if metadata.correlation_id.nil?
 
         handler_class.new(metadata: metadata)
       end
