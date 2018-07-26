@@ -1,4 +1,3 @@
-require 'securerandom'
 require 'event_store/source/event_builder'
 
 module TestEvents

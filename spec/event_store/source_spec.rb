@@ -1,5 +1,3 @@
-require 'securerandom'
-
 module TestEvents
   FooAdded = Class.new(EventFramework::DomainEvent) do
     attribute :foo, EventFramework::Types::String

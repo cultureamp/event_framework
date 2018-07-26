@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-require 'securerandom'
-
 module EventFramework
   RSpec.describe CommandHandler do
     let(:user_id) { SecureRandom.uuid }

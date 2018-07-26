@@ -1,5 +1,3 @@
-require 'securerandom'
-
 module TestEvents
   class ThingImplemented < EventFramework::DomainEvent
     attribute :foo, EventFramework::Types::Strict::String

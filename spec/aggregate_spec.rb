@@ -1,5 +1,3 @@
-require 'securerandom'
-
 module TestEvents
   TodoAdded = Class.new(EventFramework::DomainEvent)
   TodoRemoved = Class.new(EventFramework::DomainEvent)

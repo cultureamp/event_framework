@@ -1,6 +1,7 @@
 ENV['RAILS_ENV'] = 'test'
 
 require 'pry-byebug'
+require 'securerandom'
 
 spec_dir = File.dirname(__FILE__)
 Dir['spec/support/*.rb'].each do |f|

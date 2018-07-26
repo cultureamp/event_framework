@@ -1,5 +1,3 @@
-require 'securerandom'
-
 module TestEvents
   ScaleAdded = Class.new(EventFramework::DomainEvent) do
     attribute :scale, EventFramework::Types::Integer
