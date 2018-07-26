@@ -13,13 +13,12 @@ module EventFramework
 
     module Mixin
       def build_handler(handler_class)
-        # just sugar, that's all.
-        c = EventFramework::CommandHandlerBuilder.config
+        config = EventFramework::CommandHandlerBuilder.config
 
-        metadata = c.metadata_class.new(
-          user_id: instance_exec(&c.user_id_resolver),
-          account_id: instance_exec(&c.account_id_resolver),
-          correlation_id: instance_exec(&c.request_id_resolver),
+        metadata = config.metadata_class.new(
+          user_id: instance_exec(&config.user_id_resolver),
+          account_id: instance_exec(&config.account_id_resolver),
+          correlation_id: instance_exec(&config.request_id_resolver),
         )
 
         raise MissingRequestIdError if metadata.correlation_id.nil?
