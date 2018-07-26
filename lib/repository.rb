@@ -10,7 +10,7 @@ module EventFramework
         EventStore::Sink.sink(
           aggregate_id: aggregate.id,
           domain_events: aggregate.new_events,
-          expected_current_aggregate_sequence: aggregate.aggregate_sequence,
+          expected_aggregate_sequence: aggregate.aggregate_sequence,
           metadata: metadata,
         )
       end

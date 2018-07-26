@@ -21,15 +21,15 @@ module EventFramework
       }
 
       class << self
-        def sink(aggregate_id:, domain_events:, metadata:, expected_current_aggregate_sequence:)
-          current_aggregate_sequence = expected_current_aggregate_sequence
+        def sink(aggregate_id:, domain_events:, metadata:, expected_aggregate_sequence:)
+          aggregate_sequence = expected_aggregate_sequence
 
           database.transaction do
             domain_events.each do |domain_event|
               begin
                 database[:events].insert(
                   aggregate_id: aggregate_id,
-                  aggregate_sequence: current_aggregate_sequence += 1,
+                  aggregate_sequence: aggregate_sequence += 1,
                   type: EventTypeSerializer.call(domain_event),
                   body: Sequel.pg_jsonb(EventBodySerializer.call(domain_event)),
                   metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(metadata)),

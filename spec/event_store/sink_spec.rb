@@ -21,7 +21,7 @@ module EventFramework
           aggregate_id: aggregate_id,
           domain_events: [event],
           metadata: metadata,
-          expected_current_aggregate_sequence: 0,
+          expected_aggregate_sequence: 0,
         )
 
         persisted_events = events_for_aggregate(aggregate_id)
@@ -48,7 +48,7 @@ module EventFramework
           aggregate_id: aggregate_id,
           domain_events: [event_1, event_2],
           metadata: metadata,
-          expected_current_aggregate_sequence: 0,
+          expected_aggregate_sequence: 0,
         )
 
         persisted_events = events_for_aggregate(aggregate_id)
@@ -68,7 +68,7 @@ module EventFramework
               aggregate_id: aggregate_id,
               domain_events: [event_1],
               metadata: metadata,
-              expected_current_aggregate_sequence: 0,
+              expected_aggregate_sequence: 0,
             )
 
             # When the event was passed in the aggregate didn't know that we
@@ -80,7 +80,7 @@ module EventFramework
                 aggregate_id: aggregate_id,
                 domain_events: [event_2],
                 metadata: metadata,
-                expected_current_aggregate_sequence: 0,
+                expected_aggregate_sequence: 0,
               )
             }.to raise_error Sink::ConcurrencyError,
                              "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence mismatch"
