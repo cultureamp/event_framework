@@ -1,3 +1,6 @@
+require 'dotenv'
+Dotenv.load '../.env'
+
 namespace :event_store do
   namespace :db do
     desc "Run migrations"
