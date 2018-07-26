@@ -19,7 +19,7 @@ module EventFramework
 
         described_class.sink(
           aggregate_id: aggregate_id,
-          events: [event],
+          domain_events: [event],
           metadata: metadata,
           expected_current_aggregate_sequence: 0,
         )
@@ -46,7 +46,7 @@ module EventFramework
 
         described_class.sink(
           aggregate_id: aggregate_id,
-          events: [event_1, event_2],
+          domain_events: [event_1, event_2],
           metadata: metadata,
           expected_current_aggregate_sequence: 0,
         )
@@ -66,7 +66,7 @@ module EventFramework
 
             described_class.sink(
               aggregate_id: aggregate_id,
-              events: [event_1],
+              domain_events: [event_1],
               metadata: metadata,
               expected_current_aggregate_sequence: 0,
             )
@@ -78,7 +78,7 @@ module EventFramework
             expect {
               described_class.sink(
                 aggregate_id: aggregate_id,
-                events: [event_2],
+                domain_events: [event_2],
                 metadata: metadata,
                 expected_current_aggregate_sequence: 0,
               )

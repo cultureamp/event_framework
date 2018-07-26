@@ -9,7 +9,7 @@ module EventFramework
       if aggregate.new_events.any?
         EventStore::Sink.sink(
           aggregate_id: aggregate.id,
-          events: aggregate.new_events,
+          domain_events: aggregate.new_events,
           expected_current_aggregate_sequence: aggregate.aggregate_sequence,
           metadata: metadata,
         )
