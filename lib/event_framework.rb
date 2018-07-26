@@ -4,7 +4,7 @@ module EventFramework
   autoload :Types, 'types'
   autoload :DomainEvent, 'domain_event'
   autoload :Event, 'event'
-  autoload :EventHandlers, 'event_handlers'
+  autoload :EventHandlerRegistry, 'event_handler_registry'
   autoload :EventStore, 'event_store'
   autoload :Command, 'command'
   autoload :CommandHandler, 'command_handler'

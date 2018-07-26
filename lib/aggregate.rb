@@ -19,7 +19,7 @@ module EventFramework
       end
 
       def event_handlers
-        @event_handlers ||= EventHandlers.new
+        @event_handlers ||= EventHandlerRegistry.new
       end
     end
 
