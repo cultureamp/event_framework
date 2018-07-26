@@ -79,3 +79,13 @@ Event.new(              # A generic event class that holds the Event information
   )
 )
 ```
+
+## Event Store
+
+The `EventStore` consists of two parts. A `Sink` and a `Source`.
+
+The `Sink` is responsible for appending `DomainEvent`s to the database.
+
+The `Source` is responsible for reading events. This can be done using an
+offset from the using a `sequence` OR by requesting all events for a given
+Aggregate ID.
