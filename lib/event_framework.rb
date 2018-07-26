@@ -1,4 +1,4 @@
-require 'dry-configurable'
+require 'dry/configurable'
 
 module EventFramework
   extend Dry::Configurable
@@ -14,8 +14,8 @@ module EventFramework
     ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
-  # the Module from which Event definitions are sourced
-  setting :event_namespace_class
+  # the Module from which Event definitions are sourced; defaults to Object
+  setting :event_namespace_class, Object
 
   # the full URL used to connect to the database
   # e.g. postgres://localhost/database_name
