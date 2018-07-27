@@ -91,7 +91,7 @@ the event to the event store is handled by calling `sink_event`.
 ```ruby
 class PersonAggregate < EventFramework::Aggregate
   def change_email_address(command:, metadata:)
-    raise InvalidEmailAddressError unless EmailAddress.new(command.email_address).valid?
+    raise EmailNotChanged if command.email_address == @email_address
 
     sink_event Events::EmailAddressChanged.new(email_address: command.email_address), metadata
   end
