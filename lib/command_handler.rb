@@ -9,15 +9,13 @@ module EventFramework
 
     private
 
+    attr_reader :metadata
+
     def with_aggregate(aggregate_class, aggregate_id)
       aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
 
       yield aggregate
-
-      repository.save aggregate, metadata
     end
-
-    attr_reader :metadata
 
     # TODO: with_new_aggregate
   end

@@ -55,16 +55,5 @@ RSpec.describe EventFramework::CommandHandler do
       expect { |b| instance.send(:with_aggregate, thing_class, aggregate_id, &b) }
         .to yield_with_args(aggregate)
     end
-
-    # TODO: remove this
-    it 'saves the changes to the repository' do
-      instance.send(:with_aggregate, thing_class, aggregate_id, &empty_block)
-
-      expect(repository).to have_received(:save) do |actual_aggregate, metadata|
-        expect(actual_aggregate).to eq aggregate
-        expect(metadata.user_id).to eq user_id
-        expect(metadata.account_id).to eq account_id
-      end
-    end
   end
 end
