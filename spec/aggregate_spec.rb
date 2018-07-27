@@ -1,49 +1,77 @@
-module TestEvents
-  TodoAdded = Class.new(EventFramework::DomainEvent)
-  TodoRemoved = Class.new(EventFramework::DomainEvent)
-  IgnoredEvent = Class.new(EventFramework::DomainEvent)
+module Placeholder
+  class Initialized < EventFramework::DomainEvent
+  end
+
+  class Tweaked < EventFramework::DomainEvent
+    attribute :tweak, EventFramework::Types::String
+  end
+
+  class Bopped < EventFramework::DomainEvent
+  end
+
+  class IgnoredEvent < EventFramework::DomainEvent
+  end
+
+  class PlaceholderAggregate < EventFramework::Aggregate
+    attr_accessor :tweaks, :bops, :tweaks_and_bops_count
+
+    apply Initialized do |_event|
+      self.tweaks = []
+      self.bops   = []
+      self.tweaks_and_bops_count = 0
+    end
+
+    apply Tweaked do |event|
+      tweaks << event.tweak
+    end
+
+    apply Bopped do |_event, metadata|
+      bops << metadata.bop_id
+    end
+
+    apply Tweaked, Bopped do |_event|
+      self.tweaks_and_bops_count += 1
+    end
+  end
 end
 
-module EventFramework
-  RSpec.describe Aggregate do
-    describe '.load_from_history' do
-      let(:todo_list_class) do
-        Class.new(Aggregate) do
-          attr_accessor :todos, :bars, :added_removed_events
+RSpec.describe EventFramework::Aggregate do
+  def event_double(aggregate_sequence:, domain_event:, metadata: nil)
+    instance_double(
+      EventFramework::Event,
+      aggregate_sequence: aggregate_sequence,
+      type: domain_event.class,
+      domain_event: domain_event,
+      metadata: metadata,
+    )
+  end
 
-          def initialize
-            @todos = 0
-            @bars = 0
-            @added_removed_events = 0
-          end
+  let(:event_sink) { spy(:event_sink) }
 
-          apply TestEvents::TodoAdded do |event|
-            self.todos += 1
-          end
+  let(:aggregate_id) { 'ce0507da-fc67-4300-ac23-7a11e12dbd40' }
+  let(:aggregate)    { Placeholder::PlaceholderAggregate.new(aggregate_id, event_sink) }
 
-          apply TestEvents::TodoRemoved do |event|
-            self.todos -= 1
-          end
+  let(:metadata) { double :metadata, bop_id: '802ed3ee-cd97-43f7-8ec1-bd58412b0eea' }
 
-          apply TestEvents::TodoAdded, TestEvents::TodoRemoved do |event|
-            self.added_removed_events += 1
-          end
-        end
-      end
+  describe '#load_events' do
+    let(:events) do
+      [
+        event_double(aggregate_sequence: 1, domain_event: Placeholder::Initialized.new),
+        event_double(aggregate_sequence: 2, domain_event: Placeholder::Tweaked.new(tweak: "Foo!")),
+        event_double(aggregate_sequence: 3, domain_event: Placeholder::Bopped.new, metadata: metadata),
+        event_double(aggregate_sequence: 4, domain_event: Placeholder::IgnoredEvent.new),
+      ]
+    end
 
-      it 'loads events from history' do
-        events = [
-          instance_double(Event, aggregate_sequence: 1, type: TestEvents::TodoAdded, domain_event: TestEvents::TodoAdded.new),
-          instance_double(Event, aggregate_sequence: 1, type: TestEvents::TodoRemoved, domain_event: TestEvents::TodoRemoved.new),
-          instance_double(Event, aggregate_sequence: 1, type: TestEvents::IgnoredEvent, domain_event: TestEvents::IgnoredEvent.new),
-        ]
+    before { aggregate.load_events(events) }
 
-        aggregate_id = SecureRandom.uuid
+    it 'builds state from the given events, using the registered event handlers' do
+      expect(aggregate.tweaks).to eql ["Foo!"]
+      expect(aggregate.bops).to eql [metadata.bop_id]
+    end
 
-        loaded_todo_list = todo_list_class.load_from_history(aggregate_id, events)
-        expect(loaded_todo_list.todos).to eq 0
-        expect(loaded_todo_list.added_removed_events).to eq 2
-      end
+    it 'populates the (private) internal sequence' do
+      expect(aggregate.send(:aggregate_sequence)).to eql events.last.aggregate_sequence
     end
   end
 end

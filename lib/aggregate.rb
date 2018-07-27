@@ -11,22 +11,16 @@ module EventFramework
         end
       end
 
-      def load_from_history(aggregate_id, events)
-        new.tap do |aggregate|
-          aggregate.instance_variable_set('@id', aggregate_id)
-          aggregate.load_events(events)
-        end
-      end
-
       def event_handlers
         @event_handlers ||= EventHandlerRegistry.new
       end
     end
 
-    def initialize
+    def initialize(id, event_sink)
       @id = id
       @aggregate_sequence = 0
       @new_events = []
+      @event_sink = event_sink
     end
 
     def add(domain_event)
@@ -36,7 +30,7 @@ module EventFramework
 
     def load_events(events)
       events.each do |event|
-        handle_event(event.domain_event)
+        handle_event(event.domain_event, event.metadata)
         @aggregate_sequence = event.aggregate_sequence
       end
     end
@@ -47,10 +41,12 @@ module EventFramework
 
     private
 
-    def handle_event(domain_event)
+    def handle_event(domain_event, metadata)
       self.class.event_handlers.for(domain_event.type).each do |handler|
-        # TODO: Check handler arity
-        instance_exec(domain_event, &handler)
+        case handler.arity
+        when 1 then instance_exec(domain_event, &handler)
+        when 2 then instance_exec(domain_event, metadata, &handler)
+        end
       end
     end
   end
