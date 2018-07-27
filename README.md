@@ -13,6 +13,9 @@ primary Aggregate:
 ```ruby
 module Domains
   module Person
+    class EmailAddressChanged < EventFramework::DomainEvent
+    end
+
     class ChangeEmailAddressCommand < EventFramework::Command
     end
 
@@ -25,7 +28,7 @@ module Domains
 end
 ```
 
-As you can see from the example above, `EventFramework` provides three base
+As you can see from the example above, `EventFramework` provides four base
 classes that can be used to build domain objects.
 
 ### Command
