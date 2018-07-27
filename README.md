@@ -40,14 +40,17 @@ class ChangeEmailAddressCommand < EventFramework::Command
 end
 ```
 
-`Command` is implemented as a `dry-struct` (http://dry-rb.org/gems/dry-struct/),
+`Command` is implemented as a [dry-struct](http://dry-rb.org/gems/dry-struct/),
 allowing us to build concise, self-documenting, mostly-type-safe data objects.
 
 ### CommandHandler
 
-A `CommandHandler` is the bridge between a Rails controller action and the
-aggregate it works with. It negotiates the process of instantiating an aggregate
-and re-building its internal state from the events in the event store:
+In general terms, a `CommandHandler` acts as the bridge between an external source
+of input and  and the intended aggregate. In our current use-case, this means
+Rails controller actions.
+
+The `CommandHandler` negotiates the process of instantiating an aggregate and
+re-building its internal state from the events in the event store:
 
 ```ruby
 class ChangeEmailAddressCommandHandler < EventFramework::CommandHandler
@@ -101,18 +104,9 @@ by calling `sink_staged_events`
 
 ```ruby
 class PersonAggregate < EventFramework::Aggregate
-  # In this example, assume `command.custom_attributes` is a Hash that looks like:
-  #
-  # {
-  #   disposition: 'focused',
-  #   alignment: 'neutral',
-  #   origin: 'earth',
-  # }
-  #
-  def add_custom_attributes(command:, metadata:)
-    command.custom_attributes.each do |attribute, value|
-      stage_event Events::CustomAttributeAdded.new(attribute_name: attribute, value: value), metadata
-    end
+  def modify_attributes(command:, metadata:)
+    stage_event Events::AlignmentChanged(alignment: command.alignment) if @alignment != command.alignment
+    stage_event Events::OriginStoryChanged(origin_story: command.origin_story) if @origin_story != command.origin_story
 
     sink_staged_events
   end
