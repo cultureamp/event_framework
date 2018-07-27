@@ -1,8 +1,21 @@
 module EventFramework
   class Aggregate
     attr_reader :id
-    attr_reader :new_events
-    attr_reader :aggregate_sequence
+
+    class StagedEvent < Dry::Struct
+      attribute :aggregate_id, Types::UUID
+      attribute :aggregate_sequence, Types::Strict::Integer
+      attribute :domain_event, DomainEvent
+
+      attribute :metadata do
+        transform_keys(&:to_sym)
+
+        attribute :account_id, Types::UUID
+        attribute :user_id, Types::UUID
+        attribute :correlation_id, Types::UUID.meta(omittable: true)
+        attribute :causation_id, Types::UUID.meta(omittable: true)
+      end
+    end
 
     class << self
       def apply(*event_classes, &block)
@@ -19,13 +32,8 @@ module EventFramework
     def initialize(id, event_sink)
       @id = id
       @aggregate_sequence = 0
-      @new_events = []
+      @staged_events = []
       @event_sink = event_sink
-    end
-
-    def add(domain_event)
-      handle_event(domain_event)
-      @new_events << domain_event
     end
 
     def load_events(events)
@@ -35,11 +43,37 @@ module EventFramework
       end
     end
 
-    def clear_new_events
-      @clear_new_events.clear
+    def sink_event(domain_event, metadata)
+      event_sink.sink build_staged_event(domain_event, metadata)
+    end
+
+    def stage_event(domain_event, metadata)
+      staged_event = build_staged_event(domain_event, metadata)
+      staged_events << staged_event
+
+      handle_event(domain_event, metadata)
+      @aggregate_sequence = staged_event.aggregate_sequence
+    end
+
+    def sink_staged_events
+      event_sink.sink *staged_events
+      staged_events.clear
     end
 
     private
+
+    attr_reader :event_sink
+    attr_reader :staged_events
+    attr_reader :aggregate_sequence
+
+    def build_staged_event(domain_event, metadata)
+      StagedEvent.new(
+        aggregate_id: id,
+        aggregate_sequence: aggregate_sequence.next,
+        domain_event: domain_event,
+        metadata: metadata.to_h,
+      )
+    end
 
     def handle_event(domain_event, metadata)
       self.class.event_handlers.for(domain_event.type).each do |handler|
