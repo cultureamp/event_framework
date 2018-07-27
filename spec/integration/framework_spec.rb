@@ -1,54 +1,54 @@
-module TestEvents
+module TestDomain
   class ThingImplemented < EventFramework::DomainEvent
     attribute :foo, EventFramework::Types::Strict::String
     attribute :bar, EventFramework::Types::Strict::String
   end
-end
 
-class ImplementThingHandler < EventFramework::CommandHandler
-  def handle(command)
-    with_aggregate(ThingAggregate, command.thing_id) do |thing|
-      thing.implement(command: command, metadata: metadata)
+  class ImplementThingHandler < EventFramework::CommandHandler
+    def handle(command)
+      with_aggregate(ThingAggregate, command.thing_id) do |thing|
+        thing.implement(command: command, metadata: metadata)
+      end
+    end
+
+    def handle_many(command)
+      with_aggregate(ThingAggregate, command.thing_id) do |thing|
+        thing.implement_many(command: command, metadata: metadata)
+      end
     end
   end
 
-  def handle_many(command)
-    with_aggregate(ThingAggregate, command.thing_id) do |thing|
-      thing.implement_many(command: command, metadata: metadata)
-    end
-  end
-end
-
-class ImplementThing < EventFramework::Command
-  attribute :thing_id, EventFramework::Types::UUID
-  attribute :foo, EventFramework::Types::Strict::String
-  attribute :bar, EventFramework::Types::Strict::String
-end
-
-class ThingAggregate < EventFramework::Aggregate
-  attr_accessor :foo, :bar
-
-  def initialize
-    @foo = ""
+  class ImplementThing < EventFramework::Command
+    attribute :thing_id, EventFramework::Types::UUID
+    attribute :foo, EventFramework::Types::Strict::String
+    attribute :bar, EventFramework::Types::Strict::String
   end
 
-  apply TestEvents::ThingImplemented do |body|
-    # using append rather than assign so we capture the effects of cumulative
-    # ThingImplemented events
-    @foo << body.foo
-    @bar = body.bar
-  end
+  class ThingAggregate < EventFramework::Aggregate
+    attr_accessor :bar
 
-  def implement(command:, metadata:)
-    sink_event TestEvents::ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
-  end
-
-  def implement_many(command:, metadata:)
-    5.times do
-      stage_event TestEvents::ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+    apply ThingImplemented do |body|
+      # using append rather than assign so we capture the effects of cumulative
+      # ThingImplemented events
+      foo << body.foo
+      @bar = body.bar
     end
 
-    sink_staged_events
+    def foo
+      @foo ||= ""
+    end
+
+    def implement(command:, metadata:)
+      sink_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+    end
+
+    def implement_many(command:, metadata:)
+      5.times do
+        stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+      end
+
+      sink_staged_events
+    end
   end
 end
 
@@ -65,11 +65,11 @@ RSpec.describe 'integration' do
   end
 
   let(:handler) do
-    ImplementThingHandler.new(metadata: metadata)
+    TestDomain::ImplementThingHandler.new(metadata: metadata)
   end
 
   let(:command) do
-    ImplementThing.new(
+    TestDomain::ImplementThing.new(
       thing_id: aggregate_id,
       foo: 'X',
       bar: 'Bar',
