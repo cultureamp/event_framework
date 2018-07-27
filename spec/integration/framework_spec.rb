@@ -57,11 +57,15 @@ RSpec.describe 'integration' do
   let(:current_account_id) { "03aca38c-44ab-4eff-a86f-7e5daba33e88" }
   let(:aggregate_id)       { "ed3f5377-b063-4c53-8827-91123ca2aec6" }
 
-  let(:handler) do
-    ImplementThingHandler.new(
-      user_id: current_user_id,
+  let(:metadata) do
+    EventFramework::Metadata.new(
+      user_id: current_account_id,
       account_id: current_account_id,
     )
+  end
+
+  let(:handler) do
+    ImplementThingHandler.new(metadata: metadata)
   end
 
   let(:command) do
