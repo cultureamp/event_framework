@@ -65,5 +65,14 @@ namespace :event_store do
         db.execute "DROP DATABASE IF EXISTS #{db_name}"
       end
     end
+
+    namespace :schema do
+      desc "Dump database schema"
+      task :dump do
+        require_relative 'lib/tasks/schema_dump'
+
+        SchemaDump.call(EventFramework.config.database_url, filename: 'db/structure.sql')
+      end
+    end
   end
 end
