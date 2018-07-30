@@ -2,41 +2,28 @@ module EventFramework
   module EventStore
     class Sink
       ConcurrencyError = Class.new(Error)
-      AggregateIdMismatch = Class.new(Error)
-      EventBodySerializer = -> (domain_event) {
-        domain_event.to_h.reject do |k, _v|
-          %i[
-            aggregate_id
-            aggregate_sequence
-            metadata
-          ].include?(k)
-        end
-      }
+      AggregateIdMismatchError = Class.new(Error)
+
       MetadataSerializer = -> (metadata) {
         ['created_at', Sequel.lit(%q{to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')})] +
           metadata.to_h.flat_map { |k, v| v && [k.to_s, v.to_s] }.compact
       }
-      EventTypeSerializer = -> (domain_event) {
-        domain_event.class.name.split('::').last
-      }
 
       class << self
-        def sink(aggregate_id:, domain_events:, metadata:, expected_aggregate_sequence:)
-          aggregate_sequence = expected_aggregate_sequence
-
+        def sink(*staged_events)
           database.transaction do
-            domain_events.each do |domain_event|
+            staged_events.each do |staged_event|
               begin
                 database[:events].insert(
-                  aggregate_id: aggregate_id,
-                  aggregate_sequence: aggregate_sequence += 1,
-                  type: EventTypeSerializer.call(domain_event),
-                  body: Sequel.pg_jsonb(EventBodySerializer.call(domain_event)),
-                  metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(metadata)),
+                  aggregate_id: staged_event.aggregate_id,
+                  aggregate_sequence: staged_event.aggregate_sequence,
+                  type: staged_event.type,
+                  body: Sequel.pg_jsonb(staged_event.body),
+                  metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(staged_event.metadata)),
                 )
               rescue Sequel::UniqueConstraintViolation
                 raise ConcurrencyError,
-                  "error saving aggregate_id #{aggregate_id.inspect}, aggregate_sequence mismatch"
+                      "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
               end
             end
           end
