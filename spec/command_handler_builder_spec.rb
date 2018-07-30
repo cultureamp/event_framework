@@ -23,7 +23,7 @@ RSpec.describe EventFramework::CommandHandlerBuilder do
   end
 
   class StubController
-    include EventFramework::CommandHandlerBuilder::Mixin
+    include EventFramework::CommandHandlerBuilder::Buildable
 
     # these methods are stubbed out by partial doubles in our specs
     def application_user_id; end

@@ -11,7 +11,7 @@ module EventFramework
     setting :account_id_resolver, -> {}
     setting :request_id_resolver, -> {}
 
-    module Mixin
+    module Buildable
       def build_handler(handler_class)
         config = EventFramework::CommandHandlerBuilder.config
 
