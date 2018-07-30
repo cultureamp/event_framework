@@ -11,6 +11,7 @@ module EventFramework
   autoload :Metadata, 'metadata'
   autoload :Aggregate, 'aggregate'
   autoload :Repository, 'repository'
+  autoload :StagedEvent, 'staged_event'
 
   class << self
     attr_accessor :config

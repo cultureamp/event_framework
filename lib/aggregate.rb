@@ -2,21 +2,6 @@ module EventFramework
   class Aggregate
     attr_reader :id
 
-    class StagedEvent < Dry::Struct
-      attribute :aggregate_id, Types::UUID
-      attribute :aggregate_sequence, Types::Strict::Integer
-      attribute :domain_event, DomainEvent
-
-      attribute :metadata do
-        transform_keys(&:to_sym)
-
-        attribute :account_id, Types::UUID
-        attribute :user_id, Types::UUID
-        attribute :correlation_id, Types::UUID.meta(omittable: true)
-        attribute :causation_id, Types::UUID.meta(omittable: true)
-      end
-    end
-
     class << self
       def apply(*event_classes, &block)
         event_classes.each do |event_class|
