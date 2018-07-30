@@ -23,8 +23,7 @@ module EventFramework
 
     def load_events(events)
       events.each do |event|
-        handle_event(event.domain_event, event.metadata)
-        @aggregate_sequence = event.aggregate_sequence
+        handle_event(event)
       end
     end
 
@@ -36,8 +35,7 @@ module EventFramework
       staged_event = build_staged_event(domain_event, metadata)
       staged_events << staged_event
 
-      handle_event(domain_event, metadata)
-      @aggregate_sequence = staged_event.aggregate_sequence
+      handle_event(staged_event)
     end
 
     def sink_staged_events
@@ -60,13 +58,15 @@ module EventFramework
       )
     end
 
-    def handle_event(domain_event, metadata)
-      self.class.event_handlers.for(domain_event.type).each do |handler|
+    def handle_event(event)
+      self.class.event_handlers.for(event.domain_event.type).each do |handler|
         case handler.arity
-        when 1 then instance_exec(domain_event, &handler)
-        when 2 then instance_exec(domain_event, metadata, &handler)
+        when 1 then instance_exec(event.domain_event, &handler)
+        when 2 then instance_exec(event.domain_event, event.metadata, &handler)
         end
       end
+
+      @aggregate_sequence = event.aggregate_sequence
     end
   end
 end
