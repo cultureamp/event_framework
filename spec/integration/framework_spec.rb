@@ -1,45 +1,47 @@
-module TestDomain
-  class ThingImplemented < EventFramework::DomainEvent
-    attribute :foo, EventFramework::Types::Strict::String
-    attribute :bar, EventFramework::Types::Strict::String
-  end
+module TestEvents
+  module Thing
+    class ThingImplemented < EventFramework::DomainEvent
+      attribute :foo, EventFramework::Types::Strict::String
+      attribute :bar, EventFramework::Types::Strict::String
+    end
 
-  class ImplementThingHandler < EventFramework::CommandHandler
-    def handle(command)
-      with_aggregate(ThingAggregate, command.thing_id) do |thing|
-        thing.implement(command: command, metadata: metadata)
+    class ImplementThingHandler < EventFramework::CommandHandler
+      def handle(command)
+        with_aggregate(ThingAggregate, command.thing_id) do |thing|
+          thing.implement(command: command, metadata: metadata)
+        end
+      end
+
+      def handle_many(command)
+        with_aggregate(ThingAggregate, command.thing_id) do |thing|
+          thing.implement_many(command: command, metadata: metadata)
+        end
       end
     end
 
-    def handle_many(command)
-      with_aggregate(ThingAggregate, command.thing_id) do |thing|
-        thing.implement_many(command: command, metadata: metadata)
-      end
-    end
-  end
-
-  class ImplementThing < EventFramework::Command
-    attribute :thing_id, EventFramework::Types::UUID
-    attribute :foo, EventFramework::Types::Strict::String
-    attribute :bar, EventFramework::Types::Strict::String
-  end
-
-  class ThingAggregate < EventFramework::Aggregate
-    apply ThingImplemented do |body|
-      @foo = body.foo
-      @bar = body.bar
+    class ImplementThing < EventFramework::Command
+      attribute :thing_id, EventFramework::Types::UUID
+      attribute :foo, EventFramework::Types::Strict::String
+      attribute :bar, EventFramework::Types::Strict::String
     end
 
-    def implement(command:, metadata:)
-      sink_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
-    end
-
-    def implement_many(command:, metadata:)
-      5.times do
-        stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+    class ThingAggregate < EventFramework::Aggregate
+      apply ThingImplemented do |body|
+        @foo = body.foo
+        @bar = body.bar
       end
 
-      sink_staged_events
+      def implement(command:, metadata:)
+        sink_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+      end
+
+      def implement_many(command:, metadata:)
+        5.times do
+          stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+        end
+
+        sink_staged_events
+      end
     end
   end
 end
@@ -60,11 +62,11 @@ RSpec.describe 'integration' do
   end
 
   let(:handler) do
-    TestDomain::ImplementThingHandler.new(metadata: metadata)
+    TestEvents::Thing::ImplementThingHandler.new(metadata: metadata)
   end
 
   let(:command) do
-    TestDomain::ImplementThing.new(
+    TestEvents::Thing::ImplementThing.new(
       thing_id: aggregate_id,
       foo: 'Foo',
       bar: 'Bar',
