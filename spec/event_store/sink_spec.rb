@@ -87,7 +87,7 @@ RSpec.describe EventFramework::EventStore::Sink do
     end
 
     before do
-      described_class.sink(*staged_events)
+      described_class.sink(staged_events)
     end
 
     it 'persists multiple events in one call' do

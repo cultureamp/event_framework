@@ -10,9 +10,9 @@ module EventFramework
       }
 
       class << self
-        def sink(*staged_events)
+        def sink(staged_events)
           database.transaction do
-            staged_events.each do |staged_event|
+            Array(staged_events).each do |staged_event|
               begin
                 database[:events].insert(
                   aggregate_id: staged_event.aggregate_id,

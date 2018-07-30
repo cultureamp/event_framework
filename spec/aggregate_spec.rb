@@ -81,58 +81,29 @@ RSpec.describe EventFramework::Aggregate do
     end
   end
 
-  describe '#sink_event' do
+  describe '#apply_change' do
     before { aggregate.load_events(events) }
 
-    it 'sinks the given event / metadata into the event_sink' do
-      aggregate.sink_event Placeholder::Bopped.new, metadata
+    it 'builds a staged_event and stores it in new_events' do
+      aggregate.apply_change Placeholder::Bopped.new, metadata
+      aggregate.apply_change Placeholder::Bopped.new, metadata
 
-      event_matcher = an_object_having_attributes(
-        aggregate_id: aggregate_id,
-        aggregate_sequence: 5,
-        domain_event: an_instance_of(Placeholder::Bopped),
-        metadata: an_object_having_attributes(**metadata.to_h),
-      )
-
-      expect(event_sink).to have_received(:sink).with(event_matcher)
-    end
-  end
-
-  describe '#stage_event' do
-    before { aggregate.load_events(events) }
-
-    it 'builds a staged_event and saves it in staged_events' do
-      aggregate.stage_event Placeholder::Bopped.new, metadata
-
-      event_matcher = an_object_having_attributes(
-        aggregate_id: aggregate_id,
-        aggregate_sequence: 5,
-        domain_event: an_instance_of(Placeholder::Bopped),
-        metadata: an_object_having_attributes(**metadata.to_h),
-      )
-
-      expect(aggregate.send(:staged_events)).to contain_exactly(event_matcher)
-      expect(event_sink).not_to have_received(:sink)
-    end
-  end
-
-  describe '#sink_staged_events' do
-    before { aggregate.load_events(events) }
-
-    it 'sinks all staged events to the event_sink' do
-      aggregate.stage_event Placeholder::Bopped.new, metadata
-      aggregate.stage_event Placeholder::IgnoredEvent.new, metadata
-      aggregate.stage_event Placeholder::Bopped.new, metadata
-
-      aggregate.sink_staged_events
-
-      sunk_events_matchers = [
-        an_object_having_attributes(aggregate_id: aggregate_id, aggregate_sequence: 5),
-        an_object_having_attributes(aggregate_id: aggregate_id, aggregate_sequence: 6),
-        an_object_having_attributes(aggregate_id: aggregate_id, aggregate_sequence: 7),
+      event_matchers = [
+        an_object_having_attributes(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: 5,
+          domain_event: an_instance_of(Placeholder::Bopped),
+          metadata: an_object_having_attributes(**metadata.to_h),
+        ),
+        an_object_having_attributes(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: 6,
+          domain_event: an_instance_of(Placeholder::Bopped),
+          metadata: an_object_having_attributes(**metadata.to_h),
+        )
       ]
 
-      expect(event_sink).to have_received(:sink).with(*sunk_events_matchers)
+      expect(aggregate.new_events).to match event_matchers
     end
   end
 end

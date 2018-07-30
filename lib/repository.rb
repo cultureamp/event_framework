@@ -7,5 +7,11 @@ module EventFramework
         aggregate.load_events(events)
       end
     end
+
+    def self.save_aggregate(aggregate)
+      unless aggregate.new_events.empty?
+        EventStore::Sink.sink(aggregate.new_events)
+      end
+    end
   end
 end

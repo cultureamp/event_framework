@@ -15,6 +15,8 @@ module EventFramework
       aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
 
       yield aggregate
+
+      repository.save_aggregate(aggregate)
     end
 
     # TODO: with_new_aggregate

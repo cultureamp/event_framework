@@ -1,6 +1,6 @@
 module EventFramework
   class Aggregate
-    attr_reader :id
+    attr_reader :id, :new_events
 
     class << self
       def apply(*event_classes, &block)
@@ -17,7 +17,7 @@ module EventFramework
     def initialize(id, event_sink)
       @id = id
       @aggregate_sequence = 0
-      @staged_events = []
+      @new_events = []
       @event_sink = event_sink
     end
 
@@ -27,13 +27,9 @@ module EventFramework
       end
     end
 
-    def sink_event(domain_event, metadata)
-      event_sink.sink build_staged_event(domain_event, metadata)
-    end
-
-    def stage_event(domain_event, metadata)
+    def apply_change(domain_event, metadata)
       staged_event = build_staged_event(domain_event, metadata)
-      staged_events << staged_event
+      new_events << staged_event
 
       handle_event(staged_event)
     end
@@ -46,7 +42,6 @@ module EventFramework
     private
 
     attr_reader :event_sink
-    attr_reader :staged_events
     attr_reader :aggregate_sequence
 
     def build_staged_event(domain_event, metadata)
