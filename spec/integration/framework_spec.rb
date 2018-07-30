@@ -36,8 +36,8 @@ module TestEvents
       end
 
       def implement_many(command:, metadata:)
-        5.times do
-          stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+        5.times do |i|
+          stage_event ThingImplemented.new(foo: "#{command.foo}-#{i}", bar: command.bar), metadata
         end
 
         sink_staged_events
@@ -105,7 +105,7 @@ RSpec.describe 'integration' do
     it 'persists multiple events, in order' do
       domain_event_foo_values = events.map { |e| e.domain_event.foo }
 
-      expect(domain_event_foo_values).to eql %w(Foo Foo Foo Foo Foo)
+      expect(domain_event_foo_values).to eql %w(Foo-0 Foo-1 Foo-2 Foo-3 Foo-4)
     end
   end
 end
