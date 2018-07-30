@@ -2,7 +2,7 @@ module EventFramework
   class CommandHandler
     attr_reader :repository
 
-    def initialize(metadata:, repository: Repository)
+    def initialize(metadata:, repository: Repository.new)
       @repository = repository
       @metadata = metadata
     end
