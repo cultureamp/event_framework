@@ -3,6 +3,8 @@ ENV['RAILS_ENV'] = 'test'
 require 'pry-byebug'
 require 'securerandom'
 
+require 'dry/configurable/test_interface'
+
 spec_dir = File.dirname(__FILE__)
 Dir['spec/support/*.rb'].each do |f|
   require File.join(spec_dir, '..', f)
