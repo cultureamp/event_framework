@@ -1,7 +1,5 @@
-require 'securerandom'
-
 module TestEvents
-  FooAdded = Class.new(EventFramework::Event) do
+  FooAdded = Class.new(EventFramework::DomainEvent) do
     attribute :foo, EventFramework::Types::String
   end
 end
@@ -9,41 +7,68 @@ end
 module EventFramework
   module EventStore
     RSpec.describe Source do
+      def insert_event(sequence:, aggregate_id:, aggregate_sequence:, type:, body:)
+        metadata = {
+          account_id: SecureRandom.uuid,
+          user_id: SecureRandom.uuid,
+          created_at: Time.now.utc,
+        }
+
+        EventStore.database[:events].overriding_system_value.insert(
+          sequence: sequence,
+          aggregate_id: aggregate_id,
+          aggregate_sequence: aggregate_sequence,
+          type: type,
+          body: Sequel.pg_jsonb(body),
+          metadata: Sequel.pg_jsonb(metadata),
+        )
+      end
+
       let(:aggregate_id) { SecureRandom.uuid }
-      let(:unpersisted_metadata) { Event::UnpersistedMetadata.new }
-      let(:metadata) { Event::Metadata.new(created_at: Time.now.utc) }
+
+      before do
+        insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'foo' }
+        insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'bar' }
+        insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, type: 'FooAdded', body: { foo: 'qux' }
+      end
 
       describe '.get_from' do
-        it 'returns events' do
-          event_1 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: unpersisted_metadata)
-          event_2 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'baz', metadata: unpersisted_metadata)
+        let(:events) { Source.get_from(15) }
 
-          Sink.sink(
-            aggregate_id: aggregate_id,
-            events: [event_1, event_2],
-          )
-
-          expect(Source.get_from(0)).to match_events [
-            TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: metadata),
-            TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'baz', metadata: metadata),
+        it 'only returns events with a sequence value greater or equal to the given argument' do
+          expect(events).to all be_an(Event)
+          expect(events).to match [
+            have_attributes(sequence: 15, domain_event: TestEvents::FooAdded.new(foo: 'bar')),
+            have_attributes(sequence: 16, domain_event: TestEvents::FooAdded.new(foo: 'qux')),
           ]
+        end
+
+        context 'when no events are found' do
+          let(:events) { Source.get_from(17) }
+
+          it 'returns an empty array' do
+            expect(events).to be_empty
+          end
         end
       end
 
-      describe 'get_for_aggregate' do
+      describe '.get_for_aggregate' do
+        let(:events) { Source.get_for_aggregate(aggregate_id) }
+
         it 'returns events scoped to the aggregate' do
-          event_1 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: unpersisted_metadata)
-          event_2 = TestEvents::FooAdded.new(aggregate_id: SecureRandom.uuid, aggregate_sequence: 2, foo: 'baz', metadata: unpersisted_metadata)
-          event_3 = TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'qux', metadata: unpersisted_metadata)
-
-          Sink.sink(aggregate_id: aggregate_id, events: [event_1])
-          Sink.sink(aggregate_id: event_2.aggregate_id, events: [event_2])
-          Sink.sink(aggregate_id: aggregate_id, events: [event_3])
-
-          expect(Source.get_for_aggregate(aggregate_id)).to match_events [
-            TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 1, foo: 'bar', metadata: metadata),
-            TestEvents::FooAdded.new(aggregate_id: aggregate_id, aggregate_sequence: 2, foo: 'qux', metadata: metadata),
+          expect(events).to all be_an(Event)
+          expect(events).to match [
+            have_attributes(sequence: 14, domain_event: TestEvents::FooAdded.new(foo: 'foo')),
+            have_attributes(sequence: 16, domain_event: TestEvents::FooAdded.new(foo: 'qux')),
           ]
+        end
+
+        context 'when no events are found' do
+          let(:events) { Source.get_for_aggregate(SecureRandom.uuid) }
+
+          it 'returns an empty array' do
+            expect(events).to be_empty
+          end
         end
       end
     end

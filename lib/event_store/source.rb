@@ -1,19 +1,9 @@
 module EventFramework
   module EventStore
     class Source
-      autoload :EventTypeDeserializer, 'event_store/source/event_type_deserializer'
+      autoload :EventBuilder, 'event_store/source/event_builder'
 
       LIMIT = 1000
-      EventBuilder = -> (row) {
-        klass = EventTypeDeserializer.call(row[:type])
-        klass.new(
-          row[:body].merge(
-            aggregate_id: row[:aggregate_id],
-            aggregate_sequence: row[:aggregate_sequence],
-            metadata: Event::Metadata.new(row[:metadata]),
-          ),
-        )
-      }
 
       class << self
         def get_from(sequence)

@@ -1,6 +1,10 @@
+require 'event_store/source/event_type_deserializer'
+
 module TestEvents
-  EventTypeDeserializerTested = Class.new(EventFramework::Event)
+  EventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 end
+
+OtherEventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 
 module EventFramework
   module EventStore
@@ -16,6 +20,13 @@ module EventFramework
             it 'raises an error' do
               expect { EventTypeDeserializer.call('BadEvent') }
                 .to raise_error EventTypeDeserializer::UnknownEventType, 'BadEvent'
+            end
+          end
+
+          context 'when called with a class name that exists otuside the declared parent domain' do
+            it 'raises an error' do
+              expect { EventTypeDeserializer.call('OtherEventTypeDeserializerTested') }
+                .to raise_error EventTypeDeserializer::UnknownEventType, 'OtherEventTypeDeserializerTested'
             end
           end
         end

@@ -2,8 +2,17 @@ module EventFramework
   Error = Class.new(StandardError)
 
   autoload :Types, 'types'
+  autoload :DomainEvent, 'domain_event'
   autoload :Event, 'event'
+  autoload :EventHandlerRegistry, 'event_handler_registry'
   autoload :EventStore, 'event_store'
+  autoload :Command, 'command'
+  autoload :CommandHandler, 'command_handler'
+  autoload :CommandHandlerBuilder, 'command_handler_builder'
+  autoload :Metadata, 'metadata'
+  autoload :Aggregate, 'aggregate'
+  autoload :Repository, 'repository'
+  autoload :StagedEvent, 'staged_event'
 
   class << self
     attr_accessor :config
