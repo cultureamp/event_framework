@@ -25,17 +25,9 @@ module TestDomain
   end
 
   class ThingAggregate < EventFramework::Aggregate
-    attr_accessor :bar
-
     apply ThingImplemented do |body|
-      # using append rather than assign so we capture the effects of cumulative
-      # ThingImplemented events
-      foo << body.foo
+      @foo = body.foo
       @bar = body.bar
-    end
-
-    def foo
-      @foo ||= ""
     end
 
     def implement(command:, metadata:)
@@ -55,12 +47,15 @@ end
 RSpec.describe 'integration' do
   let(:current_user_id)    { "2a72a921-a7e2-4ddc-a841-30c7d4723912" }
   let(:current_account_id) { "03aca38c-44ab-4eff-a86f-7e5daba33e88" }
+  let(:request_id)         { "ae8a5823-7886-43d7-9487-32e2e7c01e70" }
+
   let(:aggregate_id)       { "ed3f5377-b063-4c53-8827-91123ca2aec6" }
 
   let(:metadata) do
     EventFramework::Metadata.new(
-      user_id: current_account_id,
+      user_id: current_user_id,
       account_id: current_account_id,
+      correlation_id: request_id,
     )
   end
 
@@ -71,12 +66,12 @@ RSpec.describe 'integration' do
   let(:command) do
     TestDomain::ImplementThing.new(
       thing_id: aggregate_id,
-      foo: 'X',
+      foo: 'Foo',
       bar: 'Bar',
     )
   end
 
-  let(:events) { EventStore::Source.get_for_aggregate(aggregate_id) }
+  let(:events) { EventFramework::EventStore::Source.get_for_aggregate(aggregate_id) }
 
   describe 'persisting a single event from a command' do
     before { handler.handle(command) }
@@ -86,11 +81,15 @@ RSpec.describe 'integration' do
     end
 
     it 'persists the metadata from the command handler to the event' do
-      expect(event.first.metadata).to have_attributes(user_id: current_user_id, account_id: current_account_id)
+      expect(events.first.metadata).to have_attributes(
+        user_id: current_user_id,
+        account_id: current_account_id,
+        correlation_id: request_id,
+      )
     end
 
     it 'persists the domain event within the event' do
-      expect(event.first.domain_event).to have_attributes(foo: 'Foo', bar: 'Bar')
+      expect(events.first.domain_event).to have_attributes(foo: 'Foo', bar: 'Bar')
     end
   end
 
@@ -104,7 +103,7 @@ RSpec.describe 'integration' do
     it 'persists multiple events, in order' do
       domain_event_foo_values = events.map { |e| e.domain_event.foo }
 
-      expect(domain_event_foo_values).to eql %w(Foo FooFoo FooFooFoo FooFooFooFoo FooFooFooFooFoo)
+      expect(domain_event_foo_values).to eql %w(Foo Foo Foo Foo Foo)
     end
   end
 end
