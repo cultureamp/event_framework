@@ -28,7 +28,7 @@ module Domains
 end
 ```
 
-As you can see from the example above, `EventFramework` provides four base
+As you can see from the example above, `EventFramework` provides several base
 classes that can be used to build domain objects.
 
 ### Command
