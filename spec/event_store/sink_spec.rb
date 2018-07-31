@@ -150,8 +150,8 @@ RSpec.describe EventFramework::EventStore::Sink do
   end
 
   describe 'when passed no events' do
-    it 'returns an empty array' do
-      expect(described_class.sink([])).to be_empty
+    it 'returns nil' do
+      expect(described_class.sink([])).to be_nil
     end
 
     it 'does not call the database' do

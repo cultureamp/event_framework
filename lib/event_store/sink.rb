@@ -11,7 +11,7 @@ module EventFramework
 
       class << self
         def sink(events)
-          return [] if events.empty?
+          return if events.empty?
 
           new_event_rows = []
 
