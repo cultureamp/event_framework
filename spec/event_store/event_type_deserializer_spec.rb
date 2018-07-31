@@ -1,5 +1,3 @@
-require 'event_store/source/event_type_deserializer'
-
 module TestEvents
   module AggregateModule
     EventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
@@ -13,7 +11,7 @@ end
 OtherEventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 
 
-RSpec.describe EventFramework::EventStore::Source::EventTypeDeserializer do
+RSpec.describe EventFramework::EventStore::EventTypeDeserializer do
   describe '.call' do
     context 'with an aggregate_type and an event_type' do
 

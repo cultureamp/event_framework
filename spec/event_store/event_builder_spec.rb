@@ -1,5 +1,3 @@
-require 'event_store/source/event_builder'
-
 module TestEvents
   module AggregateModule
     class EventBuilderTested < EventFramework::DomainEvent
@@ -8,7 +6,7 @@ module TestEvents
   end
 end
 
-RSpec.describe EventFramework::EventStore::Source::EventBuilder do
+RSpec.describe EventFramework::EventStore::EventBuilder do
   describe '.call', aggregate_failures: true do
     let(:event_id) { SecureRandom.uuid }
     let(:aggregate_id) { SecureRandom.uuid }
@@ -33,7 +31,7 @@ RSpec.describe EventFramework::EventStore::Source::EventBuilder do
         },
       }
     end
-    let(:event) { EventBuilder.call(row) }
+    let(:event) { described_class.call(row) }
 
     it 'returns an event' do
       expect(event).to be_a EventFramework::Event
