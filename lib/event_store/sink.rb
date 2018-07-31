@@ -14,6 +14,8 @@ module EventFramework
           new_event_rows = []
           staged_events = Array(staged_events)
 
+          return [] if staged_events.empty?
+
           database.transaction do
             staged_events.each do |staged_event|
               begin
