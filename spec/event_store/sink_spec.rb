@@ -101,29 +101,33 @@ RSpec.describe EventFramework::EventStore::Sink do
       expect(persisted_tuples.map { |t| t[:aggregate_sequence] }).to contain_exactly(1, 2, 3)
     end
 
-    it 'returns the newly persisted events from the database' do
+    it 'calls the after_sink_hook with the newly persisted events from the database' do
       aggregate_id = staged_events.first.aggregate_id
 
-      expect(described_class.sink(staged_events)).to match [
-        an_object_having_attributes(
-          aggregate_id: aggregate_id,
-          aggregate_sequence: 1,
-          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
-          metadata: an_object_having_attributes(**metadata.to_h),
-        ),
-        an_object_having_attributes(
-          aggregate_id: aggregate_id,
-          aggregate_sequence: 2,
-          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
-          metadata: an_object_having_attributes(**metadata.to_h),
-        ),
-        an_object_having_attributes(
-          aggregate_id: aggregate_id,
-          aggregate_sequence: 3,
-          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
-          metadata: an_object_having_attributes(**metadata.to_h),
-        ),
-      ]
+      expect(EventFramework.config.after_sink_hook).to receive(:call) do |events|
+        expect(events).to match [
+          an_object_having_attributes(
+            aggregate_id: aggregate_id,
+            aggregate_sequence: 1,
+            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            metadata: an_object_having_attributes(**metadata.to_h),
+          ),
+          an_object_having_attributes(
+            aggregate_id: aggregate_id,
+            aggregate_sequence: 2,
+            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            metadata: an_object_having_attributes(**metadata.to_h),
+          ),
+          an_object_having_attributes(
+            aggregate_id: aggregate_id,
+            aggregate_sequence: 3,
+            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            metadata: an_object_having_attributes(**metadata.to_h),
+          ),
+        ]
+      end
+
+      described_class.sink(staged_events)
     end
   end
 

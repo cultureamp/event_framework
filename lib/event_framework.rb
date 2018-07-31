@@ -4,6 +4,7 @@ module EventFramework
   extend Dry::Configurable
 
   Error = Class.new(StandardError)
+  AfterSinkHook = -> (events) { }
 
   autoload :Types, 'types'
   autoload :DomainEvent, 'domain_event'
@@ -23,12 +24,16 @@ module EventFramework
     ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
-  # the Module from which Event definitions are sourced; defaults to Object
+  # The Module from which Event definitions are sourced; defaults to Object
   setting :event_namespace_class, Object
 
-  # the full URL used to connect to the database
+  # The full URL used to connect to the database
   # e.g. postgres://localhost/database_name
   setting :database_url
+
+  # An Object that responds to `.call` that is called with an array of new
+  # Events any time an event or list of events is saved.
+  setting :after_sink_hook, AfterSinkHook
 end
 
 # TODO: Move this config to domains/ as it's app specific

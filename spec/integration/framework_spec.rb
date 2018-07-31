@@ -1,6 +1,4 @@
 module TestEvents
-  AfterSink = -> (events) { }
-
   module Thing
     class ThingImplemented < EventFramework::DomainEvent
       attribute :foo, EventFramework::Types::Strict::String
@@ -9,7 +7,7 @@ module TestEvents
 
     class ImplementThingHandler < EventFramework::CommandHandler
       def handle(command)
-        with_aggregate(ThingAggregate, command.thing_id, after_sink: AfterSink) do |thing|
+        with_aggregate(ThingAggregate, command.thing_id) do |thing|
           thing.implement(command: command, metadata: metadata)
         end
       end
@@ -76,10 +74,10 @@ RSpec.describe 'integration' do
   let(:events) { EventFramework::EventStore::Source.get_for_aggregate(aggregate_id) }
 
   describe 'persisting a single event from a command' do
-    let(:after_sink) { spy(:after_sink) }
+    let(:after_sink_hook) { spy(:after_sink_hook) }
 
     before do
-      stub_const('TestEvents::AfterSink', after_sink)
+      allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
       handler.handle(command)
     end
 
@@ -100,7 +98,7 @@ RSpec.describe 'integration' do
     end
 
     it 'calls the after sink hook with the sunk events' do
-      expect(after_sink).to have_received(:call) do |events|
+      expect(after_sink_hook).to have_received(:call) do |events|
         expect(events).to all be_a(EventFramework::Event)
         expect(events).to match [
           an_object_having_attributes(aggregate_id: aggregate_id, aggregate_sequence: 1),
