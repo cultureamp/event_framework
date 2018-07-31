@@ -1,17 +1,27 @@
+module TestEvents
+  module ThingAggregate
+    EventHappened = Class.new(EventFramework::DomainEvent)
+  end
+end
+
 RSpec.describe EventFramework::EventStore::Sink do
   def build_staged_event(aggregate_sequence:)
     instance_double(
       EventFramework::StagedEvent,
-      type: 'Aggregate::EventHappened',
+      type: 'ThingAggregate::EventHappened',
       body: { foo: 'bar' },
       aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
       aggregate_sequence: aggregate_sequence,
-      metadata: {
-        account_id: '402f0e91-c51b-4cf9-80ba-b0665fbc6f05',
-        user_id: 'a64ae92d-e577-4f59-94b4-a9ec601ebdfa',
-        correlation_id: '7d25a7e5-e239-4a78-9491-17cb86c541b6',
-      },
+      metadata: metadata,
     )
+  end
+
+  let(:metadata) do
+    {
+      account_id: '402f0e91-c51b-4cf9-80ba-b0665fbc6f05',
+      user_id: 'a64ae92d-e577-4f59-94b4-a9ec601ebdfa',
+      correlation_id: '7d25a7e5-e239-4a78-9491-17cb86c541b6',
+    }
   end
 
   def last_value_for_sequence(sequence_name)
@@ -25,12 +35,6 @@ RSpec.describe EventFramework::EventStore::Sink do
       .where(aggregate_id: aggregate_id)
       .order(:sequence)
       .all
-  end
-
-  let(:event_store_source) { spy('EventFramework::EventStore::Source') }
-
-  before do
-    stub_const 'EventFramework::EventStore::Source', event_store_source
   end
 
   context 'persisting a single event to the database' do
@@ -52,7 +56,7 @@ RSpec.describe EventFramework::EventStore::Sink do
         sequence: last_value_for_sequence('events_sequence_seq'),
         aggregate_sequence: 1,
         aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
-        type: 'Aggregate::EventHappened',
+        type: 'ThingAggregate::EventHappened',
       )
     end
 
@@ -92,20 +96,36 @@ RSpec.describe EventFramework::EventStore::Sink do
       persisted_tuples_for_aggregate(staged_events.first.aggregate_id)
     end
 
-    before do
-      described_class.sink(staged_events)
-    end
-
     it 'persists multiple events in one call' do
+      described_class.sink(staged_events)
+
       expect(persisted_tuples.length).to eql 3
       expect(persisted_tuples.map { |t| t[:aggregate_sequence] }).to contain_exactly(1, 2, 3)
     end
 
     it 'returns the newly persisted events from the database' do
-      expect(event_store_source).to have_received(:get_for_aggregate_from).with(
-        staged_events.first.aggregate_id,
-        staged_events.first.aggregate_sequence,
-      )
+      aggregate_id = staged_events.first.aggregate_id
+
+      expect(described_class.sink(staged_events)).to match [
+        an_object_having_attributes(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: 1,
+          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+          metadata: an_object_having_attributes(**metadata.to_h),
+        ),
+        an_object_having_attributes(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: 2,
+          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+          metadata: an_object_having_attributes(**metadata.to_h),
+        ),
+        an_object_having_attributes(
+          aggregate_id: aggregate_id,
+          aggregate_sequence: 3,
+          domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+          metadata: an_object_having_attributes(**metadata.to_h),
+        ),
+      ]
     end
   end
 

@@ -14,11 +14,10 @@ module EventFramework
       end
     end
 
-    def initialize(id, event_sink)
+    def initialize(id)
       @id = id
       @aggregate_sequence = 0
       @new_events = []
-      @event_sink = event_sink
     end
 
     def load_events(events)
@@ -34,14 +33,8 @@ module EventFramework
       handle_event(staged_event)
     end
 
-    def sink_staged_events
-      event_sink.sink *staged_events
-      staged_events.clear
-    end
-
     private
 
-    attr_reader :event_sink
     attr_reader :aggregate_sequence
 
     def build_staged_event(domain_event, metadata)

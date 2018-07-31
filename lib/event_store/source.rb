@@ -25,16 +25,6 @@ module EventFramework
             end
         end
 
-        def get_for_aggregate_from(aggregate_id, aggregate_sequence)
-          database[:events]
-            .where(aggregate_id: aggregate_id)
-            .where(Sequel.lit('aggregate_sequence >= ?', aggregate_sequence))
-            .order(:aggregate_sequence)
-            .map do |row|
-              EventBuilder.call(row)
-            end
-        end
-
         private
 
         def database

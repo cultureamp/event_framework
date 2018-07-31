@@ -11,12 +11,13 @@ module EventFramework
 
       class << self
         def sink(staged_events)
+          new_event_rows = []
           staged_events = Array(staged_events)
 
           database.transaction do
             staged_events.each do |staged_event|
               begin
-                database[:events].insert(
+                new_event_rows += database[:events].returning.insert(
                   aggregate_id: staged_event.aggregate_id,
                   aggregate_sequence: staged_event.aggregate_sequence,
                   type: staged_event.type,
@@ -28,11 +29,10 @@ module EventFramework
                       "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
               end
             end
+          end
 
-            Source.get_for_aggregate_from(
-              staged_events.first.aggregate_id,
-              staged_events.first.aggregate_sequence,
-            )
+          new_event_rows.map do |row|
+            EventStore::Source::EventBuilder.call(row)
           end
         end
 

@@ -71,25 +71,6 @@ module EventFramework
           end
         end
       end
-
-      describe '.get_for_aggregate_from' do
-        let(:events) { Source.get_for_aggregate_from(aggregate_id, 2) }
-
-        it 'returns events scoped to the aggregate' do
-          expect(events).to all be_an(Event)
-          expect(events).to match [
-            have_attributes(sequence: 16, aggregate_sequence: 2, domain_event: TestEvents::FooAdded.new(foo: 'qux')),
-          ]
-        end
-
-        context 'when no events are found' do
-          let(:events) { Source.get_for_aggregate_from(SecureRandom.uuid, 1) }
-
-          it 'returns an empty array' do
-            expect(events).to be_empty
-          end
-        end
-      end
     end
   end
 end
