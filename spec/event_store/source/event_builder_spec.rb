@@ -1,8 +1,10 @@
 require 'event_store/source/event_builder'
 
 module TestEvents
-  EventBuilderTested = Class.new(EventFramework::DomainEvent) do
-    attribute :test, EventFramework::Types::Strict::String
+  module AggregateModule
+    class EventBuilderTested < EventFramework::DomainEvent
+      attribute :test, EventFramework::Types::Strict::String
+    end
   end
 end
 
@@ -20,7 +22,8 @@ module EventFramework
             {
               id: event_id,
               sequence: 1,
-              type: 'EventBuilderTested',
+              aggregate_type: 'AggregateModule',
+              event_type: 'EventBuilderTested',
               aggregate_id: aggregate_id,
               aggregate_sequence: 2,
               body: {
@@ -39,13 +42,13 @@ module EventFramework
             expect(event).to be_a EventFramework::Event
             expect(event.id).to eq event_id
             expect(event.sequence).to eq 1
-            expect(event.type).to eq TestEvents::EventBuilderTested
+            expect(event.type).to eq TestEvents::AggregateModule::EventBuilderTested
             expect(event.aggregate_id).to eq aggregate_id
             expect(event.aggregate_sequence).to eq 2
           end
 
           it 'has a domain event' do
-            expect(event.domain_event).to be_a TestEvents::EventBuilderTested
+            expect(event.domain_event).to be_a TestEvents::AggregateModule::EventBuilderTested
             expect(event.domain_event.test).to eq 'Testing!'
           end
 

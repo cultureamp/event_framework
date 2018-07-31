@@ -1,7 +1,13 @@
 require 'event_store/source/event_type_deserializer'
 
 module TestEvents
-  EventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
+  module AggregateModule
+    EventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
+  end
+end
+
+module AggregateModule
+  OtherEventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 end
 
 OtherEventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
@@ -11,22 +17,38 @@ module EventFramework
     class Source
       RSpec.describe EventTypeDeserializer do
         describe '.call' do
-          it 'returns a class' do
-            expect(EventTypeDeserializer.call('EventTypeDeserializerTested'))
-              .to eq TestEvents::EventTypeDeserializerTested
+          context 'with an aggregate_type and an event_type' do
+
+            it 'returns the corresponding domain event class' do
+              expect(described_class.call('AggregateModule', 'EventTypeDeserializerTested'))
+                .to eq TestEvents::AggregateModule::EventTypeDeserializerTested
+            end
+          end
+
+          context 'with a missing argument' do
+            it 'raises an error' do
+              expect { described_class.call(nil, 'EventTypeDeserializerTested') }.to raise_error(ArgumentError)
+            end
+          end
+
+          context 'with an unknown aggregate type' do
+            it 'raises an error' do
+              expect { described_class.call('OtherAggregateModule', 'EventTypeDeserializerTested') }
+                .to raise_error described_class::UnknownEventType, 'OtherAggregateModule::EventTypeDeserializerTested'
+            end
           end
 
           context 'with an unknown event type' do
             it 'raises an error' do
-              expect { EventTypeDeserializer.call('BadEvent') }
-                .to raise_error EventTypeDeserializer::UnknownEventType, 'BadEvent'
+              expect { described_class.call('AggregateModule', 'UnknownEvent') }
+                .to raise_error described_class::UnknownEventType, 'AggregateModule::UnknownEvent'
             end
           end
 
-          context 'when called with a class name that exists otuside the declared parent domain' do
+          context 'when called with a class name that exists outside the declared parent domain' do
             it 'raises an error' do
-              expect { EventTypeDeserializer.call('OtherEventTypeDeserializerTested') }
-                .to raise_error EventTypeDeserializer::UnknownEventType, 'OtherEventTypeDeserializerTested'
+              expect { described_class.call('AggregateModule', 'OtherEventTypeDeserializerTested') }
+                .to raise_error described_class::UnknownEventType, 'AggregateModule::OtherEventTypeDeserializerTested'
             end
           end
         end

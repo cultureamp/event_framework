@@ -4,10 +4,14 @@ module EventFramework
       class EventTypeDeserializer
         UnknownEventType = Class.new(Error)
 
-        def self.call(event_type)
-          EventFramework.config.event_namespace_class.const_get(event_type, false)
+        def self.call(aggregate_type, event_type)
+          raise ArgumentError, "aggregate_type must not be nil" if aggregate_type.nil?
+
+          EventFramework.config.event_namespace_class
+            .const_get(aggregate_type, false)
+            .const_get(event_type, false)
         rescue NameError
-          raise UnknownEventType, event_type
+          raise UnknownEventType, [aggregate_type, event_type].join('::')
         end
       end
     end
