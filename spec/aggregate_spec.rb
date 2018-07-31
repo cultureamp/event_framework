@@ -98,7 +98,7 @@ RSpec.describe EventFramework::Aggregate do
           aggregate_sequence: 6,
           domain_event: an_instance_of(Placeholder::Bopped),
           metadata: an_object_having_attributes(**metadata.to_h),
-        )
+        ),
       ]
 
       expect(aggregate.staged_events).to match event_matchers

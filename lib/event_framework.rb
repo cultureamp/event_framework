@@ -4,7 +4,7 @@ module EventFramework
   extend Dry::Configurable
 
   Error = Class.new(StandardError)
-  AfterSinkHook = -> (events) { }
+  AfterSinkHook = -> (events) {}
 
   autoload :Types, 'types'
   autoload :DomainEvent, 'domain_event'
