@@ -1,6 +1,6 @@
 module EventFramework
   class Aggregate
-    attr_reader :id, :new_events
+    attr_reader :id, :staged_events
 
     class << self
       def apply(*event_classes, &block)
@@ -17,7 +17,7 @@ module EventFramework
     def initialize(id)
       @id = id
       @aggregate_sequence = 0
-      @new_events = []
+      @staged_events = []
     end
 
     def load_events(events)
@@ -26,9 +26,9 @@ module EventFramework
       end
     end
 
-    def apply_change(domain_event, metadata)
+    def stage_event(domain_event, metadata)
       staged_event = build_staged_event(domain_event, metadata)
-      new_events << staged_event
+      staged_events << staged_event
 
       handle_event(staged_event)
     end

@@ -79,12 +79,12 @@ RSpec.describe EventFramework::Aggregate do
     end
   end
 
-  describe '#apply_change' do
+  describe '#stage_event' do
     before { aggregate.load_events(events) }
 
-    it 'builds a staged_event and stores it in new_events' do
-      aggregate.apply_change Placeholder::Bopped.new, metadata
-      aggregate.apply_change Placeholder::Bopped.new, metadata
+    it 'builds a staged_event and stores it in staged_events' do
+      aggregate.stage_event Placeholder::Bopped.new, metadata
+      aggregate.stage_event Placeholder::Bopped.new, metadata
 
       event_matchers = [
         an_object_having_attributes(
@@ -101,7 +101,7 @@ RSpec.describe EventFramework::Aggregate do
         )
       ]
 
-      expect(aggregate.new_events).to match event_matchers
+      expect(aggregate.staged_events).to match event_matchers
     end
   end
 end

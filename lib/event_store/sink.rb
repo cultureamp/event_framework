@@ -10,13 +10,13 @@ module EventFramework
       }
 
       class << self
-        def sink(events)
-          return if events.empty?
+        def sink(staged_events)
+          return if staged_events.empty?
 
           new_event_rows = []
 
           database.transaction do
-            events.each do |staged_event|
+            staged_events.each do |staged_event|
               begin
                 new_event_rows += database[:events].returning.insert(
                   aggregate_id: staged_event.aggregate_id,

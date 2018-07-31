@@ -32,12 +32,12 @@ module TestEvents
       end
 
       def implement(command:, metadata:)
-        apply_change ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+        stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
       end
 
       def implement_many(command:, metadata:)
         5.times do |i|
-          apply_change ThingImplemented.new(foo: "#{command.foo}-#{i}", bar: command.bar), metadata
+          stage_event ThingImplemented.new(foo: "#{command.foo}-#{i}", bar: command.bar), metadata
         end
       end
     end

@@ -9,7 +9,7 @@ module EventFramework
     end
 
     def self.save_aggregate(aggregate)
-      EventStore::Sink.sink(aggregate.new_events)
+      EventStore::Sink.sink(aggregate.staged_events)
     end
   end
 end
