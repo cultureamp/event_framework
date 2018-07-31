@@ -38,14 +38,14 @@ RSpec.describe EventFramework::EventStore::Sink do
   end
 
   context 'persisting a single event to the database' do
-    let(:events) { [build_staged_event(aggregate_sequence: 1)] }
+    let(:staged_events) { [build_staged_event(aggregate_sequence: 1)] }
 
     let(:persisted_tuple) do
-      persisted_tuples_for_aggregate(events.first.aggregate_id).first
+      persisted_tuples_for_aggregate(staged_events.first.aggregate_id).first
     end
 
     before do
-      described_class.sink(events)
+      described_class.sink(staged_events)
     end
 
     it 'persists the main event attributes', aggregate_failures: true do
@@ -133,18 +133,18 @@ RSpec.describe EventFramework::EventStore::Sink do
 
   describe 'optimistic locking' do
     context 'when the supplied aggregate_sequence has already been used' do
-      let(:events) { [build_staged_event(aggregate_sequence: 1)] }
+      let(:staged_events) { [build_staged_event(aggregate_sequence: 1)] }
 
       before do
-        described_class.sink(events)
+        described_class.sink(staged_events)
       end
 
       it 'raises a concurrency error' do
-        expect { described_class.sink(events) }.to raise_error described_class::ConcurrencyError
+        expect { described_class.sink(staged_events) }.to raise_error described_class::ConcurrencyError
       end
 
       it 'does not persist the event' do
-        expect(persisted_tuples_for_aggregate(events.first.aggregate_id).length).to eql 1
+        expect(persisted_tuples_for_aggregate(staged_events.first.aggregate_id).length).to eql 1
       end
     end
   end
