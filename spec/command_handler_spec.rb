@@ -56,4 +56,33 @@ RSpec.describe EventFramework::CommandHandler do
         .to yield_with_args(aggregate)
     end
   end
+
+  describe '#handle' do
+    after do
+      described_class.instance_variable_set(:@callable, nil)
+      described_class.instance_variable_set(:@command_class, nil)
+    end
+
+    context 'when command_class is not defined' do
+      it 'raises a NotImplementedError' do
+        described_class.instance_variable_set(:@callable, 'foo')
+        expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(NotImplementedError)
+      end
+    end
+
+    context 'when callable is not defined' do
+      it 'raises a NotImplementedError' do
+        described_class.instance_variable_set(:@command_class, NilClass)
+        expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(NotImplementedError)
+      end
+    end
+
+    context 'when command is not of the correct type' do
+      it 'raises a MismatchedCommand error' do
+        described_class.instance_variable_set(:@command_class, FalseClass)
+        described_class.instance_variable_set(:@callable, ->(_, _) {})
+        expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(EventFramework::CommandHandler::MismatchedCommand)
+      end
+    end
+  end
 end
