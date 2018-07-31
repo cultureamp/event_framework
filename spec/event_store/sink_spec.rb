@@ -27,6 +27,12 @@ RSpec.describe EventFramework::EventStore::Sink do
       .all
   end
 
+  let(:event_store_source) { spy('EventFramework::EventStore::Source') }
+
+  before do
+    stub_const 'EventFramework::EventStore::Source', event_store_source
+  end
+
   context 'persisting a single event to the database' do
     let(:staged_event) do
       build_staged_event(aggregate_sequence: 1)
@@ -93,6 +99,13 @@ RSpec.describe EventFramework::EventStore::Sink do
     it 'persists multiple events in one call' do
       expect(persisted_tuples.length).to eql 3
       expect(persisted_tuples.map { |t| t[:aggregate_sequence] }).to contain_exactly(1, 2, 3)
+    end
+
+    it 'returns the newly persisted events from the database' do
+      expect(event_store_source).to have_received(:get_for_aggregate_from).with(
+        staged_events.first.aggregate_id,
+        staged_events.first.aggregate_sequence,
+      )
     end
   end
 
