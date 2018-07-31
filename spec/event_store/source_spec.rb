@@ -1,13 +1,15 @@
 module TestEvents
-  FooAdded = Class.new(EventFramework::DomainEvent) do
-    attribute :foo, EventFramework::Types::String
+  module AggregateModule
+    class FooAdded < EventFramework::DomainEvent
+      attribute :foo, EventFramework::Types::String
+    end
   end
 end
 
 module EventFramework
   module EventStore
     RSpec.describe Source do
-      def insert_event(sequence:, aggregate_id:, aggregate_sequence:, type:, body:)
+      def insert_event(sequence:, aggregate_id:, aggregate_sequence:, aggregate_type:, event_type:, body:)
         metadata = {
           account_id: SecureRandom.uuid,
           user_id: SecureRandom.uuid,
@@ -18,7 +20,8 @@ module EventFramework
           sequence: sequence,
           aggregate_id: aggregate_id,
           aggregate_sequence: aggregate_sequence,
-          type: type,
+          aggregate_type: aggregate_type,
+          event_type: event_type,
           body: Sequel.pg_jsonb(body),
           metadata: Sequel.pg_jsonb(metadata),
         )
@@ -27,9 +30,9 @@ module EventFramework
       let(:aggregate_id) { SecureRandom.uuid }
 
       before do
-        insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'foo' }
-        insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, type: 'FooAdded', body: { foo: 'bar' }
-        insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, type: 'FooAdded', body: { foo: 'qux' }
+        insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'foo' }
+        insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'bar' }
+        insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'qux' }
       end
 
       describe '.get_from' do
@@ -38,8 +41,8 @@ module EventFramework
         it 'only returns events with a sequence value greater or equal to the given argument' do
           expect(events).to all be_an(Event)
           expect(events).to match [
-            have_attributes(sequence: 15, domain_event: TestEvents::FooAdded.new(foo: 'bar')),
-            have_attributes(sequence: 16, domain_event: TestEvents::FooAdded.new(foo: 'qux')),
+            have_attributes(sequence: 15, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'bar')),
+            have_attributes(sequence: 16, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'qux')),
           ]
         end
 
@@ -58,8 +61,8 @@ module EventFramework
         it 'returns events scoped to the aggregate' do
           expect(events).to all be_an(Event)
           expect(events).to match [
-            have_attributes(sequence: 14, domain_event: TestEvents::FooAdded.new(foo: 'foo')),
-            have_attributes(sequence: 16, domain_event: TestEvents::FooAdded.new(foo: 'qux')),
+            have_attributes(sequence: 14, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'foo')),
+            have_attributes(sequence: 16, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'qux')),
           ]
         end
 
