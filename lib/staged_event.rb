@@ -4,6 +4,10 @@ module EventFramework
   class StagedEvent < Dry::Struct
     transform_keys(&:to_sym)
 
+    InvalidDomainEventError = Class.new(Error)
+
+    EventTypeDescription = Struct.new(:event_type, :aggregate_type)
+
     attribute :aggregate_id, Types::UUID
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :domain_event, DomainEvent
@@ -17,14 +21,26 @@ module EventFramework
       attribute :causation_id, Types::UUID.meta(omittable: true)
     end
 
-    def type
-      event_name, aggregate_name = domain_event.class.name.split('::').reverse
+    def aggregate_type
+      raise InvalidDomainEventError if type_description.aggregate_type.nil?
 
-      [aggregate_name, event_name].compact.join('::')
+      type_description.aggregate_type
     end
+
+    # rubocop:disable Rails/Delegate
+    def event_type
+      type_description.event_type
+    end
+    # rubocop:enable Rails/Delegate
 
     def body
       domain_event.to_h
+    end
+
+    private
+
+    def type_description
+      @type_description ||= EventTypeDescription.new(*domain_event.class.name.split('::').reverse.slice(0, 2))
     end
   end
 end

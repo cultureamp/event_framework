@@ -15,42 +15,46 @@ RSpec.describe EventFramework::StagedEvent do
     )
   end
 
-  module ReallyLong
-    module Container
-      module Aggregate
-        LongEvent = Class.new(EventFramework::DomainEvent)
+  module Container
+    module Aggregate
+      class LongEvent < EventFramework::DomainEvent; end
+
+      class LongEventWithBody < EventFramework::DomainEvent
+        attribute :foo, EventFramework::Types::Strict::String
       end
     end
   end
 
   ShortEvent = Class.new(EventFramework::DomainEvent)
 
-  ShortEventWithBody = Class.new(EventFramework::DomainEvent) do
-    transform_keys(&:to_sym)
+  # All domain events are implemented as classes in the form `AggregateName::EventName`,
+  # with an optional preceding containing module name (e.g. Domains, TestDomain).
+  # When persisting events, we only care about the last two.
+  describe '#event_type' do
+    it 'returns the event type of the event being staged' do
+      staged_event = build_staged_event(Container::Aggregate::LongEvent.new)
 
-    attribute :foo, EventFramework::Types::Strict::String
+      expect(staged_event.event_type).to eql 'LongEvent'
+    end
   end
 
-  describe '#type' do
-    # We assume all domain events are implemented in the
-    # form `AggregateName::EventName`, with an optional preceding containing
-    # module name (e.g. Domains, TestDomain). We only care about the last two.
-    it 'returns the canonical name of the event being staged' do
-      staged_event = build_staged_event(ReallyLong::Container::Aggregate::LongEvent.new)
+  describe '#aggregate_type' do
+    it 'returns the aggregate type of the event being staged' do
+      staged_event = build_staged_event(Container::Aggregate::LongEvent.new)
 
-      expect(staged_event.type).to eql 'Aggregate::LongEvent'
+      expect(staged_event.aggregate_type).to eql 'Aggregate'
     end
 
-    it 'returns the short-form for domain events that have no container' do
+    it 'raises an error if the domain event class has no container' do
       staged_event = build_staged_event(ShortEvent.new)
 
-      expect(staged_event.type).to eql 'ShortEvent'
+      expect { staged_event.aggregate_type }.to raise_error(described_class::InvalidDomainEventError)
     end
   end
 
   describe '#body' do
     it 'returns the contents of the domain event' do
-      staged_event = build_staged_event(ShortEventWithBody.new(foo: 'bar'))
+      staged_event = build_staged_event(Container::Aggregate::LongEventWithBody.new(foo: 'bar'))
 
       expect(staged_event.body).to eql(foo: 'bar')
     end
