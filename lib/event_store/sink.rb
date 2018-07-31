@@ -34,6 +34,7 @@ module EventFramework
           end
 
           new_event_rows.map do |row|
+            # TODO: Move EventBuilder to EventStore::EventBuilder
             EventStore::Source::EventBuilder.call(row)
           end
         end
