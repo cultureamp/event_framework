@@ -1,4 +1,4 @@
-module TestEvents
+module TestDomain
   module Thing
     class ThingImplemented < EventFramework::DomainEvent
       attribute :foo, EventFramework::Types::Strict::String
@@ -60,11 +60,11 @@ RSpec.describe 'integration' do
   end
 
   let(:handler) do
-    TestEvents::Thing::ImplementThingHandler.new(metadata: metadata)
+    TestDomain::Thing::ImplementThingHandler.new(metadata: metadata)
   end
 
   let(:command) do
-    TestEvents::Thing::ImplementThing.new(
+    TestDomain::Thing::ImplementThing.new(
       thing_id: aggregate_id,
       foo: 'Foo',
       bar: 'Bar',

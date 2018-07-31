@@ -1,5 +1,5 @@
-module TestEvents
-  module AggregateModule
+module TestDomain
+  module Thing
     class FooAdded < EventFramework::DomainEvent
       attribute :foo, EventFramework::Types::String
     end
@@ -28,9 +28,9 @@ RSpec.describe EventFramework::EventStore::Source do
   let(:aggregate_id) { SecureRandom.uuid }
 
   before do
-    insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'foo' }
-    insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'bar' }
-    insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'AggregateModule', event_type: 'FooAdded', body: { foo: 'qux' }
+    insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }
+    insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'bar' }
+    insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'qux' }
   end
 
   describe '.get_from' do
@@ -39,8 +39,8 @@ RSpec.describe EventFramework::EventStore::Source do
     it 'only returns events with a sequence value greater or equal to the given argument' do
       expect(events).to all be_an(EventFramework::Event)
       expect(events).to match [
-        have_attributes(sequence: 15, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'bar')),
-        have_attributes(sequence: 16, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'qux')),
+        have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
+        have_attributes(sequence: 16, domain_event: TestDomain::Thing::FooAdded.new(foo: 'qux')),
       ]
     end
 
@@ -59,8 +59,8 @@ RSpec.describe EventFramework::EventStore::Source do
     it 'returns events scoped to the aggregate' do
       expect(events).to all be_an(EventFramework::Event)
       expect(events).to match [
-        have_attributes(sequence: 14, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'foo')),
-        have_attributes(sequence: 16, domain_event: TestEvents::AggregateModule::FooAdded.new(foo: 'qux')),
+        have_attributes(sequence: 14, domain_event: TestDomain::Thing::FooAdded.new(foo: 'foo')),
+        have_attributes(sequence: 16, domain_event: TestDomain::Thing::FooAdded.new(foo: 'qux')),
       ]
     end
 

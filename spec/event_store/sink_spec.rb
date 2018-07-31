@@ -1,5 +1,5 @@
-module TestEvents
-  module ThingAggregate
+module TestDomain
+  module Thing
     EventHappened = Class.new(EventFramework::DomainEvent)
   end
 end
@@ -11,7 +11,7 @@ RSpec.describe EventFramework::EventStore::Sink do
       body: { foo: 'bar' },
       aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
       aggregate_sequence: aggregate_sequence,
-      aggregate_type: 'ThingAggregate',
+      aggregate_type: 'Thing',
       event_type: 'EventHappened',
       metadata: metadata,
     )
@@ -55,7 +55,7 @@ RSpec.describe EventFramework::EventStore::Sink do
         sequence: last_value_for_sequence('events_sequence_seq'),
         aggregate_sequence: 1,
         aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
-        aggregate_type: 'ThingAggregate',
+        aggregate_type: 'Thing',
         event_type: 'EventHappened',
       )
     end
@@ -111,19 +111,19 @@ RSpec.describe EventFramework::EventStore::Sink do
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 1,
-            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            domain_event: an_instance_of(TestDomain::Thing::EventHappened),
             metadata: an_object_having_attributes(**metadata.to_h),
           ),
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 2,
-            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            domain_event: an_instance_of(TestDomain::Thing::EventHappened),
             metadata: an_object_having_attributes(**metadata.to_h),
           ),
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 3,
-            domain_event: an_instance_of(TestEvents::ThingAggregate::EventHappened),
+            domain_event: an_instance_of(TestDomain::Thing::EventHappened),
             metadata: an_object_having_attributes(**metadata.to_h),
           ),
         ]

@@ -1,5 +1,5 @@
-module TestEvents
-  module AggregateModule
+module TestDomain
+  module Thing
     class EventBuilderTested < EventFramework::DomainEvent
       attribute :test, EventFramework::Types::Strict::String
     end
@@ -17,7 +17,7 @@ RSpec.describe EventFramework::EventStore::EventBuilder do
       {
         id: event_id,
         sequence: 1,
-        aggregate_type: 'AggregateModule',
+        aggregate_type: 'Thing',
         event_type: 'EventBuilderTested',
         aggregate_id: aggregate_id,
         aggregate_sequence: 2,
@@ -37,13 +37,13 @@ RSpec.describe EventFramework::EventStore::EventBuilder do
       expect(event).to be_a EventFramework::Event
       expect(event.id).to eq event_id
       expect(event.sequence).to eq 1
-      expect(event.type).to eq TestEvents::AggregateModule::EventBuilderTested
+      expect(event.type).to eq TestDomain::Thing::EventBuilderTested
       expect(event.aggregate_id).to eq aggregate_id
       expect(event.aggregate_sequence).to eq 2
     end
 
     it 'has a domain event' do
-      expect(event.domain_event).to be_a TestEvents::AggregateModule::EventBuilderTested
+      expect(event.domain_event).to be_a TestDomain::Thing::EventBuilderTested
       expect(event.domain_event.test).to eq 'Testing!'
     end
 
