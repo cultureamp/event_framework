@@ -21,7 +21,8 @@ module EventFramework
                 new_event_rows += database[:events].returning.insert(
                   aggregate_id: staged_event.aggregate_id,
                   aggregate_sequence: staged_event.aggregate_sequence,
-                  type: staged_event.type,
+                  aggregate_type: staged_event.aggregate_type,
+                  event_type: staged_event.event_type,
                   body: Sequel.pg_jsonb(staged_event.body),
                   metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(staged_event.metadata)),
                 )

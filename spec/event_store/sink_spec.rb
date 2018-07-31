@@ -8,10 +8,11 @@ RSpec.describe EventFramework::EventStore::Sink do
   def build_staged_event(aggregate_sequence:)
     instance_double(
       EventFramework::StagedEvent,
-      type: 'ThingAggregate::EventHappened',
       body: { foo: 'bar' },
       aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
       aggregate_sequence: aggregate_sequence,
+      aggregate_type: 'ThingAggregate',
+      event_type: 'EventHappened',
       metadata: metadata,
     )
   end
@@ -54,7 +55,8 @@ RSpec.describe EventFramework::EventStore::Sink do
         sequence: last_value_for_sequence('events_sequence_seq'),
         aggregate_sequence: 1,
         aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
-        type: 'ThingAggregate::EventHappened',
+        aggregate_type: 'ThingAggregate',
+        event_type: 'EventHappened',
       )
     end
 
