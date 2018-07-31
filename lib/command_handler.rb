@@ -1,5 +1,3 @@
-require 'dry/configurable'
-
 module EventFramework
   class CommandHandler
     MismatchedCommand = Class.new(Error)
@@ -22,7 +20,9 @@ module EventFramework
 
     def handle(aggregate_id, command)
       raise NotImplementedError if self.class.command_class.nil? || self.class.callable.nil?
-      raise MismatchedCommand, "Received command of type #{command.class}; expected #{self.class.command_class}" unless command.is_a?(self.class.command_class)
+      unless command.is_a?(self.class.command_class)
+        raise MismatchedCommand, "Received command of type #{command.class}; expected #{self.class.command_class}"
+      end
       instance_exec(aggregate_id, command, &self.class.callable)
     end
 
