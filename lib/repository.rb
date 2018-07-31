@@ -13,7 +13,7 @@ module EventFramework
       end
     end
 
-    def self.save_aggregate(aggregate)
+    def save_aggregate(aggregate)
       @sink.sink(aggregate.staged_events)
     end
   end
