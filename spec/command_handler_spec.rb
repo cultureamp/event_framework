@@ -54,6 +54,12 @@ module EventFramework
         expect { |b| instance.send(:with_aggregate, thing_class, aggregate_id, &b) }
           .to yield_with_args(aggregate)
       end
+
+      it 'saves the aggregate' do
+        instance.send(:with_aggregate, thing_class, aggregate_id, &empty_block)
+
+        expect(repository).to have_received(:save_aggregate).with(aggregate, metadata: metadata)
+      end
     end
 
     describe '#handle' do
