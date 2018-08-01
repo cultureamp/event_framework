@@ -8,7 +8,7 @@ module EventFramework
     def load_aggregate(aggregate_class, aggregate_id)
       events = @source.get_for_aggregate(aggregate_id)
 
-      aggregate_class.new(aggregate_id).tap do |aggregate|
+      aggregate_class.build(aggregate_id).tap do |aggregate|
         aggregate.load_events(events)
       end
     end

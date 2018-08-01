@@ -47,7 +47,7 @@ RSpec.describe EventFramework::Aggregate do
   end
 
   let(:aggregate_id) { 'ce0507da-fc67-4300-ac23-7a11e12dbd40' }
-  let(:aggregate)    { Placeholder::PlaceholderAggregate.new(aggregate_id) }
+  let(:aggregate)    { Placeholder::PlaceholderAggregate.build(aggregate_id) }
 
   let(:metadata) do
     EventFramework::Metadata.new(

@@ -12,9 +12,15 @@ module EventFramework
       def event_handlers
         @event_handlers ||= EventHandlerRegistry.new
       end
+
+      def build(id)
+        new.tap do |aggregate|
+          aggregate.build(id)
+        end
+      end
     end
 
-    def initialize(id)
+    def build(id)
       @id = id
       @aggregate_sequence = 0
       @staged_events = []
