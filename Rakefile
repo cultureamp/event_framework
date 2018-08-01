@@ -3,21 +3,25 @@ Dotenv.load '../.env'
 
 namespace :event_store do
   namespace :db do
-    desc "Run migrations"
-    task :migrate, [:version] do |_t, args|
-      require "sequel/core"
-      require_relative 'lib/event_framework'
-
-      Sequel.extension :migration
-
-      version = args[:version].to_i if args[:version]
-
-      Sequel.connect(EventFramework.config.database_url) do |db|
-        Sequel::Migrator.run(db, "db/migrations", target: version)
-      end
-    end
+    desc "Run the migrate and schema-dump tasksl Set VERSION in Env to choose which migration to target"
+    task migrate: ["migrate:run", "schema:dump"]
 
     namespace :migrate do
+      desc "Perform Migrations; Set VERSION in Env to choose which migration to target"
+      task :run do
+        require "sequel/core"
+        require_relative 'lib/event_framework'
+
+        Sequel.extension :migration
+
+        version = ENV['VERSION']&.to_i
+
+        Sequel.connect(EventFramework.config.database_url) do |db|
+          Sequel::Migrator.run(db, "db/migrations", target: version)
+        end
+      end
+
+
       desc "Create a database migration, Pass in the NAME Env var to set the filename"
       task :create do
         require 'sequel/core'
