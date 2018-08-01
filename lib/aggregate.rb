@@ -26,8 +26,8 @@ module EventFramework
       end
     end
 
-    def stage_event(domain_event, metadata)
-      staged_event = build_staged_event(domain_event, metadata)
+    def stage_event(domain_event)
+      staged_event = build_staged_event(domain_event)
       staged_events << staged_event
 
       handle_event(staged_event)
@@ -37,21 +37,18 @@ module EventFramework
 
     attr_reader :aggregate_sequence
 
-    def build_staged_event(domain_event, metadata)
+    def build_staged_event(domain_event)
       StagedEvent.new(
         aggregate_id: id,
         aggregate_sequence: aggregate_sequence.next,
         domain_event: domain_event,
-        metadata: metadata.to_h,
+        metadata: nil,
       )
     end
 
     def handle_event(event)
       self.class.event_handlers.for(event.domain_event.type).each do |handler|
-        case handler.arity
-        when 1 then instance_exec(event.domain_event, &handler)
-        when 2 then instance_exec(event.domain_event, event.metadata, &handler)
-        end
+        instance_exec(event.domain_event, &handler)
       end
 
       @aggregate_sequence = event.aggregate_sequence

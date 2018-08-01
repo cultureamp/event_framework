@@ -13,8 +13,8 @@ module EventFramework
       end
     end
 
-    def save_aggregate(aggregate)
-      @sink.sink(aggregate.staged_events)
+    def save_aggregate(aggregate, metadata)
+      @sink.sink(aggregate.staged_events.map { |staged_event| staged_event.new(metadata: metadata) })
     end
   end
 end

@@ -8,13 +8,13 @@ module TestEvents
     class ImplementThingHandler < EventFramework::CommandHandler
       def handle(command)
         with_aggregate(ThingAggregate, command.thing_id) do |thing|
-          thing.implement(command: command, metadata: metadata)
+          thing.implement(foo: command.foo, bar: command.bar)
         end
       end
 
       def handle_many(command)
         with_aggregate(ThingAggregate, command.thing_id) do |thing|
-          thing.implement_many(command: command, metadata: metadata)
+          thing.implement_many(foo: command.foo, bar: command.bar)
         end
       end
     end
@@ -31,13 +31,13 @@ module TestEvents
         @bar = body.bar
       end
 
-      def implement(command:, metadata:)
-        stage_event ThingImplemented.new(foo: command.foo, bar: command.bar), metadata
+      def implement(foo:, bar:)
+        stage_event ThingImplemented.new(foo: foo, bar: bar)
       end
 
-      def implement_many(command:, metadata:)
+      def implement_many(foo:, bar:)
         5.times do |i|
-          stage_event ThingImplemented.new(foo: "#{command.foo}-#{i}", bar: command.bar), metadata
+          stage_event ThingImplemented.new(foo: "#{foo}-#{i}", bar: bar)
         end
       end
     end

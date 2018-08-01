@@ -35,7 +35,7 @@ module EventFramework
 
       yield aggregate
 
-      repository.save_aggregate(aggregate)
+      repository.save_aggregate(aggregate, metadata)
     end
 
     # TODO: with_new_aggregate

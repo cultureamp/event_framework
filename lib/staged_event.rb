@@ -8,14 +8,7 @@ module EventFramework
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :domain_event, DomainEvent
 
-    attribute :metadata do
-      transform_keys(&:to_sym)
-
-      attribute :account_id, Types::UUID
-      attribute :user_id, Types::UUID
-      attribute :correlation_id, Types::UUID
-      attribute :causation_id, Types::UUID.meta(omittable: true)
-    end
+    attribute :metadata, Types.Instance(Metadata).optional
 
     def type
       event_name, aggregate_name = domain_event.class.name.split('::').reverse

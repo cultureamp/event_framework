@@ -25,8 +25,8 @@ module Placeholder
       tweaks << event.tweak
     end
 
-    apply Bopped do |_event, metadata|
-      bops << metadata.account_id
+    apply Bopped do |event|
+      bops << event.type.to_s
     end
 
     apply Tweaked, Bopped do |_event|
@@ -71,7 +71,7 @@ RSpec.describe EventFramework::Aggregate do
 
     it 'builds state from the given events, using the registered event handlers' do
       expect(aggregate.tweaks).to eql ["Foo!"]
-      expect(aggregate.bops).to eql [metadata.account_id]
+      expect(aggregate.bops).to eql ["Placeholder::Bopped"]
     end
 
     it 'populates the (private) internal sequence' do
@@ -83,21 +83,21 @@ RSpec.describe EventFramework::Aggregate do
     before { aggregate.load_events(events) }
 
     it 'builds a staged_event and stores it in staged_events' do
-      aggregate.stage_event Placeholder::Bopped.new, metadata
-      aggregate.stage_event Placeholder::Bopped.new, metadata
+      aggregate.stage_event Placeholder::Bopped.new
+      aggregate.stage_event Placeholder::Bopped.new
 
       event_matchers = [
         an_object_having_attributes(
           aggregate_id: aggregate_id,
           aggregate_sequence: 5,
           domain_event: an_instance_of(Placeholder::Bopped),
-          metadata: an_object_having_attributes(**metadata.to_h),
+          metadata: nil,
         ),
         an_object_having_attributes(
           aggregate_id: aggregate_id,
           aggregate_sequence: 6,
           domain_event: an_instance_of(Placeholder::Bopped),
-          metadata: an_object_having_attributes(**metadata.to_h),
+          metadata: nil,
         ),
       ]
 
