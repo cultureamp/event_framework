@@ -39,7 +39,18 @@ module EventFramework
           event_2.new(metadata: metadata),
         ]
 
-        repository.save_aggregate(aggregate, metadata)
+        repository.save_aggregate(aggregate, metadata: metadata)
+      end
+
+      context 'with ensure_new_aggregate: true' do
+        it 'sinks the aggregates staged events setting with the aggregate_sequence starting at 1' do
+          expect(sink).to receive(:sink).with [
+            event_1.new(aggregate_sequence: 1, metadata: metadata),
+            event_2.new(aggregate_sequence: 2, metadata: metadata),
+          ]
+
+          repository.save_aggregate(aggregate, metadata: metadata, ensure_new_aggregate: true)
+        end
       end
     end
   end
