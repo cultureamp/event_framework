@@ -1,8 +1,6 @@
 module EventFramework
   module EventStore
     class Source
-      autoload :EventBuilder, 'event_store/source/event_builder'
-
       LIMIT = 1000
 
       class << self

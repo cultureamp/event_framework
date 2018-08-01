@@ -21,7 +21,8 @@ module EventFramework
                 new_event_rows += database[:events].returning.insert(
                   aggregate_id: staged_event.aggregate_id,
                   aggregate_sequence: staged_event.aggregate_sequence,
-                  type: staged_event.type,
+                  aggregate_type: staged_event.aggregate_type,
+                  event_type: staged_event.event_type,
                   body: Sequel.pg_jsonb(staged_event.body),
                   metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(staged_event.metadata)),
                 )
@@ -35,10 +36,8 @@ module EventFramework
           # NOTE: This is the "ugly" part of the framework that is only here to
           # support our current use-case where we need to update our MongoDB
           # synchronously.
-          new_events = new_event_rows.map do |row|
-            # TODO: Move EventBuilder to EventStore::EventBuilder
-            EventStore::Source::EventBuilder.call(row)
-          end
+          new_events = new_event_rows.map { |row| EventBuilder.call(row) }
+
           EventFramework.config.after_sink_hook.call(new_events)
 
           nil

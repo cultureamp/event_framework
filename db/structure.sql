@@ -53,7 +53,8 @@ CREATE TABLE public.events (
     aggregate_sequence bigint NOT NULL,
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     aggregate_id uuid NOT NULL,
-    type character varying(255) NOT NULL,
+    aggregate_type character varying(255) NOT NULL,
+    event_type character varying(255) NOT NULL,
     body jsonb NOT NULL,
     metadata jsonb NOT NULL
 );
@@ -123,20 +124,6 @@ ALTER TABLE ONLY public.schema_migrations
 --
 
 CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON public.events USING btree (aggregate_id, aggregate_sequence);
-
-
---
--- Name: events_aggregate_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX events_aggregate_id_index ON public.events USING btree (aggregate_id);
-
-
---
--- Name: events_type_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX events_type_index ON public.events USING btree (type);
 
 
 --

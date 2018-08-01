@@ -23,7 +23,7 @@ module EventFramework
           aggregate.instance_variable_set(:@aggregate_sequence, 0)
           aggregate.instance_variable_set(:@staged_events, [])
 
-          aggregate.initialize if aggregate.respond_to?(:initialize)
+          aggregate.send(:initialize)
         end
       end
     end
