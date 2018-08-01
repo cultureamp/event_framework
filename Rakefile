@@ -3,7 +3,7 @@ Dotenv.load '../.env'
 
 namespace :event_store do
   namespace :db do
-    desc "Run the migrate and schema-dump tasksl Set VERSION in Env to choose which migration to target"
+    desc "Run the migrate and schema-dump tasks; Set VERSION in Env to choose which migration to target"
     task migrate: ["migrate:run", "schema:dump"]
 
     namespace :migrate do
@@ -20,7 +20,6 @@ namespace :event_store do
           Sequel::Migrator.run(db, "db/migrations", target: version)
         end
       end
-
 
       desc "Create a database migration, Pass in the NAME Env var to set the filename"
       task :create do
