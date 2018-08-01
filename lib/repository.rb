@@ -6,7 +6,7 @@ module EventFramework
     end
 
     def load_aggregate(aggregate_class, aggregate_id)
-      events = @source.get_for_aggregate(aggregate_id)
+      events = source.get_for_aggregate(aggregate_id)
 
       aggregate_class.build(aggregate_id).tap do |aggregate|
         aggregate.load_events(events)
@@ -20,7 +20,11 @@ module EventFramework
         staged_event
       end
 
-      @sink.sink(events)
+      sink.sink(events)
     end
+
+    private
+
+    attr_reader :sink, :source
   end
 end
