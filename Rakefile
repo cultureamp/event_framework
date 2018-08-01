@@ -52,8 +52,12 @@ namespace :event_store do
       require "sequel/core"
       require_relative 'lib/event_framework'
 
-      db_name = File.basename(URI.parse(EventFramework.config.database_url).path)
-      Sequel.connect('postgres:///template1') do |db|
+      database_uri      = URI.parse(EventFramework.config.database_url)
+      root_database_uri = URI.parse(EventFramework.config.database_url).tap { |u| u.path = '/postgres' }
+
+      db_name = File.basename(database_uri.path)
+
+      Sequel.connect(root_database_uri.to_s) do |db|
         db.execute "CREATE DATABASE #{db_name}"
       end
     end
@@ -63,8 +67,12 @@ namespace :event_store do
       require "sequel/core"
       require_relative 'lib/event_framework'
 
-      db_name = File.basename(URI.parse(EventFramework.config.database_url).path)
-      Sequel.connect('postgres:///template1') do |db|
+      database_uri      = URI.parse(EventFramework.config.database_url)
+      root_database_uri = URI.parse(EventFramework.config.database_url).tap { |u| u.path = '/postgres' }
+
+      db_name = File.basename(database_uri.path)
+
+      Sequel.connect(root_database_uri.to_s) do |db|
         db.execute "DROP DATABASE IF EXISTS #{db_name}"
       end
     end
