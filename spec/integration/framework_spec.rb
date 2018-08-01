@@ -75,8 +75,10 @@ RSpec.describe 'integration' do
 
   describe 'persisting a single event from a command' do
     let(:after_sink_hook) { spy(:after_sink_hook) }
+    let(:existing_events) { [] }
 
     before do
+      EventFramework::EventStore::Sink.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
       handler.handle(command)
     end
@@ -102,6 +104,26 @@ RSpec.describe 'integration' do
         expect(events).to all be_a(EventFramework::Event)
         expect(events).to match [
           an_object_having_attributes(aggregate_id: aggregate_id, aggregate_sequence: 1),
+        ]
+      end
+    end
+
+    context 'with an existing event' do
+      let(:existing_events) do
+        [
+          EventFramework::StagedEvent.new(
+            aggregate_id: aggregate_id,
+            aggregate_sequence: 1,
+            domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
+            metadata: metadata,
+          ),
+        ]
+      end
+
+      it 'persists the event with an incremented aggregate_sequence' do
+        expect(events).to match [
+          an_object_having_attributes(aggregate_sequence: 1, domain_event: an_object_having_attributes(foo: 'Foo existing', bar: 'Bar existing')),
+          an_object_having_attributes(aggregate_sequence: 2, domain_event: an_object_having_attributes(foo: 'Foo', bar: 'Bar')),
         ]
       end
     end
