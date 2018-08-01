@@ -66,6 +66,12 @@ RSpec.describe EventFramework::Aggregate do
     ]
   end
 
+  describe '.new' do
+    it 'raises an error' do
+      expect { Placeholder::PlaceholderAggregate.new }.to raise_error(NotImplementedError)
+    end
+  end
+
   describe '#load_events' do
     before { aggregate.load_events(events) }
 

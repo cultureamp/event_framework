@@ -3,6 +3,10 @@ module EventFramework
     attr_reader :id, :staged_events
 
     class << self
+      def new(*)
+        raise NotImplementedError, "Please use #{name}.build(id) to create an instance of #{name}"
+      end
+
       def apply(*event_classes, &block)
         event_classes.each do |event_class|
           event_handlers.add(event_class, block)
@@ -14,16 +18,14 @@ module EventFramework
       end
 
       def build(id)
-        new.tap do |aggregate|
-          aggregate.build(id)
+        allocate.tap do |aggregate|
+          aggregate.instance_variable_set(:@id, id)
+          aggregate.instance_variable_set(:@aggregate_sequence, 0)
+          aggregate.instance_variable_set(:@staged_events, [])
+
+          aggregate.initialize if aggregate.respond_to?(:initialize)
         end
       end
-    end
-
-    def build(id)
-      @id = id
-      @aggregate_sequence = 0
-      @staged_events = []
     end
 
     def load_events(events)
