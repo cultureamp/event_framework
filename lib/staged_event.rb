@@ -27,11 +27,9 @@ module EventFramework
       type_description.aggregate_type
     end
 
-    # rubocop:disable Rails/Delegate
     def event_type
       type_description.event_type
     end
-    # rubocop:enable Rails/Delegate
 
     def body
       domain_event.to_h
