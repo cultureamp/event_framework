@@ -14,6 +14,7 @@ module TestDomain
 
       def handle_many(command)
         with_aggregate(ThingAggregate, command.thing_id) do |thing|
+          thing.implement(foo: command.foo, bar: command.bar)
           thing.implement_many(foo: command.foo, bar: command.bar)
         end
       end
@@ -111,13 +112,13 @@ RSpec.describe 'integration' do
     before { handler.handle_many(command) }
 
     it 'persists multiple events' do
-      expect(events.length).to eql 5
+      expect(events.length).to eql 6
     end
 
     it 'persists multiple events, in order' do
       domain_event_foo_values = events.map { |e| e.domain_event.foo }
 
-      expect(domain_event_foo_values).to eql %w(Foo-0 Foo-1 Foo-2 Foo-3 Foo-4)
+      expect(domain_event_foo_values).to eql %w(Foo Foo-0 Foo-1 Foo-2 Foo-3 Foo-4)
     end
   end
 end
