@@ -74,8 +74,8 @@ module EventFramework
       let(:empty_block) { -> (aggregate) {} }
 
       it 'is private' do
-        expect { instance.with_aggregate(thing_class, aggregate_id, &empty_block) }
-          .to raise_error(NoMethodError, /private method(.*)with_aggregate/)
+        expect { instance.with_new_aggregate(thing_class, aggregate_id, &empty_block) }
+          .to raise_error(NoMethodError, /private method(.*)with_new_aggregate/)
       end
 
       it 'loads an aggregate from the repository' do
