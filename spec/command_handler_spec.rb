@@ -80,7 +80,7 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@callable, ->(_, _) {})
-          expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(EventFramework::CommandHandler::MismatchedCommand)
+          expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
     end
