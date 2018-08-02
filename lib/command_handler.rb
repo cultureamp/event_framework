@@ -1,6 +1,11 @@
 module EventFramework
   class CommandHandler
-    MismatchedCommand = Class.new(Error)
+    extend Forwardable
+
+    FAILURE_RETRY_THRESHOLD = 3
+
+    MismatchedCommandError = Class.new(Error)
+    RetryFailureThresholdExceededException = Class.new(Error)
 
     attr_reader :repository
 
@@ -19,14 +24,20 @@ module EventFramework
     end
 
     def handle(aggregate_id, command)
-      raise NotImplementedError if self.class.command_class.nil? || self.class.callable.nil?
-      unless command.is_a?(self.class.command_class)
-        raise MismatchedCommand, "Received command of type #{command.class}; expected #{self.class.command_class}"
+      raise NotImplementedError if command_class.nil? || callable.nil?
+      raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
+
+      begin
+        execution_attempts ||= FAILURE_RETRY_THRESHOLD
+        instance_exec(aggregate_id, command, &callable)
+      rescue RetriableException
+        (execution_attempts -= 1).zero? ? raise(RetryFailureThresholdExceededException) : retry
       end
-      instance_exec(aggregate_id, command, &self.class.callable)
     end
 
     private
+
+    def_delegators 'self.class', :command_class, :callable
 
     attr_reader :metadata
 
