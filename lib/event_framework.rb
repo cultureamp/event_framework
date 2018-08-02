@@ -10,6 +10,7 @@ module EventFramework
   autoload :DomainEvent, 'domain_event'
   autoload :Event, 'event'
   autoload :EventHandlerRegistry, 'event_handler_registry'
+  autoload :EventProcessor, 'event_processor'
   autoload :EventStore, 'event_store'
   autoload :Command, 'command'
   autoload :CommandHandler, 'command_handler'
