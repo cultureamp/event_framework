@@ -1,7 +1,8 @@
 module EventFramework
   module EventStore
     class Sink
-      ConcurrencyError = Class.new(Error)
+      ConcurrencyError = Class.new(RetriableException)
+
       AggregateIdMismatchError = Class.new(Error)
 
       MetadataSerializer = -> (metadata) {
