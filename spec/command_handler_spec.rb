@@ -82,7 +82,56 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@callable, ->(_, _) {})
-          expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
+          expect { described_class.new(metadata: metadata).handle(nil, nil) }
+            .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
+        end
+      end
+
+      describe 'when callable#call fails' do
+        # Given that we can't pass an RSpec double to instance_exec (grrr), we need
+        # a Proc that can track how many times it has been called.
+        let!(:callable) do
+          proc do |_, _|
+            @attempt_count ||= 0
+
+            if @attempt_count < 4
+              @attempt_count += 1
+              raise RetriableException
+            end
+          end
+        end
+
+        let(:command_class) { TrueClass }
+        let(:instance) { described_class.new(metadata: metadata) }
+
+        before do
+          described_class.instance_variable_set(:@command_class, command_class)
+          described_class.instance_variable_set(:@callable, callable)
+        end
+
+        context 'if the failure threshold has not been reached' do
+          before do
+            stub_const "#{described_class.name}::FAILURE_RETRY_THRESHOLD", 100
+          end
+
+          it 'calls callable until it passes' do
+            expect { instance.handle(nil, true) }.not_to raise_error
+
+            expect(instance.instance_variable_get(:@attempt_count)).to eql 4
+          end
+        end
+
+        context 'if the failure count threshold has been reached' do
+          before do
+            stub_const "#{described_class.name}::FAILURE_RETRY_THRESHOLD", 1
+          end
+
+          it 'raises an error' do
+            expect { instance.handle(nil, true) }
+              .to raise_error(described_class::RetryFailureThresholdExceededException)
+
+            expect(instance.instance_variable_get(:@attempt_count)).to eql 1
+          end
         end
       end
     end

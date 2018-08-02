@@ -4,6 +4,11 @@ module EventFramework
   extend Dry::Configurable
 
   Error = Class.new(StandardError)
+
+  # An exception raised within a currently-executing command that
+  # can trigger a re-execution of the command.
+  RetriableException = Class.new(Error)
+
   AfterSinkHook = -> (events) {}
 
   autoload :Types, 'types'
