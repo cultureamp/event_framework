@@ -1,5 +1,7 @@
 module EventFramework
   class CommandHandler
+    extend Forwardable
+
     MismatchedCommand = Class.new(Error)
 
     attr_reader :repository
@@ -19,14 +21,15 @@ module EventFramework
     end
 
     def handle(aggregate_id, command)
-      raise NotImplementedError if self.class.command_class.nil? || self.class.callable.nil?
-      unless command.is_a?(self.class.command_class)
-        raise MismatchedCommand, "Received command of type #{command.class}; expected #{self.class.command_class}"
-      end
-      instance_exec(aggregate_id, command, &self.class.callable)
+      raise NotImplementedError if command_class.nil? || callable.nil?
+      raise MismatchedCommand, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
+
+      instance_exec(aggregate_id, command, &callable)
     end
 
     private
+
+    def_delegators 'self.class', :command_class, :callable
 
     attr_reader :metadata
 
