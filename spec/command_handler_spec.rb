@@ -65,14 +65,16 @@ module EventFramework
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@callable, 'foo')
-          expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(NotImplementedError)
+          expect { described_class.new(metadata: metadata).handle(nil, nil) }
+            .to raise_error(NotImplementedError)
         end
       end
 
       context 'when callable is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
-          expect { described_class.new(metadata: metadata).handle(nil, nil) }.to raise_error(NotImplementedError)
+          expect { described_class.new(metadata: metadata).handle(nil, nil) }
+            .to raise_error(NotImplementedError)
         end
       end
 
