@@ -18,18 +18,18 @@ module EventFramework
       end
     end
 
-    def initialize(metadata:, repository: Repository.new)
+    def initialize(repository: Repository.new)
       @repository = repository
-      @metadata = metadata
     end
 
-    def handle(aggregate_id, command)
+    def handle(aggregate_id:, command:, executor:, metadata:)
       raise NotImplementedError if command_class.nil? || callable.nil?
       raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
 
+      @metadata = metadata
       begin
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
-        instance_exec(aggregate_id, command, &callable)
+        instance_exec(aggregate_id, command, executor, metadata, &callable)
       rescue RetriableException
         (execution_attempts -= 1).zero? ? raise(RetryFailureThresholdExceededException) : retry
       end

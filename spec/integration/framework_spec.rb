@@ -5,25 +5,33 @@ module TestDomain
       attribute :bar, EventFramework::Types::Strict::String
     end
 
+    class ImplementThing < EventFramework::Command
+      attribute :thing_id, EventFramework::Types::UUID
+      attribute :foo, EventFramework::Types::Strict::String
+      attribute :bar, EventFramework::Types::Strict::String
+    end
+
+    class ImplementThings < EventFramework::Command
+      attribute :thing_id, EventFramework::Types::UUID
+      attribute :foo, EventFramework::Types::Strict::String
+      attribute :bar, EventFramework::Types::Strict::String
+    end
+
     class ImplementThingHandler < EventFramework::CommandHandler
-      def handle(command)
+      handle ImplementThing do |_aggregate_id, command, _metadata, _executor|
         with_aggregate(ThingAggregate, command.thing_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
         end
       end
+    end
 
-      def handle_many(command)
+    class ImplementThingsHandler < EventFramework::CommandHandler
+      handle ImplementThings do |_aggregate_id, command, _metadata, _executor|
         with_aggregate(ThingAggregate, command.thing_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
           thing.implement_many(foo: command.foo, bar: command.bar)
         end
       end
-    end
-
-    class ImplementThing < EventFramework::Command
-      attribute :thing_id, EventFramework::Types::UUID
-      attribute :foo, EventFramework::Types::Strict::String
-      attribute :bar, EventFramework::Types::Strict::String
     end
 
     class ThingAggregate < EventFramework::Aggregate
@@ -60,28 +68,28 @@ RSpec.describe 'integration' do
     )
   end
 
-  let(:handler) do
-    TestDomain::Thing::ImplementThingHandler.new(metadata: metadata)
-  end
-
-  let(:command) do
-    TestDomain::Thing::ImplementThing.new(
-      thing_id: aggregate_id,
-      foo: 'Foo',
-      bar: 'Bar',
-    )
-  end
-
   let(:events) { EventFramework::EventStore::Source.get_for_aggregate(aggregate_id) }
 
   describe 'persisting a single event from a command' do
     let(:after_sink_hook) { spy(:after_sink_hook) }
     let(:existing_events) { [] }
 
+    let(:handler) do
+      TestDomain::Thing::ImplementThingHandler.new
+    end
+
+    let(:command) do
+      TestDomain::Thing::ImplementThing.new(
+        thing_id: aggregate_id,
+        foo: 'Foo',
+        bar: 'Bar',
+      )
+    end
+
     before do
       EventFramework::EventStore::Sink.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
-      handler.handle(command)
+      handler.handle(aggregate_id: command.thing_id, command: command, metadata: metadata, executor: nil)
     end
 
     it 'persists a single event' do
@@ -131,7 +139,18 @@ RSpec.describe 'integration' do
   end
 
   describe 'persisting multiple events from a command' do
-    before { handler.handle_many(command) }
+    let(:handler) do
+      TestDomain::Thing::ImplementThingsHandler.new
+    end
+
+    let(:command) do
+      TestDomain::Thing::ImplementThings.new(
+        thing_id: aggregate_id,
+        foo: 'Foo',
+        bar: 'Bar',
+      )
+    end
+    before { handler.handle(aggregate_id: command.thing_id, command: command, metadata: metadata, executor: nil) }
 
     it 'persists multiple events' do
       expect(events.length).to eql 6
