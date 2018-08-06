@@ -11,7 +11,7 @@ module EventFramework
 
   AfterSinkHook = -> (events) {}
 
-  autoload :Types, 'types'
+  autoload :Types, File.join(File.dirname(__FILE__), 'types')
   autoload :DomainEvent, 'domain_event'
   autoload :Event, File.join(File.dirname(__FILE__), 'event')
   autoload :EventHandlerRegistry, 'event_handler_registry'
