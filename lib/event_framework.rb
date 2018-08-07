@@ -13,7 +13,7 @@ module EventFramework
 
   autoload :Types, 'types'
   autoload :DomainEvent, 'domain_event'
-  autoload :Event, 'event'
+  autoload :Event, File.join(File.dirname(__FILE__), 'event')
   autoload :EventHandlerRegistry, 'event_handler_registry'
   autoload :EventProcessor, 'event_processor'
   autoload :EventStore, 'event_store'
