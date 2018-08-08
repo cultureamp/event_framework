@@ -32,10 +32,10 @@ module EventFramework
           aggregate_sequence: 1,
           aggregate_id: aggregate_id,
           domain_event: TestDomain::Thing::ThingAdded.new(foo: 'This is the foo'),
+          created_at: Time.now,
           metadata: Event::Metadata.new(
             account_id: account_id,
             user_id: SecureRandom.uuid,
-            created_at: Time.now,
           ),
         ),
       ]
