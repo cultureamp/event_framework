@@ -56,6 +56,7 @@ CREATE TABLE public.events (
     aggregate_type character varying(255) NOT NULL,
     event_type character varying(255) NOT NULL,
     body jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     metadata jsonb NOT NULL
 );
 
