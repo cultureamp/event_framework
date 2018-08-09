@@ -77,10 +77,9 @@ module EventFramework
         )
       end
 
-      it 'generates a timestamp within the metadata object' do
-        timestamp = persisted_tuple[:metadata]['created_at']
-
-        expect(Time.parse(timestamp)).to be_within(2).of Time.now.utc
+      it 'generates a timestamp' do
+        # Actually, 'it' doesn't. the database does, but we're testing it here anyway.
+        expect(persisted_tuple[:created_at]).to be_within(2).of Time.now.utc
       end
     end
 

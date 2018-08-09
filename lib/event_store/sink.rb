@@ -5,11 +5,6 @@ module EventFramework
 
       AggregateIdMismatchError = Class.new(Error)
 
-      MetadataSerializer = -> (metadata) {
-        ['created_at', Sequel.lit(%q{to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')})] +
-          metadata.to_h.flat_map { |k, v| v && [k.to_s, v.to_s] }.compact
-      }
-
       class << self
         def sink(staged_events)
           return if staged_events.empty?
@@ -25,7 +20,7 @@ module EventFramework
                   aggregate_type: staged_event.aggregate_type,
                   event_type: staged_event.event_type,
                   body: Sequel.pg_jsonb(staged_event.body),
-                  metadata: Sequel.function(:json_build_object, *MetadataSerializer.call(staged_event.metadata)),
+                  metadata: Sequel.pg_jsonb(staged_event.metadata.to_h),
                 )
               rescue Sequel::UniqueConstraintViolation
                 raise ConcurrencyError,
