@@ -13,11 +13,6 @@ module EventFramework
       def validate(params)
         @validation_schema.call(params)
       end
-
-      def schema(*args)
-        raise 'Define validation schema using `validation_schema`.' if block_given?
-        super
-      end
     end
   end
 end
