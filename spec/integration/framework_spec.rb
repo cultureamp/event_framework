@@ -15,6 +15,12 @@ module TestDomain
       attribute :thing_id, EventFramework::Types::UUID
       attribute :foo, EventFramework::Types::Strict::String
       attribute :bar, EventFramework::Types::Strict::String
+
+      validation_schema do
+        required(:thing_id).filled(:str?)
+        required(:foo).filled(:str?)
+        required(:bar).filled(:str?)
+      end
     end
 
     class ImplementThingHandler < EventFramework::CommandHandler
@@ -160,6 +166,52 @@ RSpec.describe 'integration' do
       domain_event_foo_values = events.map { |e| e.domain_event.foo }
 
       expect(domain_event_foo_values).to eql %w(Foo Foo-0 Foo-1 Foo-2 Foo-3 Foo-4)
+    end
+  end
+
+  describe 'validating params for a command' do
+    subject(:result) { TestDomain::Thing::ImplementThings.validate(params) }
+
+    context 'with valid params' do
+      let(:params) do
+        {
+          thing_id: aggregate_id,
+          'foo' => 'Foo',
+          bar: 'Bar',
+        }
+      end
+
+      it 'returns a successful result object' do
+        expect(result).to be_success
+      end
+
+      it 'returns an output hash with symbolized keys' do
+        expect(result.output).to eq(
+          thing_id: aggregate_id,
+          foo: 'Foo',
+          bar: 'Bar',
+        )
+      end
+    end
+
+    context 'with invalid params' do
+      let(:params) do
+        {
+          foo: 1,
+          bar: 'x',
+        }
+      end
+
+      it 'returns a failure result object' do
+        expect(result).to be_failure
+      end
+
+      it 'returns errrors' do
+        expect(result.errors).to eq(
+          thing_id: ['is missing'],
+          foo: ['must be a string'],
+        )
+      end
     end
   end
 end
