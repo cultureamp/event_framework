@@ -4,9 +4,9 @@ module EventFramework
       LIMIT = 1000
 
       class << self
-        def get_from(sequence)
+        def get_after(sequence)
           database[:events]
-            .where(Sequel.lit('sequence >= ?', sequence))
+            .where(Sequel.lit('sequence > ?', sequence))
             .order(:sequence)
             .limit(LIMIT)
             .map do |row|

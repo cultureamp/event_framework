@@ -34,8 +34,8 @@ module EventFramework
       insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'qux' }
     end
 
-    describe '.get_from' do
-      let(:events) { described_class.get_from(15) }
+    describe '.get_after' do
+      let(:events) { described_class.get_after(14) }
 
       it 'only returns events with a sequence value greater or equal to the given argument' do
         expect(events).to all be_an(Event)
@@ -46,7 +46,7 @@ module EventFramework
       end
 
       context 'when no events are found' do
-        let(:events) { described_class.get_from(17) }
+        let(:events) { described_class.get_after(16) }
 
         it 'returns an empty array' do
           expect(events).to be_empty
