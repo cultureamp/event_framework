@@ -1,7 +1,20 @@
+module TestDomain
+  module Thing
+    class QuxAdded < EventFramework::DomainEvent
+    end
+  end
+end
+
 module EventFramework
   RSpec.describe EventProcessorSupervisor do
     describe '.call' do
-      let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
+      let(:event_processor_class) do
+        class_double(
+          EventProcessor,
+          name: 'FooProjector',
+          handled_event_classes: [TestDomain::Thing::QuxAdded],
+        )
+      end
       let(:event_processor) { instance_double(EventProcessor) }
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
@@ -12,7 +25,8 @@ module EventFramework
         allow(logger).to receive(:info)
         allow(event_processor_class).to receive(:new).and_return(event_processor)
         allow(event_processor_supervisor).to receive(:sleep)
-        allow(EventStore::Source).to receive(:get_after).with(0).and_return(events)
+        allow(EventStore::Source).to receive(:get_after)
+          .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, true)

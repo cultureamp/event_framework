@@ -23,9 +23,11 @@ module EventFramework
       loop do
         break if shutdown_requested
 
-        # TODO: Limit to event type
         begin
-          events = EventStore::Source.get_after(bookmark.last_processed_event_sequence)
+          events = EventStore::Source.get_after(
+            bookmark.last_processed_event_sequence,
+            event_classes: event_processor_class.handled_event_classes,
+          )
 
           if events.empty?
             sleep SLEEP
