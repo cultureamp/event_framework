@@ -16,7 +16,6 @@ module EventFramework
       end
     end
 
-    # TODO: Should this take multiple events?
     def process_events(events)
       events.each do |event|
         self.class.event_handlers.for(event.domain_event.type).each do |handler|
