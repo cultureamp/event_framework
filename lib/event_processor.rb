@@ -19,7 +19,6 @@ module EventFramework
     def process_events(events)
       events.each do |event|
         self.class.event_handlers.for(event.domain_event.type).each do |handler|
-          # TODO: Check arity
           instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
         end
       end
