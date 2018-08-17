@@ -4,12 +4,15 @@ module EventFramework
       let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
       let(:event_processor) { instance_double(EventProcessor) }
       let(:logger) { instance_double(Logger) }
+      let(:events) { [] }
 
       subject(:event_processor_supervisor) { described_class.new(event_processor_class: event_processor_class, logger: logger) }
 
       before do
         allow(logger).to receive(:info)
         allow(event_processor_class).to receive(:new).and_return(event_processor)
+        allow(event_processor_supervisor).to receive(:sleep)
+        allow(EventStore::Source).to receive(:get_after).with(0).and_return(events)
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, true)
@@ -22,10 +25,6 @@ module EventFramework
       end
 
       context 'with no events' do
-        before do
-          allow(EventStore::Source).to receive(:get_after).and_return([])
-        end
-
         it 'sleeps' do
           expect(event_processor_supervisor).to receive(:sleep)
 
@@ -34,28 +33,30 @@ module EventFramework
       end
 
       context 'with some events' do
-        let(:events_1) { [instance_double(Event, sequence: 2), instance_double(Event, sequence: 1)] }
-        let(:events_2) { [instance_double(Event, sequence: 3)] }
+        let(:events) { [instance_double(Event, sequence: 2), instance_double(Event, sequence: 1)] }
+        let(:bookmark) { instance_double(Bookmark) }
 
         before do
           allow(event_processor).to receive(:process_events)
-          allow(EventStore::Source).to receive(:get_after).with(0).and_return(events_1)
-          allow(EventStore::Source).to receive(:get_after).with(2).and_return(events_2)
-
-          # NOTE: Shut down after the second loop.
-          allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, false, true)
+          allow(BookmarkRepository).to receive(:get_lock).with(name: 'FooProjector').and_return(bookmark)
+          allow(bookmark).to receive(:last_processed_event_sequence).and_return(0, 2)
+          allow(bookmark).to receive(:last_processed_event_sequence=)
         end
 
         it 'passes the events to the event processor' do
-          expect(event_processor).to receive(:process_events).with(events_1)
-          expect(event_processor).to receive(:process_events).with(events_2)
+          expect(event_processor).to receive(:process_events).with(events)
 
           event_processor_supervisor.call
         end
 
         it 'logs the last processed sequence' do
           expect(logger).to receive(:info).with('[FooProjector] processed up to 2')
-          expect(logger).to receive(:info).with('[FooProjector] processed up to 3')
+
+          event_processor_supervisor.call
+        end
+
+        it 'records the last processed sequence' do
+          expect(bookmark).to receive(:last_processed_event_sequence=).with(2)
 
           event_processor_supervisor.call
         end

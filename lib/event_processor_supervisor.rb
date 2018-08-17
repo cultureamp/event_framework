@@ -1,9 +1,8 @@
 module EventFramework
   class EventProcessorSupervisor
     SLEEP = 1
-    Bookmark = Struct.new(:last_processed_event_sequence)
+    UNABLE_TO_LOCK_SLEEP = 1
 
-    # TODO: Locking
     # TODO: Transactions
     class << self
       def call(*args)
@@ -25,18 +24,23 @@ module EventFramework
         break if shutdown_requested
 
         # TODO: Limit to event type
-        events = EventStore::Source.get_after(bookmark.last_processed_event_sequence)
+        begin
+          events = EventStore::Source.get_after(bookmark.last_processed_event_sequence)
 
-        if events.empty?
-          sleep SLEEP
-        else
-          # TODO: Add transcation
-          # For projectors we can process in batches, for reactors we cannot
-          event_processor.process_events(events)
-          bookmark.last_processed_event_sequence = events.map(&:sequence).max
+          if events.empty?
+            sleep SLEEP
+          else
+            # TODO: Add transcation
+            # For projectors we can process in batches, for reactors we cannot
+            event_processor.process_events(events)
+            bookmark.last_processed_event_sequence = events.map(&:sequence).max
+          end
+
+          logger.info "[#{event_processor_class.name}] processed up to #{bookmark.last_processed_event_sequence.inspect}"
+        rescue BookmarkRepository::UnableToLockError => e
+          logger.info "[#{event_processor_class.name}] #{e.message}"
+          sleep UNABLE_TO_LOCK_SLEEP
         end
-
-        logger.info "[#{event_processor_class.name}] processed up to #{bookmark.last_processed_event_sequence.inspect}"
       end
     end
 
@@ -44,9 +48,8 @@ module EventFramework
 
     attr_reader :event_processor_class, :logger, :shutdown_requested
 
-    # TODO: Find bookmark by event_processor_class
     def bookmark
-      @bookmark ||= Bookmark.new(0)
+      @bookmark ||= BookmarkRepository.get_lock(name: event_processor_class.name)
     end
 
     def event_processor

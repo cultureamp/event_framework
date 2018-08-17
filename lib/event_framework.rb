@@ -11,6 +11,8 @@ module EventFramework
 
   AfterSinkHook = -> (events) {}
 
+  autoload :Bookmark, 'bookmark'
+  autoload :BookmarkRepository, 'bookmark_repository'
   autoload :Types, File.join(File.dirname(__FILE__), 'types')
   autoload :DomainEvent, 'domain_event'
   autoload :Event, File.join(File.dirname(__FILE__), 'event')
