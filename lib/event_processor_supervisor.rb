@@ -3,7 +3,6 @@ module EventFramework
     SLEEP = 1
     UNABLE_TO_LOCK_SLEEP = 1
 
-    # TODO: Transactions
     class << self
       def call(*args)
         new(*args).call
@@ -32,8 +31,6 @@ module EventFramework
           if events.empty?
             sleep SLEEP
           else
-            # TODO: Add transcation
-            # For projectors we can process in batches, for reactors we cannot
             event_processor.process_events(events)
           end
 

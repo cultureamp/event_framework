@@ -22,8 +22,18 @@ module EventFramework
 
     private
 
+    def handle_event(event)
+      self.class.event_handlers.for(event.domain_event.type).each do |handler|
+        instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
+      end
+    end
+
     def bookmark
       @bookmark ||= BookmarkRepository.get_lock(name: self.class.name)
+    end
+
+    def database
+      EventStore.database
     end
   end
 end
