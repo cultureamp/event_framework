@@ -27,6 +27,7 @@ module EventFramework
   autoload :Metadata, 'metadata'
   autoload :Aggregate, 'aggregate'
   autoload :Projector, 'projector'
+  autoload :Reactor, 'reactor'
   autoload :Repository, 'repository'
   autoload :StagedEvent, 'staged_event'
 
