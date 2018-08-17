@@ -26,6 +26,7 @@ module EventFramework
   autoload :CommandHandlerBuilder, 'command_handler_builder'
   autoload :Metadata, 'metadata'
   autoload :Aggregate, 'aggregate'
+  autoload :Projector, 'projector'
   autoload :Repository, 'repository'
   autoload :StagedEvent, 'staged_event'
 

@@ -35,7 +35,6 @@ module EventFramework
             # TODO: Add transcation
             # For projectors we can process in batches, for reactors we cannot
             event_processor.process_events(events)
-            bookmark.last_processed_event_sequence = events.map(&:sequence).max
           end
 
           logger.info "[#{event_processor_class.name}] processed up to #{bookmark.last_processed_event_sequence.inspect}"

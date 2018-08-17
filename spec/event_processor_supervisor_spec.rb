@@ -54,7 +54,6 @@ module EventFramework
           allow(event_processor).to receive(:process_events)
           allow(BookmarkRepository).to receive(:get_lock).with(name: 'FooProjector').and_return(bookmark)
           allow(bookmark).to receive(:last_processed_event_sequence).and_return(0, 2)
-          allow(bookmark).to receive(:last_processed_event_sequence=)
         end
 
         it 'passes the events to the event processor' do
@@ -65,12 +64,6 @@ module EventFramework
 
         it 'logs the last processed sequence' do
           expect(logger).to receive(:info).with('[FooProjector] processed up to 2')
-
-          event_processor_supervisor.call
-        end
-
-        it 'records the last processed sequence' do
-          expect(bookmark).to receive(:last_processed_event_sequence=).with(2)
 
           event_processor_supervisor.call
         end

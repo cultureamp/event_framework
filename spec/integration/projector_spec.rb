@@ -7,12 +7,18 @@ module TestDomain
 end
 
 module EventFramework
-  RSpec.describe 'EventProcessor integration' do
+  RSpec.describe 'Projector integration' do
     let(:aggregate_id) { SecureRandom.uuid }
     let(:account_id) { SecureRandom.uuid }
     let(:processor_class) do
-      Class.new(EventProcessor) do
+      Class.new(Projector) do
         attr_reader :fake_database
+
+        class << self
+          def name
+            'FooProjector'
+          end
+        end
 
         def initialize
           @fake_database = Hash.new { |h, k| h[k] = [] }

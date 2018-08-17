@@ -16,12 +16,14 @@ module EventFramework
       end
     end
 
-    def process_events(events)
-      events.each do |event|
-        self.class.event_handlers.for(event.domain_event.type).each do |handler|
-          instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
-        end
-      end
+    def process_events(_events)
+      raise NotImplementedError
+    end
+
+    private
+
+    def bookmark
+      @bookmark ||= BookmarkRepository.get_lock(name: self.class.name)
     end
   end
 end
