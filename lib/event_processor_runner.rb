@@ -15,7 +15,7 @@ module EventFramework
 
     def call
       processor_classes.each do |processor_class|
-        process_manager.fork(processor_class.name, retry_strategy: Forked::RetryStrategies::ExponentialBackoff) do
+        process_manager.fork(processor_class.name) do
           EventProcessorSupervisor.call(event_processor_class: processor_class)
         end
       end
