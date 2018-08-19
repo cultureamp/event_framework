@@ -181,6 +181,13 @@ CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON public.event
 
 
 --
+-- Name: events_aggregate_type_event_type_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree (aggregate_type, event_type);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
