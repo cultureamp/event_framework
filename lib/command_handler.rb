@@ -26,7 +26,10 @@ module EventFramework
       raise NotImplementedError if command_class.nil? || callable.nil?
       raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
 
-      @metadata = metadata
+      # ensure that the instance of metadata passed in as an argument to `handle`
+      # is available via the attribute accessor when calling with_aggregate, et al
+      self.metadata = metadata
+
       begin
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
         instance_exec(command, executor, metadata, &callable)
@@ -39,7 +42,7 @@ module EventFramework
 
     def_delegators 'self.class', :command_class, :callable
 
-    attr_reader :metadata
+    attr_accessor :metadata
 
     def with_aggregate(aggregate_class, aggregate_id)
       aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
