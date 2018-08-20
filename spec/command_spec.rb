@@ -1,5 +1,17 @@
 module EventFramework
   RSpec.describe Command do
+    describe '#aggregate_id' do
+      it 'must be present' do
+        expect { described_class.new }
+          .to raise_error(Dry::Struct::Error, /aggregate_id/)
+      end
+
+      it 'must be a UUID' do
+        expect { described_class.new(aggregate_id: '507f191e810c19729de860ea') }
+          .to raise_error(Dry::Struct::Error, /aggregate_id/)
+      end
+    end
+
     let(:command_class) do
       Class.new(Command) do
         attribute :foo, Types::Strict::String
