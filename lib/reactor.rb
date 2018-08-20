@@ -4,7 +4,7 @@ module EventFramework
       events.each do |event|
         database.transaction do
           handle_event(event)
-          bookmark.last_processed_event_sequence = event
+          bookmark.sequence = event
         end
       end
     end

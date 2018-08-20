@@ -5,7 +5,7 @@ module EventFramework
         events.each do |event|
           handle_event(event)
         end
-        bookmark.last_processed_event_sequence = events.map(&:sequence).max
+        bookmark.sequence = events.map(&:sequence).max
       end
     end
   end

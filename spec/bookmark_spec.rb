@@ -5,17 +5,17 @@ module EventFramework
       Bookmark.new(id: bookmark_row[:id])
     end
 
-    describe '#last_processed_event_sequence' do
+    describe '#sequence' do
       it 'returns the sequence' do
-        expect(bookmark.last_processed_event_sequence).to eq 42
+        expect(bookmark.sequence).to eq 42
       end
     end
 
-    describe '#last_processed_event_sequence=' do
+    describe '#sequence=' do
       it 'sets the sequence' do
-        bookmark.last_processed_event_sequence = 43
+        bookmark.sequence = 43
 
-        expect(bookmark.last_processed_event_sequence).to eq 43
+        expect(bookmark.sequence).to eq 43
       end
     end
   end

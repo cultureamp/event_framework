@@ -4,12 +4,12 @@ module EventFramework
       @id = id
     end
 
-    def last_processed_event_sequence
+    def sequence
       bookmarks_table.select(:sequence).first(id: id)[:sequence]
     end
 
-    def last_processed_event_sequence=(sequence)
-      bookmarks_table.where(id: id).update(sequence: sequence)
+    def sequence=(value)
+      bookmarks_table.where(id: id).update(sequence: value)
     end
 
     private

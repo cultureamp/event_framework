@@ -5,7 +5,7 @@ module EventFramework
         it 'returns a bookmark starting a 0' do
           bookmark = described_class.get_lock(name: 'foo')
 
-          expect(bookmark.last_processed_event_sequence).to eq 0
+          expect(bookmark.sequence).to eq 0
         end
 
         it 'inserts a new record into the database' do
@@ -23,7 +23,7 @@ module EventFramework
         it 'returns the bookmark' do
           bookmark = described_class.get_lock(name: 'foo')
 
-          expect(bookmark.last_processed_event_sequence).to eq 42
+          expect(bookmark.sequence).to eq 42
         end
 
         context 'when a lock is already taken' do

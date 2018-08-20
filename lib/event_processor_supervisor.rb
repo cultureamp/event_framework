@@ -24,7 +24,7 @@ module EventFramework
 
         begin
           events = EventStore::Source.get_after(
-            bookmark.last_processed_event_sequence,
+            bookmark.sequence,
             event_classes: event_processor_class.handled_event_classes,
           )
 
@@ -34,7 +34,7 @@ module EventFramework
             event_processor.process_events(events)
           end
 
-          logger.info "[#{event_processor_class.name}] processed up to #{bookmark.last_processed_event_sequence.inspect}"
+          logger.info "[#{event_processor_class.name}] processed up to #{bookmark.sequence.inspect}"
         rescue BookmarkRepository::UnableToLockError => e
           logger.info "[#{event_processor_class.name}] #{e.message}"
           sleep UNABLE_TO_LOCK_SLEEP

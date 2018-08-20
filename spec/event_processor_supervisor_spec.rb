@@ -53,7 +53,7 @@ module EventFramework
         before do
           allow(event_processor).to receive(:process_events)
           allow(BookmarkRepository).to receive(:get_lock).with(name: 'FooProjector').and_return(bookmark)
-          allow(bookmark).to receive(:last_processed_event_sequence).and_return(0, 2)
+          allow(bookmark).to receive(:sequence).and_return(0, 2)
         end
 
         it 'passes the events to the event processor' do
