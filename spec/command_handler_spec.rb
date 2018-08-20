@@ -96,7 +96,7 @@ module EventFramework
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@callable, 'foo')
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -104,7 +104,7 @@ module EventFramework
       context 'when callable is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -113,7 +113,7 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@callable, ->(_, _) {})
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
@@ -149,7 +149,7 @@ module EventFramework
           end
 
           it 'calls callable until it passes' do
-            expect { instance.handle(aggregate_id: nil, command: true, metadata: nil, executor: nil) }.not_to raise_error
+            expect { instance.handle(command: true, metadata: nil, executor: nil) }.not_to raise_error
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 4
           end
@@ -161,7 +161,7 @@ module EventFramework
           end
 
           it 'raises an error' do
-            expect { instance.handle(aggregate_id: nil, command: true, metadata: nil, executor: nil) }
+            expect { instance.handle(command: true, metadata: nil, executor: nil) }
               .to raise_error(described_class::RetryFailureThresholdExceededException)
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 1
