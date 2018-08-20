@@ -1,15 +1,15 @@
 module EventFramework
   RSpec.describe BookmarkRepository do
-    describe '.get_lock' do
+    describe '.checkout' do
       context 'when the bookmark does not exist' do
         it 'returns a bookmark starting a 0' do
-          bookmark = described_class.get_lock(name: 'foo')
+          bookmark = described_class.checkout(name: 'foo')
 
           expect(bookmark.sequence).to eq 0
         end
 
         it 'inserts a new record into the database' do
-          described_class.get_lock(name: 'foo')
+          described_class.checkout(name: 'foo')
 
           expect(EventStore.database[:bookmarks].all).to match [a_hash_including(name: 'foo', sequence: 0)]
         end
@@ -21,14 +21,14 @@ module EventFramework
         end
 
         it 'returns the bookmark' do
-          bookmark = described_class.get_lock(name: 'foo')
+          bookmark = described_class.checkout(name: 'foo')
 
           expect(bookmark.sequence).to eq 42
         end
 
         context 'when a lock is already taken' do
           before do
-            described_class.get_lock(name: 'foo')
+            described_class.checkout(name: 'foo')
           end
 
           it 'raises an error' do
@@ -39,8 +39,9 @@ module EventFramework
               other_database_connection = Sequel.connect(EventFramework.config.database_url)
               allow(described_class).to receive(:database).and_return(other_database_connection)
 
-              expect { described_class.get_lock(name: 'foo') }
-                .to raise_error BookmarkRepository::UnableToLockError, "Unable to get a lock on foo (#{id})"
+              expect { described_class.checkout(name: 'foo') }
+                .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
+                                "Unable to checkout foo (#{id}); another process is already using this bookmark"
             ensure
               # NOTE: Clean up the separate databse connection so
               # DatabaseCleaner doesn't try to clean it.

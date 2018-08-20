@@ -29,7 +29,7 @@ module EventFramework
     end
 
     def bookmark
-      @bookmark ||= BookmarkRepository.get_lock(name: self.class.name)
+      @bookmark ||= BookmarkRepository.checkout(name: self.class.name)
     end
 
     def database

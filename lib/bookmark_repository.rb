@@ -1,12 +1,15 @@
 module EventFramework
   class BookmarkRepository
-    UnableToLockError = Class.new(Error)
+    UnableToCheckoutBookmarkError = Class.new(Error)
 
     class << self
-      def get_lock(name:)
+      def checkout(name:)
         id = find_id(name)
 
-        raise UnableToLockError, "Unable to get a lock on #{name} (#{id})" unless can_lock?(id)
+        unless can_lock?(id)
+          raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{id}); " \
+            "another process is already using this bookmark"
+        end
 
         Bookmark.new(id: id)
       end

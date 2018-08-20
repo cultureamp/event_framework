@@ -35,7 +35,7 @@ module EventFramework
           end
 
           logger.info "[#{event_processor_class.name}] processed up to #{bookmark.sequence.inspect}"
-        rescue BookmarkRepository::UnableToLockError => e
+        rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
           logger.info "[#{event_processor_class.name}] #{e.message}"
           sleep UNABLE_TO_LOCK_SLEEP
         end
@@ -47,7 +47,7 @@ module EventFramework
     attr_reader :event_processor_class, :logger, :shutdown_requested
 
     def bookmark
-      @bookmark ||= BookmarkRepository.get_lock(name: event_processor_class.name)
+      @bookmark ||= BookmarkRepository.checkout(name: event_processor_class.name)
     end
 
     def event_processor
