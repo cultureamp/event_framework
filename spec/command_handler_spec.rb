@@ -132,6 +132,9 @@ module EventFramework
           end
         end
 
+        # An explanation; `true` is an instance of TrueClass; rather than creating
+        # a new class and passing an empty instance of it to `handle` in these
+        # examples, I picked the simplest thing I could think of.
         let(:command_class) { TrueClass }
         let(:instance) { described_class.new }
 
