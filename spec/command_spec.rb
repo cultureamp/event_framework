@@ -12,6 +12,19 @@ module EventFramework
       end
     end
 
+    describe '.validation_schema' do
+      let(:command_class) do
+        Class.new(Command) do
+          validation_schema do
+          end
+        end
+      end
+
+      it 'automatically includes aggregate_id' do
+        expect(command_class.validate(aggregate_id: SecureRandom.uuid)).to be_a_success
+      end
+    end
+
     describe '.validate' do
       context 'with no defined schema' do
         let(:command_class) do
@@ -41,7 +54,7 @@ module EventFramework
 
         context 'when given valid input' do
           let(:params) do
-            { 'foo' => 'qux', bar: 42 }
+            { aggregate_id: SecureRandom.uuid, 'foo' => 'qux', bar: 42 }
           end
 
           it 'returns a successful result object' do
@@ -51,7 +64,7 @@ module EventFramework
 
         context 'when given invalid input' do
           let(:params) do
-            { 'foo' => Object.new, bar: 'fourty two' }
+            { aggregate_id: SecureRandom.uuid, 'foo' => Object.new, bar: 'fourty two' }
           end
 
           it 'returns a failed result object' do

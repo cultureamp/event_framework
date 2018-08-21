@@ -170,8 +170,10 @@ RSpec.describe 'integration' do
     subject(:result) { TestDomain::Thing::ImplementThings.validate(params) }
 
     context 'with valid params' do
+      let(:aggregate_id) { SecureRandom.uuid }
       let(:params) do
         {
+          aggregate_id: aggregate_id,
           'foo' => 'Foo',
           bar: 'Bar',
         }
@@ -183,6 +185,7 @@ RSpec.describe 'integration' do
 
       it 'returns an output hash with symbolized keys' do
         expect(result.output).to eq(
+          aggregate_id: aggregate_id,
           foo: 'Foo',
           bar: 'Bar',
         )
@@ -192,6 +195,7 @@ RSpec.describe 'integration' do
     context 'with invalid params' do
       let(:params) do
         {
+          aggregate_id: SecureRandom.uuid,
           foo: 1,
           bar: 'x',
         }
