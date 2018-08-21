@@ -26,5 +26,11 @@ module EventFramework
         end
       end
     end
+
+    module CommandHelper
+      def validate_params_for_command(params, command_class)
+        command_class.validate(params)
+      end
+    end
   end
 end

@@ -12,6 +12,7 @@ module EventFramework
 
     class StubController
       include ControllerHelpers::MetadataHelper
+      include ControllerHelpers::CommandHelper
 
       # these methods are stubbed out by partial doubles in our specs
       def application_user_id; end
@@ -72,6 +73,40 @@ module EventFramework
 
         it 'pre-seeds controller#request_id into the correlation_id attribute of a new metadata instance' do
           expect(metadata).to have_attributes(correlation_id: request_id)
+        end
+      end
+    end
+
+    describe 'CommandHelper#validate_params_for_command' do
+      let(:command) { class_double "Command" }
+      let(:result)  { instance_double "Dry::Validation::Result" }
+      let(:params)  { double :params }
+
+      def perform_validation
+        controller_instance.validate_params_for_command(params, command)
+      end
+
+      before do
+        allow(command).to receive(:validate).with(params).and_return(result)
+      end
+
+      context 'and the params validate against the command schema' do
+        before { allow(result).to receive(:success?).and_return(true) }
+
+        it 'returns the result of the validation' do
+          perform_validation
+
+          expect(result).to be_a_success
+        end
+      end
+
+      context 'and the params fail validation' do
+        before { allow(result).to receive(:failure?).and_return(true) }
+
+        it 'returns the result of the validation' do
+          perform_validation
+
+          expect(result).to be_a_failure
         end
       end
     end
