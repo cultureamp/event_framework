@@ -1,6 +1,9 @@
 require 'forked'
 
 module EventFramework
+  # The EventProcessorSupervisor is responsible for forking each
+  # EventProcessorWorker into its own process and then waiting for them to
+  # shut down.
   class EventProcessorSupervisor
     class << self
       def call(processor_classes)

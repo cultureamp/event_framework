@@ -1,4 +1,12 @@
 module EventFramework
+  # The EventProcessorWorker is responsible for fetching new events from
+  # the event source and passing those events to its event processor.
+  #
+  # It checks out a Bookmark for the given event processor and fetches events
+  # after that point.
+  #
+  # The EventProcessor is responsible for updating the bookmark after it's
+  # finished processing the events.
   class EventProcessorWorker
     SLEEP = 1
     UNABLE_TO_LOCK_SLEEP = 1
