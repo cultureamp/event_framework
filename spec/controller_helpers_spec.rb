@@ -1,5 +1,5 @@
 module EventFramework
-  RSpec.describe CommandHandlerBuilder do
+  RSpec.describe ControllerHelpers do
     class StubMetadata
       attr_reader :user_id, :account_id, :correlation_id
 
@@ -20,7 +20,7 @@ module EventFramework
     end
 
     class StubController
-      include CommandHandlerBuilder::Buildable
+      include ControllerHelpers::Buildable
 
       # these methods are stubbed out by partial doubles in our specs
       def application_user_id; end

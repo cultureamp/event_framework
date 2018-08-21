@@ -1,7 +1,7 @@
 require 'dry/configurable'
 
 module EventFramework
-  module CommandHandlerBuilder
+  module ControllerHelpers
     extend Dry::Configurable
 
     MissingRequestIdError = Class.new(StandardError)
@@ -13,7 +13,7 @@ module EventFramework
 
     module Buildable
       def build_handler(handler_class)
-        config = EventFramework::CommandHandlerBuilder.config
+        config = EventFramework::ControllerHelpers.config
 
         metadata = config.metadata_class.new(
           user_id: instance_exec(&config.user_id_resolver),
