@@ -132,10 +132,8 @@ module EventFramework
           end
         end
 
-        # An explanation; `true` is an instance of TrueClass; rather than creating
-        # a new class and passing an empty instance of it to `handle` in these
-        # examples, I picked the simplest thing I could think of.
-        let(:command_class) { TrueClass }
+        let(:command_class) { Class.new }
+        let(:command_instance) { command_class.new }
         let(:instance) { described_class.new }
 
         before do
@@ -149,7 +147,7 @@ module EventFramework
           end
 
           it 'calls callable until it passes' do
-            expect { instance.handle(command: true, metadata: nil, executor: nil) }.not_to raise_error
+            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }.not_to raise_error
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 4
           end
@@ -161,7 +159,7 @@ module EventFramework
           end
 
           it 'raises an error' do
-            expect { instance.handle(command: true, metadata: nil, executor: nil) }
+            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }
               .to raise_error(described_class::RetryFailureThresholdExceededException)
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 1
