@@ -6,7 +6,7 @@ module TestDomain
 end
 
 module EventFramework
-  RSpec.describe EventProcessorSupervisor do
+  RSpec.describe EventProcessorWorker do
     describe '.call' do
       let(:event_processor_class) do
         class_double(

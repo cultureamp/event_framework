@@ -1,65 +1,30 @@
+require 'forked'
+
 module EventFramework
   class EventProcessorSupervisor
-    SLEEP = 1
-    UNABLE_TO_LOCK_SLEEP = 1
-
     class << self
-      def call(*args)
-        new(*args).call
+      def call(processor_classes)
+        new(processor_classes).call
       end
     end
 
-    def initialize(event_processor_class:, logger: Logger.new(STDOUT))
-      @event_processor_class = event_processor_class
-      @logger = logger
-      @shutdown_requested = false
+    def initialize(processor_classes:, process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)))
+      @processor_classes = processor_classes
+      @process_manager = process_manager
     end
 
     def call
-      logger.info "[#{event_processor_class.name}] forked"
-      listen_for_term_signal
-
-      loop do
-        break if shutdown_requested
-
-        begin
-          events = EventStore::Source.get_after(
-            bookmark.sequence,
-            event_classes: event_processor_class.handled_event_classes,
-          )
-
-          if events.empty?
-            sleep SLEEP
-          else
-            event_processor.process_events(events)
-          end
-
-          logger.info "[#{event_processor_class.name}] processed up to #{bookmark.sequence.inspect}"
-        rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
-          logger.info "[#{event_processor_class.name}] #{e.message}"
-          sleep UNABLE_TO_LOCK_SLEEP
+      processor_classes.each do |processor_class|
+        process_manager.fork(processor_class.name) do
+          EventProcessorWorker.call(event_processor_class: processor_class)
         end
       end
+
+      process_manager.wait_for_shutdown
     end
 
     private
 
-    attr_reader :event_processor_class, :logger, :shutdown_requested
-
-    def bookmark
-      @bookmark ||= BookmarkRepository.checkout(name: event_processor_class.name)
-    end
-
-    def event_processor
-      @event_processor ||= event_processor_class.new
-    end
-
-    def listen_for_term_signal
-      Signal.trap(:TERM) { request_shutdown }
-    end
-
-    def request_shutdown
-      @shutdown_requested = true
-    end
+    attr_reader :processor_classes, :process_manager
   end
 end
