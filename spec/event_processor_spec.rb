@@ -9,14 +9,9 @@ module EventFramework
         process FooTestEvent do |aggregate_id, domain_event, metadata|
           @foo_test_event = [aggregate_id, domain_event, metadata]
         end
-
-        def process_events(events)
-          events.each do |event|
-            handle_event(event)
-          end
-        end
       end
     end
+    subject(:event_processor) { event_processor_subclass.new }
 
     describe '.handled_event_classes' do
       it 'returns the handled event classes' do
@@ -25,30 +20,32 @@ module EventFramework
     end
 
     describe '#process_events' do
-      context 'when not implemented' do
-        it 'raises an error' do
-          expect { described_class.new.process_events(nil) }
-            .to raise_error NotImplementedError
-        end
+      let(:events) do
+        [
+          instance_double(Event, sequence: 1),
+          instance_double(Event, sequence: 2),
+        ]
+      end
+      let(:bookmark) { instance_double(Bookmark) }
+
+      before do
+        allow(event_processor).to receive(:bookmark).and_return(bookmark)
+        allow(bookmark).to receive(:sequence=)
+        allow(event_processor).to receive(:handle_event)
       end
 
-      context 'when implemented by the subclass' do
-        it 'handles the events' do
-          event = instance_double(
-            Event,
-            aggregate_id: SecureRandom.uuid,
-            domain_event: FooTestEvent.new,
-            metadata: double(:metadata),
-          )
+      it 'calls handle event for each event individually' do
+        expect(event_processor).to receive(:handle_event).with(events[0])
+        expect(event_processor).to receive(:handle_event).with(events[1])
 
-          event_processor = event_processor_subclass.new
-          event_processor.process_events([event])
-          expect(event_processor.foo_test_event).to eq [
-            event.aggregate_id,
-            event.domain_event,
-            event.metadata,
-          ]
-        end
+        event_processor.process_events(events)
+      end
+
+      it 'updates the bookmark for each event' do
+        expect(bookmark).to receive(:sequence=).with(1)
+        expect(bookmark).to receive(:sequence=).with(2)
+
+        event_processor.process_events(events)
       end
     end
   end

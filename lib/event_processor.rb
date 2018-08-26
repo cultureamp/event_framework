@@ -23,8 +23,11 @@ module EventFramework
       end
     end
 
-    def process_events(_events)
-      raise NotImplementedError
+    def process_events(events)
+      events.each do |event|
+        handle_event(event)
+        bookmark.sequence = event.sequence
+      end
     end
 
     private
