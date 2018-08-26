@@ -4,29 +4,29 @@ module EventFramework
 
     class << self
       def checkout(name:)
-        id = find_id(name)
+        lock_key = find_lock_key(name)
 
-        unless can_lock?(id)
-          raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{id}); " \
+        unless can_lock?(lock_key)
+          raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{lock_key}); " \
             "another process is already using this bookmark"
         end
 
-        Bookmark.new(id: id)
+        Bookmark.new(name: name)
       end
 
       private
 
-      def can_lock?(id)
-        database.select(Sequel.function(:pg_try_advisory_lock, id)).first[:pg_try_advisory_lock]
+      def can_lock?(lock_key)
+        database.select(Sequel.function(:pg_try_advisory_lock, lock_key)).first[:pg_try_advisory_lock]
       end
 
-      def find_id(name)
-        bookmark_row = database[:bookmarks].select(:id).first(name: name)
+      def find_lock_key(name)
+        bookmark_row = database[:bookmarks].select(:lock_key).first(name: name)
 
         if bookmark_row
-          bookmark_row[:id]
+          bookmark_row[:lock_key]
         else
-          database[:bookmarks].returning.insert(name: name, sequence: 0).first[:id]
+          database[:bookmarks].returning.insert(name: name, sequence: 0).first[:lock_key]
         end
       end
 

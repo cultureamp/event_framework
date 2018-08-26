@@ -33,7 +33,7 @@ module EventFramework
 
           it 'raises an error' do
             begin
-              id = EventStore.database[:bookmarks].first[:id]
+              lock_key = EventStore.database[:bookmarks].first[:lock_key]
 
               # Note: Get a separate database connection
               other_database_connection = Sequel.connect(EventFramework.config.database_url)
@@ -41,7 +41,7 @@ module EventFramework
 
               expect { described_class.checkout(name: 'foo') }
                 .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
-                                "Unable to checkout foo (#{id}); another process is already using this bookmark"
+                                "Unable to checkout foo (#{lock_key}); another process is already using this bookmark"
             ensure
               # NOTE: Clean up the separate databse connection so
               # DatabaseCleaner doesn't try to clean it.

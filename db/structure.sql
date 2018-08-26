@@ -49,17 +49,17 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE public.bookmarks (
-    id bigint NOT NULL,
+    lock_key bigint NOT NULL,
     name text NOT NULL,
     sequence bigint NOT NULL
 );
 
 
 --
--- Name: bookmarks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: bookmarks_lock_key_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.bookmarks_id_seq
+CREATE SEQUENCE public.bookmarks_lock_key_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -68,10 +68,10 @@ CREATE SEQUENCE public.bookmarks_id_seq
 
 
 --
--- Name: bookmarks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: bookmarks_lock_key_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.bookmarks_id_seq OWNED BY public.bookmarks.id;
+ALTER SEQUENCE public.bookmarks_lock_key_seq OWNED BY public.bookmarks.lock_key;
 
 
 --
@@ -120,10 +120,10 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: bookmarks id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.bookmarks ALTER COLUMN id SET DEFAULT nextval('public.bookmarks_id_seq'::regclass);
+ALTER TABLE ONLY public.bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('public.bookmarks_lock_key_seq'::regclass);
 
 
 --
@@ -134,19 +134,11 @@ ALTER TABLE ONLY public.events ALTER COLUMN sequence SET DEFAULT nextval('public
 
 
 --
--- Name: bookmarks bookmarks_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.bookmarks
-    ADD CONSTRAINT bookmarks_name_key UNIQUE (name);
-
-
---
 -- Name: bookmarks bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookmarks
-    ADD CONSTRAINT bookmarks_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT bookmarks_pkey PRIMARY KEY (name);
 
 
 --
