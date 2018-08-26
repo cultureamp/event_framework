@@ -23,7 +23,7 @@ module EventFramework
   autoload :EventStore, 'event_store'
   autoload :Command, 'command'
   autoload :CommandHandler, 'command_handler'
-  autoload :CommandHandlerBuilder, 'command_handler_builder'
+  autoload :ControllerHelpers, 'controller_helpers'
   autoload :Metadata, 'metadata'
   autoload :Aggregate, 'aggregate'
   autoload :Projector, 'projector'

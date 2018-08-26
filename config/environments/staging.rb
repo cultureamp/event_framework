@@ -62,7 +62,7 @@ module EventFramework
 
     def aws_account
       @_aws_account ||= case farm_name
-                        when 'preprod', 'staging'
+                        when 'preprod', 'staging', 'grumpycat'
                           'staging'
                         else
                           'development'
