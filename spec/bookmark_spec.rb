@@ -1,8 +1,11 @@
 module EventFramework
   RSpec.describe Bookmark do
     let(:bookmark) do
-      bookmark_row = EventStore.database[:bookmarks].returning.insert(name: 'foo', sequence: 42).first
       Bookmark.new(name: 'foo')
+    end
+
+    before do
+      EventStore.database[:bookmarks].insert(name: 'foo', sequence: 42)
     end
 
     describe '#sequence' do
