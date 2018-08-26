@@ -8,8 +8,8 @@ module EventFramework
   # The EventProcessor is responsible for updating the bookmark after it's
   # finished processing the events.
   class EventProcessorWorker
-    SLEEP = 1
-    UNABLE_TO_LOCK_SLEEP = 1
+    SLEEP_INTERVAL = 1
+    UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
 
     class << self
       def call(*args)
@@ -37,7 +37,7 @@ module EventFramework
           )
 
           if events.empty?
-            sleep SLEEP
+            sleep SLEEP_INTERVAL
           else
             event_processor.process_events(events)
           end
@@ -45,7 +45,7 @@ module EventFramework
           logger.info "[#{event_processor_class.name}] processed up to #{bookmark.sequence.inspect}"
         rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
           logger.info "[#{event_processor_class.name}] #{e.message}"
-          sleep UNABLE_TO_LOCK_SLEEP
+          sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
         end
       end
     end
