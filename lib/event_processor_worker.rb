@@ -5,8 +5,8 @@ module EventFramework
   # It checks out a Bookmark for the given event processor and fetches events
   # after that point.
   #
-  # The EventProcessor is responsible for updating the bookmark after it's
-  # finished processing the events.
+  # It then handles each event with the event processor and updates the
+  # bookmark sequence.
   class EventProcessorWorker
     SLEEP_INTERVAL = 1
     UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
