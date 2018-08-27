@@ -17,9 +17,16 @@ module EventFramework
       end
     end
 
-    def initialize(event_processor_class:, logger: Logger.new(STDOUT))
+    def initialize(
+      event_processor_class:,
+      logger: Logger.new(STDOUT),
+      event_source: EventStore::Source,
+      bookmark_repository: BookmarkRepository
+    )
       @event_processor_class = event_processor_class
       @logger = logger
+      @event_source = event_source
+      @bookmark_repository = bookmark_repository
       @shutdown_requested = false
     end
 
@@ -31,7 +38,7 @@ module EventFramework
         break if shutdown_requested
 
         begin
-          events = EventStore::Source.get_after(
+          events = event_source.get_after(
             bookmark.sequence,
             event_classes: event_processor_class.handled_event_classes,
           )
@@ -52,10 +59,10 @@ module EventFramework
 
     private
 
-    attr_reader :event_processor_class, :logger, :shutdown_requested
+    attr_reader :event_processor_class, :logger, :event_source, :bookmark_repository, :shutdown_requested
 
     def bookmark
-      @bookmark ||= BookmarkRepository.checkout(name: event_processor_class.name)
+      @bookmark ||= bookmark_repository.checkout(name: event_processor_class.name)
     end
 
     def event_processor
