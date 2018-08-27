@@ -37,9 +37,9 @@ module EventFramework
 
               # Note: Get a separate database connection
               other_database_connection = Sequel.connect(EventFramework.config.database_url)
-              allow(described_class).to receive(:database).and_return(other_database_connection)
+              repository = described_class.new(database: other_database_connection)
 
-              expect { described_class.checkout(name: 'foo') }
+              expect { repository.checkout(name: 'foo') }
                 .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
                                 "Unable to checkout foo (#{lock_key}); another process is already using this bookmark"
             ensure
