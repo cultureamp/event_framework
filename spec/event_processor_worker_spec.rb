@@ -47,17 +47,28 @@ module EventFramework
       end
 
       context 'with some events' do
-        let(:events) { [instance_double(Event, sequence: 2), instance_double(Event, sequence: 1)] }
+        let(:events) { [event_1, event_2] }
+        let(:event_1) { instance_double(Event, sequence: 1) }
+        let(:event_2) { instance_double(Event, sequence: 2) }
         let(:bookmark) { instance_double(Bookmark) }
 
         before do
-          allow(event_processor).to receive(:process_events)
+          allow(event_processor).to receive(:handle_event)
           allow(BookmarkRepository).to receive(:checkout).with(name: 'FooProjector').and_return(bookmark)
           allow(bookmark).to receive(:sequence).and_return(0, 2)
+          allow(bookmark).to receive(:sequence=)
         end
 
         it 'passes the events to the event processor' do
-          expect(event_processor).to receive(:process_events).with(events)
+          expect(event_processor).to receive(:handle_event).with(event_1)
+          expect(event_processor).to receive(:handle_event).with(event_2)
+
+          event_processor_supervisor.call
+        end
+
+        it 'updates the bookmark sequence' do
+          expect(bookmark).to receive(:sequence=).with(1)
+          expect(bookmark).to receive(:sequence=).with(2)
 
           event_processor_supervisor.call
         end

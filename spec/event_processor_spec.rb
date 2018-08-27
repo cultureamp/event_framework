@@ -19,33 +19,23 @@ module EventFramework
       end
     end
 
-    describe '#process_events' do
-      let(:events) do
-        [
-          instance_double(Event, sequence: 1),
-          instance_double(Event, sequence: 2),
-        ]
-      end
-      let(:bookmark) { instance_double(Bookmark) }
-
-      before do
-        allow(event_processor).to receive(:bookmark).and_return(bookmark)
-        allow(bookmark).to receive(:sequence=)
-        allow(event_processor).to receive(:handle_event)
+    describe '#handle_event' do
+      let(:metadata) { double :metadata }
+      let(:aggregate_id) { double :metadata }
+      let(:domain_event) { FooTestEvent.new }
+      let(:event) do
+        instance_double(
+          Event,
+          domain_event: domain_event,
+          aggregate_id: aggregate_id,
+          metadata: metadata,
+        )
       end
 
-      it 'calls handle event for each event individually' do
-        expect(event_processor).to receive(:handle_event).with(events[0])
-        expect(event_processor).to receive(:handle_event).with(events[1])
+      it 'handles the event' do
+        event_processor.handle_event(event)
 
-        event_processor.process_events(events)
-      end
-
-      it 'updates the bookmark for each event' do
-        expect(bookmark).to receive(:sequence=).with(1)
-        expect(bookmark).to receive(:sequence=).with(2)
-
-        event_processor.process_events(events)
+        expect(event_processor.foo_test_event).to eq [aggregate_id, domain_event, metadata]
       end
     end
   end

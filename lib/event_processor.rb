@@ -23,24 +23,13 @@ module EventFramework
       end
     end
 
-    def process_events(events)
-      events.each do |event|
-        handle_event(event)
-        bookmark.sequence = event.sequence
-      end
-    end
-
-    private
-
     def handle_event(event)
       self.class.event_handlers.for(event.domain_event.type).each do |handler|
         instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
       end
     end
 
-    def bookmark
-      @bookmark ||= BookmarkRepository.checkout(name: self.class.name)
-    end
+    private
 
     def database
       EventStore.database

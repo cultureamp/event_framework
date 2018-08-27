@@ -46,7 +46,10 @@ module EventFramework
           if events.empty?
             sleep SLEEP_INTERVAL
           else
-            event_processor.process_events(events)
+            events.each do |event|
+              event_processor.handle_event(event)
+              bookmark.sequence = event.sequence
+            end
           end
 
           logger.info "[#{event_processor_class.name}] processed up to #{bookmark.sequence.inspect}"

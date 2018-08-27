@@ -30,24 +30,22 @@ module EventFramework
       end
     end
 
-    it 'processes events' do
-      events = [
-        Event.new(
-          id: SecureRandom.uuid,
-          sequence: 1,
-          aggregate_sequence: 1,
-          aggregate_id: aggregate_id,
-          domain_event: TestDomain::Thing::ThingAdded.new(foo: 'This is the foo'),
-          created_at: Time.now,
-          metadata: Event::Metadata.new(
-            account_id: account_id,
-            user_id: SecureRandom.uuid,
-          ),
+    it 'handles events' do
+      event = Event.new(
+        id: SecureRandom.uuid,
+        sequence: 1,
+        aggregate_sequence: 1,
+        aggregate_id: aggregate_id,
+        domain_event: TestDomain::Thing::ThingAdded.new(foo: 'This is the foo'),
+        created_at: Time.now,
+        metadata: Event::Metadata.new(
+          account_id: account_id,
+          user_id: SecureRandom.uuid,
         ),
-      ]
+      )
 
       event_processor = processor_class.new
-      event_processor.process_events(events)
+      event_processor.handle_event(event)
 
       expect(event_processor.fake_database['thing_added']).to eq [
         [aggregate_id, 'This is the foo', account_id],
