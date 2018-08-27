@@ -21,13 +21,13 @@ module EventFramework
       lock_key = find_lock_key
       lock = Sequel.function(:pg_try_advisory_lock, lock_key)
 
-      unless is_locked?(lock)
+      unless locked?(lock)
         raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{lock_key}); " \
           "another process is already using this bookmark"
       end
     end
 
-    def is_locked?(lock)
+    def locked?(lock)
       database.select(lock).first[:pg_try_advisory_lock]
     end
 
