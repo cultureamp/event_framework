@@ -1,11 +1,5 @@
 module EventFramework
   # An EventProcessor handles processing events from the event source.
-  #
-  # Subclasses should override the process_events method and ensure they update
-  # the bookmark sequence after processing events.
-  #
-  # The EventProcessor is a base class for Projectors and Reactors but can be
-  # used by any subclass that needs to be able to handle events.
   class EventProcessor
     class << self
       extend Forwardable
