@@ -1,7 +1,8 @@
 module EventFramework
   class Bookmark
-    def initialize(name:)
+    def initialize(name:, bookmarks_table: EventStore.database[:bookmarks])
       @name = name
+      @bookmarks_table = bookmarks_table
     end
 
     def sequence
@@ -14,10 +15,6 @@ module EventFramework
 
     private
 
-    attr_reader :name
-
-    def bookmarks_table
-      EventStore.database[:bookmarks]
-    end
+    attr_reader :name, :bookmarks_table
   end
 end
