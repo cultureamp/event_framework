@@ -28,11 +28,5 @@ module EventFramework
         instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
       end
     end
-
-    private
-
-    def database
-      EventStore.database
-    end
   end
 end
