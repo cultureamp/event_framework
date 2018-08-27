@@ -18,8 +18,16 @@ module EventFramework
       let(:event_processor) { instance_double(EventProcessor) }
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
+      let(:bookmark_repository) { instance_double(BookmarkRepository) }
+      let(:bookmark) { instance_double(Bookmark, sequence: 0) }
 
-      subject(:event_processor_supervisor) { described_class.new(event_processor_class: event_processor_class, logger: logger) }
+      subject(:event_processor_supervisor) do
+        described_class.new(
+          event_processor_class: event_processor_class,
+          logger: logger,
+          bookmark_repository: bookmark_repository,
+        )
+      end
 
       before do
         allow(logger).to receive(:info)
@@ -27,6 +35,7 @@ module EventFramework
         allow(event_processor_supervisor).to receive(:sleep)
         allow(EventStore::Source).to receive(:get_after)
           .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
+        allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, true)
@@ -50,11 +59,9 @@ module EventFramework
         let(:events) { [event_1, event_2] }
         let(:event_1) { instance_double(Event, sequence: 1) }
         let(:event_2) { instance_double(Event, sequence: 2) }
-        let(:bookmark) { instance_double(Bookmark) }
 
         before do
           allow(event_processor).to receive(:handle_event)
-          allow(BookmarkRepository).to receive(:checkout).with(name: 'FooProjector').and_return(bookmark)
           allow(bookmark).to receive(:sequence).and_return(0, 2)
           allow(bookmark).to receive(:sequence=)
         end

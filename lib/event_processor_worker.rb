@@ -21,7 +21,7 @@ module EventFramework
       event_processor_class:,
       logger: Logger.new(STDOUT),
       event_source: EventStore::Source,
-      bookmark_repository: BookmarkRepository
+      bookmark_repository: BookmarkRepository.new(name: event_processor_class.name)
     )
       @event_processor_class = event_processor_class
       @logger = logger
@@ -65,7 +65,7 @@ module EventFramework
     attr_reader :event_processor_class, :logger, :event_source, :bookmark_repository, :shutdown_requested
 
     def bookmark
-      @bookmark ||= bookmark_repository.checkout(name: event_processor_class.name)
+      @bookmark ||= bookmark_repository.checkout
     end
 
     def event_processor
