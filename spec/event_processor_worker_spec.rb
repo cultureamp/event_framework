@@ -15,27 +15,26 @@ module EventFramework
           handled_event_classes: [TestDomain::Thing::QuxAdded],
         )
       end
-      let(:event_processor) { instance_double(EventProcessor) }
+      let(:event_processor) { instance_double(EventProcessor, class: event_processor_class) }
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
-      let(:bookmark_repository) { instance_double(BookmarkRepository) }
       let(:bookmark) { instance_double(Bookmark, sequence: 0) }
+      let(:event_source) { class_double(EventStore::Source) }
 
       subject(:event_processor_supervisor) do
         described_class.new(
-          event_processor_class: event_processor_class,
+          event_processor: event_processor,
           logger: logger,
-          bookmark_repository: bookmark_repository,
+          bookmark: bookmark,
+          event_source: event_source,
         )
       end
 
       before do
         allow(logger).to receive(:info)
-        allow(event_processor_class).to receive(:new).and_return(event_processor)
         allow(event_processor_supervisor).to receive(:sleep)
-        allow(EventStore::Source).to receive(:get_after)
+        allow(event_source).to receive(:get_after)
           .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
-        allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, true)
