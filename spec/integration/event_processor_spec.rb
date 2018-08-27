@@ -7,11 +7,11 @@ module TestDomain
 end
 
 module EventFramework
-  RSpec.describe 'Projector integration' do
+  RSpec.describe 'EventProcessor integration' do
     let(:aggregate_id) { SecureRandom.uuid }
     let(:account_id) { SecureRandom.uuid }
     let(:processor_class) do
-      Class.new(Projector) do
+      Class.new(EventProcessor) do
         attr_reader :fake_database
 
         class << self
