@@ -27,7 +27,7 @@ module EventFramework
       let(:aggregate) { instance_double(Aggregate, staged_events: [event_1, event_2]) }
       let(:metadata) { { account_id: SecureRandom.uuid } }
       let(:fake_event_class) do
-        Class.new(Dry::Struct) do
+        Class.new(DomainStruct) do
           attribute :aggregate_sequence, Types::Strict::Integer
           attribute :metadata, Types::Hash.meta(omittable: true)
         end
