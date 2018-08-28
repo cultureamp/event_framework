@@ -53,7 +53,7 @@ module EventFramework
     end
 
     def with_new_aggregate(aggregate_class, aggregate_id)
-      aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
+      aggregate = repository.new_aggregate(aggregate_class, aggregate_id)
 
       yield aggregate
 

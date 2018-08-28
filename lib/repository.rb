@@ -1,12 +1,25 @@
 module EventFramework
   class Repository
+    AggregateNotFound = Class.new(Error)
+    AggregateAlreadyExists = Class.new(Error)
+
     def initialize(sink: EventStore::Sink, source: EventStore::Source)
       @sink = sink
       @source = source
     end
 
+    def new_aggregate(aggregate_class, aggregate_id)
+      events = source.get_for_aggregate(aggregate_id)
+
+      raise AggregateAlreadyExists if events.count > 0
+
+      aggregate_class.build(aggregate_id)
+    end
+
     def load_aggregate(aggregate_class, aggregate_id)
       events = source.get_for_aggregate(aggregate_id)
+
+      raise AggregateNotFound if events.count == 0
 
       aggregate_class.build(aggregate_id).tap do |aggregate|
         aggregate.load_events(events)

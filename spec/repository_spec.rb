@@ -6,6 +6,31 @@ module EventFramework
     let(:source) { double(EventStore::Source) }
     let(:repository) { Repository.new(sink: sink, source: source) }
 
+    describe '#new_aggregate' do
+      let(:aggregate_id) { SecureRandom.uuid }
+      let(:aggregate_class) { class_double(Aggregate) }
+      let(:aggregate) { instance_double(Aggregate) }
+
+      it 'returns a new aggregate with loaded events', aggregate_failures: true do
+        expect(source).to receive(:get_for_aggregate)
+          .with(aggregate_id)
+          .and_return([])
+        expect(aggregate_class).to receive(:build).with(aggregate_id).and_return(aggregate)
+        expect(repository.new_aggregate(aggregate_class, aggregate_id)).to eq aggregate
+      end
+
+      context 'with existing events' do
+        it 'raises an error' do
+          expect(source).to receive(:get_for_aggregate)
+            .with(aggregate_id)
+            .and_return([:event_1])
+
+          expect { repository.new_aggregate(aggregate_class, aggregate_id) }
+            .to raise_error Repository::AggregateAlreadyExists
+        end
+      end
+    end
+
     describe '#load_aggregate' do
       let(:aggregate_id) { SecureRandom.uuid }
       let(:aggregate_class) { class_double(Aggregate) }
@@ -18,6 +43,17 @@ module EventFramework
         expect(aggregate_class).to receive(:build).with(aggregate_id).and_return(aggregate)
         expect(aggregate).to receive(:load_events).with([:event_1, :event_2])
         expect(repository.load_aggregate(aggregate_class, aggregate_id)).to eq aggregate
+      end
+
+      context 'with no events' do
+        it 'raises an error' do
+          expect(source).to receive(:get_for_aggregate)
+            .with(aggregate_id)
+            .and_return([])
+
+          expect { repository.load_aggregate(aggregate_class, aggregate_id) }
+            .to raise_error Repository::AggregateNotFound
+        end
       end
     end
 
