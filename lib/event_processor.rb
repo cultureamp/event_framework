@@ -2,10 +2,6 @@ module EventFramework
   # An EventProcessor handles processing events from the event source.
   class EventProcessor
     class << self
-      extend Forwardable
-
-      def_delegators :event_handlers, :handled_event_classes
-
       def process(*event_classes, &block)
         event_classes.each do |event_class|
           event_handlers.add(event_class, block)
@@ -15,6 +11,10 @@ module EventFramework
       def event_handlers
         @event_handlers ||= EventHandlerRegistry.new
       end
+    end
+
+    def handled_event_classes
+      self.class.event_handlers.handled_event_classes
     end
 
     def handle_event(event)

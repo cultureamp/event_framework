@@ -30,7 +30,7 @@ module EventFramework
 
         events = event_source.get_after(
           bookmark.sequence,
-          event_classes: event_processor.class.handled_event_classes,
+          event_classes: event_processor.handled_event_classes,
         )
 
         if events.empty?

@@ -13,9 +13,9 @@ module EventFramework
     end
     subject(:event_processor) { event_processor_subclass.new }
 
-    describe '.handled_event_classes' do
+    describe '#handled_event_classes' do
       it 'returns the handled event classes' do
-        expect(event_processor_subclass.handled_event_classes).to eq [FooTestEvent]
+        expect(event_processor.handled_event_classes).to eq [FooTestEvent]
       end
     end
 

@@ -8,14 +8,14 @@ end
 module EventFramework
   RSpec.describe EventProcessorWorker do
     describe '.call' do
-      let(:event_processor_class) do
-        class_double(
+      let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
+      let(:event_processor) do
+        instance_double(
           EventProcessor,
-          name: 'FooProjector',
+          class: event_processor_class,
           handled_event_classes: [TestDomain::Thing::QuxAdded],
         )
       end
-      let(:event_processor) { instance_double(EventProcessor, class: event_processor_class) }
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
       let(:bookmark) { instance_double(Bookmark, sequence: 0) }
