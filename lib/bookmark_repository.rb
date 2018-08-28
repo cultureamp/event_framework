@@ -18,27 +18,29 @@ module EventFramework
     attr_reader :database, :name
 
     def acquire_lock
-      lock_key = find_lock_key
-      lock = Sequel.function(:pg_try_advisory_lock, lock_key)
+      bookmark = find_bookmark || construct_new_bookmark
+      lock_result = try_lock(bookmark[:lock_key])
 
-      unless locked?(lock)
-        raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{lock_key}); " \
+      unless locked?(lock_result)
+        raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{bookmark[:lock_key]}); " \
           "another process is already using this bookmark"
       end
     end
 
-    def locked?(lock)
-      database.select(lock).first[:pg_try_advisory_lock]
+    def try_lock(lock_key)
+      database.select(Sequel.function(:pg_try_advisory_lock, lock_key))
     end
 
-    def find_lock_key
-      bookmark_row = database[:bookmarks].select(:lock_key).first(name: name)
+    def locked?(lock_result)
+      lock_result.first[:pg_try_advisory_lock]
+    end
 
-      if bookmark_row
-        bookmark_row[:lock_key]
-      else
-        database[:bookmarks].returning.insert(name: name, sequence: 0).first[:lock_key]
-      end
+    def find_bookmark
+      database[:bookmarks].select(:lock_key).first(name: name)
+    end
+
+    def construct_new_bookmark
+      database[:bookmarks].returning.insert(name: name, sequence: 0).first
     end
   end
 end
