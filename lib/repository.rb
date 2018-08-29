@@ -15,7 +15,7 @@ module EventFramework
 
     def save_aggregate(aggregate, metadata:, ensure_new_aggregate: false)
       events = aggregate.staged_events.each_with_index.map do |staged_event, i|
-        staged_event = staged_event.new(metadata: metadata)
+        staged_event = staged_event.new(mutable_metadata: metadata)
         staged_event = staged_event.new(aggregate_sequence: i + 1) if ensure_new_aggregate
         staged_event
       end
