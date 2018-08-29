@@ -65,7 +65,7 @@ module EventFramework
       let(:fake_event_class) do
         Class.new(DomainStruct) do
           attribute :aggregate_sequence, Types::Strict::Integer
-          attribute :metadata, Types::Hash.meta(omittable: true)
+          attribute :mutable_metadata, Types::Hash.meta(omittable: true)
         end
       end
 
