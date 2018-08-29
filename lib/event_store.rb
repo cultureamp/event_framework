@@ -12,7 +12,7 @@ module EventFramework
 
     def self.database
       raise NotImplementedError if EventFramework.config.database_url.nil?
-      @database ||= Sequel.connect(EventFramework.config.database_url).tap do |database|
+      @database ||= Sequel.connect(EventFramework.config.database_url.to_s).tap do |database|
         database.extension :pg_json
       end
     end
