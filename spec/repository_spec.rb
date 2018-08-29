@@ -71,8 +71,8 @@ module EventFramework
 
       it 'sinks the aggregates staged events with metadata' do
         expect(sink).to receive(:sink).with [
-          event_1.new(metadata: metadata),
-          event_2.new(metadata: metadata),
+          event_1.new(mutable_metadata: metadata),
+          event_2.new(mutable_metadata: metadata),
         ]
 
         repository.save_aggregate(aggregate, metadata: metadata)
@@ -81,8 +81,8 @@ module EventFramework
       context 'with ensure_new_aggregate: true' do
         it 'sinks the aggregates staged events setting with the aggregate_sequence starting at 1' do
           expect(sink).to receive(:sink).with [
-            event_1.new(aggregate_sequence: 1, metadata: metadata),
-            event_2.new(aggregate_sequence: 2, metadata: metadata),
+            event_1.new(aggregate_sequence: 1, mutable_metadata: metadata),
+            event_2.new(aggregate_sequence: 2, mutable_metadata: metadata),
           ]
 
           repository.save_aggregate(aggregate, metadata: metadata, ensure_new_aggregate: true)

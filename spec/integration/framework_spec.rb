@@ -135,7 +135,7 @@ RSpec.describe 'integration' do
             aggregate_id: aggregate_id,
             aggregate_sequence: 1,
             domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
-            metadata: metadata,
+            mutable_metadata: metadata,
           ),
         ]
       end

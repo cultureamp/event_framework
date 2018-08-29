@@ -12,7 +12,7 @@ module EventFramework
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :domain_event, DomainEvent
 
-    attribute :metadata, Types.Instance(Metadata).optional
+    attribute :mutable_metadata, Types.Instance(Metadata).optional
 
     def aggregate_type
       raise InvalidDomainEventError if type_description.aggregate_type.nil?
@@ -26,6 +26,10 @@ module EventFramework
 
     def body
       domain_event.to_h
+    end
+
+    def metadata
+      Event::Metadata.new(mutable_metadata.to_h)
     end
 
     private

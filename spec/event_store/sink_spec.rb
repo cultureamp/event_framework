@@ -162,5 +162,19 @@ module EventFramework
         described_class.sink([])
       end
     end
+
+    context 'with missing metadata attributes' do
+      it 'raises an error' do
+        event = EventFramework::StagedEvent.new(
+          aggregate_id: SecureRandom.uuid,
+          aggregate_sequence: 1,
+          domain_event: TestDomain::Thing::EventHappened.new,
+          mutable_metadata: nil,
+        )
+
+        expect { EventFramework::EventStore::Sink.sink [event] }
+          .to raise_error Dry::Struct::Error, /account_id is missing in Hash input/
+      end
+    end
   end
 end
