@@ -10,6 +10,7 @@ module EventFramework
             sequence: row[:sequence],
             aggregate_id: row[:aggregate_id],
             aggregate_sequence: row[:aggregate_sequence],
+            created_at: row[:created_at],
             metadata: Event::Metadata.new(row[:metadata]),
             domain_event: domain_event_class.new(row[:body]),
           )

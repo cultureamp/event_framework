@@ -45,6 +45,36 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: bookmarks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bookmarks (
+    lock_key bigint NOT NULL,
+    name text NOT NULL,
+    sequence bigint NOT NULL
+);
+
+
+--
+-- Name: bookmarks_lock_key_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bookmarks_lock_key_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bookmarks_lock_key_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bookmarks_lock_key_seq OWNED BY public.bookmarks.lock_key;
+
+
+--
 -- Name: events; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -56,6 +86,7 @@ CREATE TABLE public.events (
     aggregate_type character varying(255) NOT NULL,
     event_type character varying(255) NOT NULL,
     body jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     metadata jsonb NOT NULL
 );
 
@@ -89,10 +120,25 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('public.bookmarks_lock_key_seq'::regclass);
+
+
+--
 -- Name: events sequence; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.events ALTER COLUMN sequence SET DEFAULT nextval('public.events_sequence_seq'::regclass);
+
+
+--
+-- Name: bookmarks bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bookmarks
+    ADD CONSTRAINT bookmarks_pkey PRIMARY KEY (name);
 
 
 --
@@ -124,6 +170,13 @@ ALTER TABLE ONLY public.schema_migrations
 --
 
 CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON public.events USING btree (aggregate_id, aggregate_sequence);
+
+
+--
+-- Name: events_aggregate_type_event_type_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree (aggregate_type, event_type);
 
 
 --

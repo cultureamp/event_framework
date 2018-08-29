@@ -22,13 +22,13 @@ module EventFramework
           event_type: 'EventBuilderTested',
           aggregate_id: aggregate_id,
           aggregate_sequence: 2,
+          created_at: created_at,
           body: {
             test: 'Testing!',
           },
           metadata: {
             account_id: account_id,
             user_id: user_id,
-            created_at: created_at,
           },
         }
       end
@@ -41,6 +41,7 @@ module EventFramework
         expect(event.type).to eq TestDomain::Thing::EventBuilderTested
         expect(event.aggregate_id).to eq aggregate_id
         expect(event.aggregate_sequence).to eq 2
+        expect(event.created_at).to eq created_at
       end
 
       it 'has a domain event' do
@@ -52,7 +53,6 @@ module EventFramework
         expect(event.metadata).to be_a Event::Metadata
         expect(event.metadata.account_id).to eq account_id
         expect(event.metadata.user_id).to eq user_id
-        expect(event.metadata.created_at).to eq created_at
       end
     end
   end

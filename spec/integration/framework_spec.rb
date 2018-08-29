@@ -6,28 +6,39 @@ module TestDomain
     end
 
     class ImplementThing < EventFramework::Command
-      attribute :thing_id, EventFramework::Types::UUID
       attribute :foo, EventFramework::Types::Strict::String
       attribute :bar, EventFramework::Types::Strict::String
     end
 
     class ImplementThings < EventFramework::Command
-      attribute :thing_id, EventFramework::Types::UUID
       attribute :foo, EventFramework::Types::Strict::String
       attribute :bar, EventFramework::Types::Strict::String
+
+      validation_schema do
+        required(:foo).filled(:str?)
+        required(:bar).filled(:str?)
+      end
     end
 
     class ImplementThingHandler < EventFramework::CommandHandler
-      handle ImplementThing do |_aggregate_id, command, _metadata, _executor|
-        with_aggregate(ThingAggregate, command.thing_id) do |thing|
+      handle ImplementThing do |command, _metadata, _executor|
+        with_new_aggregate(ThingAggregate, command.aggregate_id) do |thing|
+          thing.implement(foo: command.foo, bar: command.bar)
+        end
+      end
+    end
+
+    class ExistingImplementThingHandler < EventFramework::CommandHandler
+      handle ImplementThing do |command, _metadata, _executor|
+        with_aggregate(ThingAggregate, command.aggregate_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
         end
       end
     end
 
     class ImplementThingsHandler < EventFramework::CommandHandler
-      handle ImplementThings do |_aggregate_id, command, _metadata, _executor|
-        with_aggregate(ThingAggregate, command.thing_id) do |thing|
+      handle ImplementThings do |command, _metadata, _executor|
+        with_new_aggregate(ThingAggregate, command.aggregate_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
           thing.implement_many(foo: command.foo, bar: command.bar)
         end
@@ -80,7 +91,7 @@ RSpec.describe 'integration' do
 
     let(:command) do
       TestDomain::Thing::ImplementThing.new(
-        thing_id: aggregate_id,
+        aggregate_id: aggregate_id,
         foo: 'Foo',
         bar: 'Bar',
       )
@@ -89,7 +100,7 @@ RSpec.describe 'integration' do
     before do
       EventFramework::EventStore::Sink.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
-      handler.handle(aggregate_id: command.thing_id, command: command, metadata: metadata, executor: nil)
+      handler.handle(command: command, metadata: metadata, executor: nil)
     end
 
     it 'persists a single event' do
@@ -124,9 +135,12 @@ RSpec.describe 'integration' do
             aggregate_id: aggregate_id,
             aggregate_sequence: 1,
             domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
-            metadata: metadata,
+            mutable_metadata: metadata,
           ),
         ]
+      end
+      let(:handler) do
+        TestDomain::Thing::ExistingImplementThingHandler.new
       end
 
       it 'persists the event with an incremented aggregate_sequence' do
@@ -145,12 +159,12 @@ RSpec.describe 'integration' do
 
     let(:command) do
       TestDomain::Thing::ImplementThings.new(
-        thing_id: aggregate_id,
+        aggregate_id: aggregate_id,
         foo: 'Foo',
         bar: 'Bar',
       )
     end
-    before { handler.handle(aggregate_id: command.thing_id, command: command, metadata: metadata, executor: nil) }
+    before { handler.handle(command: command, metadata: metadata, executor: nil) }
 
     it 'persists multiple events' do
       expect(events.length).to eql 6
@@ -160,6 +174,53 @@ RSpec.describe 'integration' do
       domain_event_foo_values = events.map { |e| e.domain_event.foo }
 
       expect(domain_event_foo_values).to eql %w(Foo Foo-0 Foo-1 Foo-2 Foo-3 Foo-4)
+    end
+  end
+
+  describe 'validating params for a command' do
+    subject(:result) { TestDomain::Thing::ImplementThings.validate(params) }
+
+    context 'with valid params' do
+      let(:aggregate_id) { SecureRandom.uuid }
+      let(:params) do
+        {
+          aggregate_id: aggregate_id,
+          'foo' => 'Foo',
+          bar: 'Bar',
+        }
+      end
+
+      it 'returns a successful result object' do
+        expect(result).to be_success
+      end
+
+      it 'returns an output hash with symbolized keys' do
+        expect(result.output).to eq(
+          aggregate_id: aggregate_id,
+          foo: 'Foo',
+          bar: 'Bar',
+        )
+      end
+    end
+
+    context 'with invalid params' do
+      let(:params) do
+        {
+          aggregate_id: SecureRandom.uuid,
+          foo: 1,
+          bar: 'x',
+        }
+      end
+
+      it 'returns a failure result object' do
+        expect(result).to be_failure
+      end
+
+      it 'returns errrors' do
+        expect(result.errors).to eq(
+          foo: ['must be a string'],
+        )
+      end
     end
   end
 end

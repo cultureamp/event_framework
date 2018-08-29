@@ -3,6 +3,10 @@ module TestDomain
     class FooAdded < EventFramework::DomainEvent
       attribute :foo, EventFramework::Types::String
     end
+
+    class BarAdded < EventFramework::DomainEvent
+      attribute :bar, EventFramework::Types::String
+    end
   end
 end
 
@@ -12,7 +16,6 @@ module EventFramework
       metadata = {
         account_id: SecureRandom.uuid,
         user_id: SecureRandom.uuid,
-        created_at: Time.now.utc,
       }
 
       EventStore.database[:events].overriding_system_value.insert(
@@ -31,22 +34,32 @@ module EventFramework
     before do
       insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }
       insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'bar' }
-      insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'qux' }
+      insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'Thing', event_type: 'BarAdded', body: { bar: 'qux' }
     end
 
-    describe '.get_from' do
-      let(:events) { described_class.get_from(15) }
+    describe '.get_after' do
+      let(:events) { described_class.get_after(14) }
 
       it 'only returns events with a sequence value greater or equal to the given argument' do
         expect(events).to all be_an(Event)
         expect(events).to match [
           have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
-          have_attributes(sequence: 16, domain_event: TestDomain::Thing::FooAdded.new(foo: 'qux')),
+          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: 'qux')),
         ]
       end
 
+      context 'when scoped to certain event types' do
+        let(:events) { described_class.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
+
+        it 'only returns events of the specified type' do
+          expect(events).to match [
+            have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
+          ]
+        end
+      end
+
       context 'when no events are found' do
-        let(:events) { described_class.get_from(17) }
+        let(:events) { described_class.get_after(16) }
 
         it 'returns an empty array' do
           expect(events).to be_empty
@@ -61,7 +74,7 @@ module EventFramework
         expect(events).to all be_an(Event)
         expect(events).to match [
           have_attributes(sequence: 14, domain_event: TestDomain::Thing::FooAdded.new(foo: 'foo')),
-          have_attributes(sequence: 16, domain_event: TestDomain::Thing::FooAdded.new(foo: 'qux')),
+          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: 'qux')),
         ]
       end
 

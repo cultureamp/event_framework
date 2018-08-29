@@ -54,7 +54,7 @@ module EventFramework
 
     describe '#with_new_aggregate' do
       let(:aggregate) { double :aggregate }
-      let(:repository) { spy :repository, load_aggregate: aggregate }
+      let(:repository) { spy :repository, new_aggregate: aggregate }
       let(:thing_class) { class_double "Thing" }
 
       let(:instance) do
@@ -71,7 +71,7 @@ module EventFramework
       it 'loads an aggregate from the repository' do
         instance.send(:with_new_aggregate, thing_class, aggregate_id, &empty_block)
 
-        expect(repository).to have_received(:load_aggregate).with(thing_class, aggregate_id)
+        expect(repository).to have_received(:new_aggregate).with(thing_class, aggregate_id)
       end
 
       it 'yields the aggregate to a block' do
@@ -96,7 +96,7 @@ module EventFramework
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@callable, 'foo')
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -104,7 +104,7 @@ module EventFramework
       context 'when callable is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -113,7 +113,7 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@callable, ->(_, _) {})
-          expect { described_class.new.handle(aggregate_id: nil, command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
@@ -132,7 +132,8 @@ module EventFramework
           end
         end
 
-        let(:command_class) { TrueClass }
+        let(:command_class) { Class.new }
+        let(:command_instance) { command_class.new }
         let(:instance) { described_class.new }
 
         before do
@@ -146,7 +147,7 @@ module EventFramework
           end
 
           it 'calls callable until it passes' do
-            expect { instance.handle(aggregate_id: nil, command: true, metadata: nil, executor: nil) }.not_to raise_error
+            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }.not_to raise_error
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 4
           end
@@ -158,7 +159,7 @@ module EventFramework
           end
 
           it 'raises an error' do
-            expect { instance.handle(aggregate_id: nil, command: true, metadata: nil, executor: nil) }
+            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }
               .to raise_error(described_class::RetryFailureThresholdExceededException)
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 1
