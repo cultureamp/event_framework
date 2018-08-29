@@ -15,7 +15,7 @@ module EventFramework
         userinfo: db_userinfo,
         host: db_hostname,
         path: "/#{db_name}",
-      )
+      ).to_s
     end
 
     private
