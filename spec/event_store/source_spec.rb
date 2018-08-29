@@ -16,7 +16,6 @@ module EventFramework
       metadata = {
         account_id: SecureRandom.uuid,
         user_id: SecureRandom.uuid,
-        created_at: Time.now.utc,
       }
 
       EventStore.database[:events].overriding_system_value.insert(

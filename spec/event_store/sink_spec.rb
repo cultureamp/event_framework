@@ -1,6 +1,8 @@
 module TestDomain
   module Thing
-    EventHappened = Class.new(EventFramework::DomainEvent)
+    EventHappened = Class.new(EventFramework::DomainEvent) do
+      attribute :foo, EventFramework::Types::String
+    end
   end
 end
 

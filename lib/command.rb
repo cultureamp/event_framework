@@ -2,7 +2,7 @@ require 'dry/struct'
 require 'dry/validation'
 
 module EventFramework
-  class Command < Dry::Struct
+  class Command < DomainStruct
     ValidationNotImplementedError = Class.new(Error)
 
     transform_keys(&:to_sym)

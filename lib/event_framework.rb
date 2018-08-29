@@ -30,6 +30,7 @@ module EventFramework
   autoload :Reactor, 'reactor'
   autoload :Repository, 'repository'
   autoload :StagedEvent, 'staged_event'
+  autoload :DomainStruct, 'domain_struct'
 
   # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
   def self.environment
