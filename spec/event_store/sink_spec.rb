@@ -170,7 +170,7 @@ module EventFramework
         event = EventFramework::StagedEvent.new(
           aggregate_id: SecureRandom.uuid,
           aggregate_sequence: 1,
-          domain_event: TestDomain::Thing::EventHappened.new,
+          domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
           mutable_metadata: nil,
         )
 
