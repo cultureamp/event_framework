@@ -100,13 +100,13 @@ module EventFramework
             aggregate_id: aggregate_id,
             aggregate_sequence: 5,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            metadata: nil,
+            mutable_metadata: nil,
           ),
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 6,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            metadata: nil,
+            mutable_metadata: nil,
           ),
         ]
 

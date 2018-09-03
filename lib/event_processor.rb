@@ -1,4 +1,5 @@
 module EventFramework
+  # An EventProcessor handles processing events from the event source.
   class EventProcessor
     class << self
       def process(*event_classes, &block)
@@ -12,13 +13,13 @@ module EventFramework
       end
     end
 
-    # TODO: Should this take multiple events?
-    def process_events(events)
-      events.each do |event|
-        self.class.event_handlers.for(event.domain_event.type).each do |handler|
-          # TODO: Check arity
-          instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
-        end
+    def handled_event_classes
+      self.class.event_handlers.handled_event_classes
+    end
+
+    def handle_event(event)
+      self.class.event_handlers.for(event.domain_event.type).each do |handler|
+        instance_exec(event.aggregate_id, event.domain_event, event.metadata, &handler)
       end
     end
   end

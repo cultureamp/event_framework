@@ -8,6 +8,7 @@ module EventFramework
     autoload :Source, 'event_store/source'
     autoload :EventBuilder, 'event_store/event_builder'
     autoload :EventTypeDeserializer, 'event_store/event_type_deserializer'
+    autoload :EventTypeSerializer, 'event_store/event_type_serializer'
 
     def self.database
       raise NotImplementedError if EventFramework.config.database_url.nil?

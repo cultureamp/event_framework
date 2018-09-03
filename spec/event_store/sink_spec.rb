@@ -1,6 +1,8 @@
 module TestDomain
   module Thing
-    EventHappened = Class.new(EventFramework::DomainEvent)
+    EventHappened = Class.new(EventFramework::DomainEvent) do
+      attribute :foo, EventFramework::Types::String
+    end
   end
 end
 
@@ -160,6 +162,20 @@ module EventFramework
         expect(described_class).to_not receive(:database)
 
         described_class.sink([])
+      end
+    end
+
+    context 'with missing metadata attributes' do
+      it 'raises an error' do
+        event = EventFramework::StagedEvent.new(
+          aggregate_id: SecureRandom.uuid,
+          aggregate_sequence: 1,
+          domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
+          mutable_metadata: nil,
+        )
+
+        expect { EventFramework::EventStore::Sink.sink [event] }
+          .to raise_error Dry::Struct::Error, /account_id is missing in Hash input/
       end
     end
   end

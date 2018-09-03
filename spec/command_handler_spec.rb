@@ -54,7 +54,7 @@ module EventFramework
 
     describe '#with_new_aggregate' do
       let(:aggregate) { double :aggregate }
-      let(:repository) { spy :repository, load_aggregate: aggregate }
+      let(:repository) { spy :repository, new_aggregate: aggregate }
       let(:thing_class) { class_double "Thing" }
 
       let(:instance) do
@@ -71,7 +71,7 @@ module EventFramework
       it 'loads an aggregate from the repository' do
         instance.send(:with_new_aggregate, thing_class, aggregate_id, &empty_block)
 
-        expect(repository).to have_received(:load_aggregate).with(thing_class, aggregate_id)
+        expect(repository).to have_received(:new_aggregate).with(thing_class, aggregate_id)
       end
 
       it 'yields the aggregate to a block' do

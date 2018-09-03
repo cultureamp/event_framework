@@ -22,6 +22,14 @@ module TestDomain
 
     class ImplementThingHandler < EventFramework::CommandHandler
       handle ImplementThing do |command, _metadata, _executor|
+        with_new_aggregate(ThingAggregate, command.aggregate_id) do |thing|
+          thing.implement(foo: command.foo, bar: command.bar)
+        end
+      end
+    end
+
+    class ExistingImplementThingHandler < EventFramework::CommandHandler
+      handle ImplementThing do |command, _metadata, _executor|
         with_aggregate(ThingAggregate, command.aggregate_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
         end
@@ -30,7 +38,7 @@ module TestDomain
 
     class ImplementThingsHandler < EventFramework::CommandHandler
       handle ImplementThings do |command, _metadata, _executor|
-        with_aggregate(ThingAggregate, command.aggregate_id) do |thing|
+        with_new_aggregate(ThingAggregate, command.aggregate_id) do |thing|
           thing.implement(foo: command.foo, bar: command.bar)
           thing.implement_many(foo: command.foo, bar: command.bar)
         end
@@ -127,9 +135,12 @@ RSpec.describe 'integration' do
             aggregate_id: aggregate_id,
             aggregate_sequence: 1,
             domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
-            metadata: metadata,
+            mutable_metadata: metadata,
           ),
         ]
+      end
+      let(:handler) do
+        TestDomain::Thing::ExistingImplementThingHandler.new
       end
 
       it 'persists the event with an incremented aggregate_sequence' do
