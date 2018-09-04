@@ -1,6 +1,9 @@
 require 'dotenv'
 Dotenv.load '../.env'
 
+$LOAD_PATH << File.join(File.dirname(__FILE__), 'lib')
+require 'event_framework'
+
 namespace :event_store do
   namespace :db do
     desc "Run the migrate and schema-dump tasks; Set VERSION in Env to choose which migration to target"
@@ -10,7 +13,6 @@ namespace :event_store do
       desc "Perform Migrations; Set VERSION in Env to choose which migration to target"
       task :run do
         require "sequel/core"
-        require_relative 'lib/event_framework'
 
         Sequel.extension :migration
 
@@ -50,7 +52,6 @@ namespace :event_store do
     desc "Create database"
     task :create do
       require "sequel/core"
-      require_relative 'lib/event_framework'
 
       database_uri      = URI.parse(EventFramework.config.database_url)
       root_database_uri = URI.parse(EventFramework.config.database_url).tap { |u| u.path = '/postgres' }
@@ -65,7 +66,6 @@ namespace :event_store do
     desc "Drop database"
     task :drop do
       require "sequel/core"
-      require_relative 'lib/event_framework'
 
       database_uri      = URI.parse(EventFramework.config.database_url)
       root_database_uri = URI.parse(EventFramework.config.database_url).tap { |u| u.path = '/postgres' }
