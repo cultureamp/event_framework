@@ -49,7 +49,7 @@ SET default_with_oids = false;
 -- Name: bookmarks; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.bookmarks (
+CREATE TABLE bookmarks (
     lock_key bigint NOT NULL,
     name text NOT NULL,
     sequence bigint NOT NULL
@@ -60,7 +60,7 @@ CREATE TABLE public.bookmarks (
 -- Name: bookmarks_lock_key_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.bookmarks_lock_key_seq
+CREATE SEQUENCE bookmarks_lock_key_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -72,7 +72,7 @@ CREATE SEQUENCE public.bookmarks_lock_key_seq
 -- Name: bookmarks_lock_key_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.bookmarks_lock_key_seq OWNED BY public.bookmarks.lock_key;
+ALTER SEQUENCE bookmarks_lock_key_seq OWNED BY bookmarks.lock_key;
 
 
 --
@@ -124,7 +124,7 @@ CREATE TABLE schema_migrations (
 -- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('public.bookmarks_lock_key_seq'::regclass);
+ALTER TABLE ONLY bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('bookmarks_lock_key_seq'::regclass);
 
 
 --
@@ -138,7 +138,7 @@ ALTER TABLE ONLY events ALTER COLUMN sequence SET DEFAULT nextval('events_sequen
 -- Name: bookmarks bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.bookmarks
+ALTER TABLE ONLY bookmarks
     ADD CONSTRAINT bookmarks_pkey PRIMARY KEY (name);
 
 
@@ -177,7 +177,7 @@ CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON events USING
 -- Name: events_aggregate_type_event_type_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree (aggregate_type, event_type);
+CREATE INDEX events_aggregate_type_event_type_index ON events USING btree (aggregate_type, event_type);
 
 
 --
