@@ -13,7 +13,7 @@ namespace :event_store do
       desc "Checks to see if EventFramework has been configured; exits cleanly if not"
       task :check_configuration do
         if EventFramework.config.database_url.nil?
-          puts "No DATABASE_URL configurd for EventFramework in #{EventFramework.environment}; exiting."
+          puts "No DATABASE_URL configurd for EventFramework in #{EventFramework.environment.inspect}; exiting."
           exit
         end
       end
@@ -26,7 +26,7 @@ namespace :event_store do
 
         version = ENV['VERSION']&.to_i
 
-        puts "Migrating in #{EventFramework.environment} environment..."
+        puts "Migrating in #{EventFramework.environment.inspect} environment..."
         Sequel.connect(EventFramework.config.database_url) do |db|
           Sequel::Migrator.run(db, "db/migrations", target: version)
         end
