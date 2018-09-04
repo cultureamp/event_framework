@@ -7,9 +7,17 @@ require 'event_framework'
 namespace :event_store do
   namespace :db do
     desc "Run the migrate and schema-dump tasks; Set VERSION in Env to choose which migration to target"
-    task migrate: ["migrate:run", "schema:dump"]
+    task migrate: ["migrate:check_configuration", "migrate:run", "schema:dump"]
 
     namespace :migrate do
+      desc "Checks to see if EventFramework has been configured; exits cleanly if not"
+      task :check_configuration do
+        if EventFramework.config.database_url.nil?
+          puts "No DATABASE_URL configurd for EventFramework in #{EventFramework.environment}; exiting."
+          exit
+        end
+      end
+
       desc "Perform Migrations; Set VERSION in Env to choose which migration to target"
       task :run do
         require "sequel/core"
@@ -18,6 +26,7 @@ namespace :event_store do
 
         version = ENV['VERSION']&.to_i
 
+        puts "Migrating in #{EventFramework.environment} environment..."
         Sequel.connect(EventFramework.config.database_url) do |db|
           Sequel::Migrator.run(db, "db/migrations", target: version)
         end
