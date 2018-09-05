@@ -50,11 +50,4 @@ module EventFramework
   setting :after_sink_hook, AfterSinkHook
 end
 
-# TODO: Move this config to domains/ as it's app specific
-Events = Module.new
-
-EventFramework.configure do |config|
-  config.event_namespace_class = Events
-end
-
 require_relative "../config/environments/#{EventFramework.environment}"
