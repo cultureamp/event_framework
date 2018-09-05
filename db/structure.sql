@@ -7,6 +7,7 @@ SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
@@ -39,8 +40,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
-SET search_path = public, pg_catalog;
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -49,7 +48,7 @@ SET default_with_oids = false;
 -- Name: bookmarks; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE bookmarks (
+CREATE TABLE public.bookmarks (
     lock_key bigint NOT NULL,
     name text NOT NULL,
     sequence bigint NOT NULL
@@ -60,7 +59,7 @@ CREATE TABLE bookmarks (
 -- Name: bookmarks_lock_key_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE bookmarks_lock_key_seq
+CREATE SEQUENCE public.bookmarks_lock_key_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -72,17 +71,17 @@ CREATE SEQUENCE bookmarks_lock_key_seq
 -- Name: bookmarks_lock_key_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE bookmarks_lock_key_seq OWNED BY bookmarks.lock_key;
+ALTER SEQUENCE public.bookmarks_lock_key_seq OWNED BY public.bookmarks.lock_key;
 
 
 --
 -- Name: events; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE events (
+CREATE TABLE public.events (
     sequence bigint NOT NULL,
     aggregate_sequence bigint NOT NULL,
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     aggregate_id uuid NOT NULL,
     aggregate_type character varying(255) NOT NULL,
     event_type character varying(255) NOT NULL,
@@ -96,7 +95,7 @@ CREATE TABLE events (
 -- Name: events_sequence_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE events_sequence_seq
+CREATE SEQUENCE public.events_sequence_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -108,14 +107,14 @@ CREATE SEQUENCE events_sequence_seq
 -- Name: events_sequence_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE events_sequence_seq OWNED BY events.sequence;
+ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
 
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE schema_migrations (
+CREATE TABLE public.schema_migrations (
     filename text NOT NULL
 );
 
@@ -124,21 +123,21 @@ CREATE TABLE schema_migrations (
 -- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('bookmarks_lock_key_seq'::regclass);
+ALTER TABLE ONLY public.bookmarks ALTER COLUMN lock_key SET DEFAULT nextval('public.bookmarks_lock_key_seq'::regclass);
 
 
 --
 -- Name: events sequence; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY events ALTER COLUMN sequence SET DEFAULT nextval('events_sequence_seq'::regclass);
+ALTER TABLE ONLY public.events ALTER COLUMN sequence SET DEFAULT nextval('public.events_sequence_seq'::regclass);
 
 
 --
 -- Name: bookmarks bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY bookmarks
+ALTER TABLE ONLY public.bookmarks
     ADD CONSTRAINT bookmarks_pkey PRIMARY KEY (name);
 
 
@@ -146,7 +145,7 @@ ALTER TABLE ONLY bookmarks
 -- Name: events events_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY events
+ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_id_key UNIQUE (id);
 
 
@@ -154,7 +153,7 @@ ALTER TABLE ONLY events
 -- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY events
+ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_pkey PRIMARY KEY (sequence);
 
 
@@ -162,7 +161,7 @@ ALTER TABLE ONLY events
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY schema_migrations
+ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
 
 
@@ -170,14 +169,14 @@ ALTER TABLE ONLY schema_migrations
 -- Name: events_aggregate_id_aggregate_sequence_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON events USING btree (aggregate_id, aggregate_sequence);
+CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON public.events USING btree (aggregate_id, aggregate_sequence);
 
 
 --
 -- Name: events_aggregate_type_event_type_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX events_aggregate_type_event_type_index ON events USING btree (aggregate_type, event_type);
+CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree (aggregate_type, event_type);
 
 
 --
