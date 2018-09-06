@@ -111,6 +111,16 @@ ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
 
 
 --
+-- Name: question_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_command_projection (
+    question_id uuid NOT NULL,
+    survey_id uuid NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -166,6 +176,14 @@ ALTER TABLE ONLY public.events
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_pkey PRIMARY KEY (sequence);
+
+
+--
+-- Name: question_command_projection question_command_projection_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_command_projection
+    ADD CONSTRAINT question_command_projection_question_id_key UNIQUE (question_id);
 
 
 --
