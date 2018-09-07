@@ -11,7 +11,15 @@ module EventFramework
     end
 
     def database_url
-      ssm_param.value
+      ssm_client
+        .get_parameter(name: parameter_path, with_decryption: true)
+        .parameter
+        .value
+    rescue Aws::SSM::Errors::AccessDeniedException, Aws::SSM::Errors::ParameterNotFound
+      # If the instance can't connect to ParameterStore or the parameter, return nil;
+      # this will trigger a NotImplemented error if EventStore tries to connect,
+      # which we can handle gracefully up-stream.
+      nil
     end
 
     private
@@ -21,17 +29,6 @@ module EventFramework
         credentials: Aws::InstanceProfileCredentials.new,
         region: 'us-west-2',
       )
-    end
-
-    def ssm_param
-      @_ssm_params ||= begin
-        response = ssm_client.get_parameter(
-          name: parameter_path,
-          with_decryption: true,
-        )
-
-        response.parameter
-      end
     end
 
     def parameter_path

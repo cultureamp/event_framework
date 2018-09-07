@@ -3,13 +3,12 @@ require 'dry/configurable'
 module EventFramework
   extend Dry::Configurable
 
+  # "Our" base-class for all framework-specific errors
   Error = Class.new(StandardError)
 
   # An exception raised within a currently-executing command that
   # can trigger a re-execution of the command.
   RetriableException = Class.new(Error)
-
-  AfterSinkHook = -> (events) {}
 
   autoload :Bookmark, 'bookmark'
   autoload :BookmarkRepository, 'bookmark_repository'
@@ -47,14 +46,7 @@ module EventFramework
 
   # An Object that responds to `.call` that is called with an array of new
   # Events any time an event or list of events is saved.
-  setting :after_sink_hook, AfterSinkHook
-end
-
-# TODO: Move this config to domains/ as it's app specific
-Events = Module.new
-
-EventFramework.configure do |config|
-  config.event_namespace_class = Events
+  setting :after_sink_hook, -> (events) {}
 end
 
 require_relative "../config/environments/#{EventFramework.environment}"
