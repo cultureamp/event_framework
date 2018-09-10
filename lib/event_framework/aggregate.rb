@@ -55,7 +55,13 @@ module EventFramework
     end
 
     def handle_event(event)
-      self.class.event_handlers.for(event.domain_event.type).each do |handler|
+      handlers = []
+      self.class.ancestors.each do |klass|
+        break unless klass.respond_to?(:event_handlers)
+        handlers += klass.event_handlers.for(event.domain_event.type)
+      end
+
+      handlers.each do |handler|
         instance_exec(event.domain_event, &handler)
       end
 
