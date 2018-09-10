@@ -109,10 +109,23 @@ module EventFramework
         end
       end
 
+      context 'when command is a sub-class of @command_class' do
+        let(:superclass) { String }
+        let(:subclass)   { Class.new(superclass) }
+        let(:command)    { subclass.new }
+
+        it 'accepts the command' do
+          described_class.instance_variable_set(:@command_class, superclass)
+          described_class.instance_variable_set(:@callable, ->(_, _, _) { :success })
+          expect(described_class.new.handle(command: command, metadata: nil, executor: nil))
+            .to eql :success
+        end
+      end
+
       context 'when command is not of the correct type' do
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
-          described_class.instance_variable_set(:@callable, ->(_, _) {})
+          described_class.instance_variable_set(:@callable, ->(_, _, _) {})
           expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
@@ -122,7 +135,7 @@ module EventFramework
         # Given that we can't pass an RSpec double to instance_exec (grrr), we need
         # a Proc that can track how many times it has been called.
         let!(:callable) do
-          proc do |_, _|
+          proc do |_, _, _|
             @attempt_count ||= 0
 
             if @attempt_count < 4
