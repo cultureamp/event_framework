@@ -1,5 +1,3 @@
-require_relative '../event_framework'
-
 class SchemaDump
   VERSION_REGEX = /
     ^--\sDumped\sfrom\sdatabase\sversion.*$\n
