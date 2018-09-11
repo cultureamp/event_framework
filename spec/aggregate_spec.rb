@@ -34,6 +34,12 @@ module TestDomain
         self.tweaks_and_bops_count += 1
       end
     end
+
+    class ThingChildAggregate < ThingAggregate
+      apply Tweaked do |_event|
+        tweaks << 'Tweaked from child!'
+      end
+    end
   end
 end
 
@@ -85,6 +91,14 @@ module EventFramework
 
       it 'populates the (private) internal sequence' do
         expect(aggregate.send(:aggregate_sequence)).to eql events.last.aggregate_sequence
+      end
+
+      context 'when aggregate is a child class of another aggregate' do
+        let(:aggregate) { TestDomain::Thing::ThingChildAggregate.build(aggregate_id) }
+
+        it 'handles events from both the child and parent classes' do
+          expect(aggregate.tweaks).to eql ["Tweaked from child!", "Foo!"]
+        end
       end
     end
 
