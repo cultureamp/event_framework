@@ -58,6 +58,7 @@ module EventFramework
       handlers = []
       self.class.ancestors.each do |klass|
         break unless klass.respond_to?(:event_handlers)
+
         handlers += klass.event_handlers.for(event.domain_event.type)
       end
 
