@@ -37,6 +37,11 @@ module EventFramework
     ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
+  # The root path of the EventFramework files
+  def self.root
+    Pathname.new(__dir__).join('..')
+  end
+
   # The Module from which Event definitions are sourced; defaults to Object
   setting :event_namespace_class, Object
 
