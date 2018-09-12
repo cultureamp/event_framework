@@ -11,7 +11,7 @@ module EventFramework
     def new_aggregate(aggregate_class, aggregate_id)
       events = source.get_for_aggregate(aggregate_id)
 
-      raise AggregateAlreadyExists if events.count > 0
+      raise AggregateAlreadyExists, aggregate_id if events.count > 0
 
       aggregate_class.build(aggregate_id)
     end
@@ -19,7 +19,7 @@ module EventFramework
     def load_aggregate(aggregate_class, aggregate_id)
       events = source.get_for_aggregate(aggregate_id)
 
-      raise AggregateNotFound if events.count == 0
+      raise AggregateNotFound, aggregate_id if events.count == 0
 
       aggregate_class.build(aggregate_id).tap do |aggregate|
         aggregate.load_events(events)

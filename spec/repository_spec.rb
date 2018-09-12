@@ -26,7 +26,7 @@ module EventFramework
             .and_return([:event_1])
 
           expect { repository.new_aggregate(aggregate_class, aggregate_id) }
-            .to raise_error Repository::AggregateAlreadyExists
+            .to raise_error Repository::AggregateAlreadyExists, aggregate_id
         end
       end
     end
@@ -52,7 +52,7 @@ module EventFramework
             .and_return([])
 
           expect { repository.load_aggregate(aggregate_class, aggregate_id) }
-            .to raise_error Repository::AggregateNotFound
+            .to raise_error Repository::AggregateNotFound, aggregate_id
         end
       end
     end
