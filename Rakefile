@@ -1,41 +1,13 @@
 require 'dotenv'
 Dotenv.load '../.env'
-$: << '../domains'
-require 'domains'
-$: << 'lib'
-require 'event_framework'
+$LOAD_PATH << '../domains'
+$LOAD_PATH << 'lib'
 
-$LOAD_PATH << File.join(File.dirname(__FILE__), 'lib')
+require 'domains'
+require 'event_framework'
 
 EventFramework.configure do |config|
   config.event_namespace_class = Domains
-end
-
-namespace :test do
-  task :create_events do
-    require 'securerandom'
-
-    metadata = EventFramework::Metadata.new(
-      correlation_id: SecureRandom.uuid,
-      causation_id: SecureRandom.uuid,
-      user_id: SecureRandom.uuid,
-      account_id: SecureRandom.uuid,
-    )
-
-    2.times.map do |i|
-      event = EventFramework::StagedEvent.new(
-        aggregate_id: SecureRandom.uuid,
-        aggregate_sequence: i + 1,
-        domain_event: Domains::Survey::Created.new(name: 'foo', locale: 'en',),
-        mutable_metadata: metadata,
-      )
-      EventFramework::EventStore::Sink.sink [event]
-    end
-  end
-
-  task :run_processors do
-    EventFramework::EventProcessorSupervisor.call(processor_classes: [Domains::Projectors::SurveyCommandProjector])
-  end
 end
 
 namespace :event_store do
