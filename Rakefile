@@ -1,14 +1,8 @@
 require 'dotenv'
 Dotenv.load '../.env'
-$LOAD_PATH << '../domains'
-$LOAD_PATH << 'lib'
 
-require 'domains'
+$LOAD_PATH << File.join(File.dirname(__FILE__), 'lib')
 require 'event_framework'
-
-EventFramework.configure do |config|
-  config.event_namespace_class = Domains
-end
 
 namespace :event_store do
   namespace :db do
