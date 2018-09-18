@@ -22,8 +22,8 @@ module EventFramework
     end
 
     class << self
-      def validation_schema(base_schema = BaseSchema, &block)
-        @validation_schema = Dry::Validation.Params(base_schema, &block)
+      def validation_schema(&block)
+        @validation_schema = Dry::Validation.Params(BaseSchema, &block)
       end
 
       def validate(params)
