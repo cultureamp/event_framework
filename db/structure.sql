@@ -111,11 +111,32 @@ ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
 
 
 --
+-- Name: question_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_command_projection (
+    question_id uuid NOT NULL,
+    survey_id uuid NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.schema_migrations (
     filename text NOT NULL
+);
+
+
+--
+-- Name: survey_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.survey_command_projection (
+    survey_id uuid NOT NULL,
+    account_id uuid,
+    survey_capture_layout_id uuid
 );
 
 
@@ -158,11 +179,35 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: question_command_projection question_command_projection_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_command_projection
+    ADD CONSTRAINT question_command_projection_question_id_key UNIQUE (question_id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
+
+
+--
+-- Name: survey_command_projection survey_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.survey_command_projection
+    ADD CONSTRAINT survey_command_projection_survey_capture_layout_id_key UNIQUE (survey_capture_layout_id);
+
+
+--
+-- Name: survey_command_projection survey_command_projection_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.survey_command_projection
+    ADD CONSTRAINT survey_command_projection_survey_id_key UNIQUE (survey_id);
 
 
 --

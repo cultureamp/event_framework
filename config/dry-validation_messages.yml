@@ -1,0 +1,3 @@
+en:
+ errors:
+  uuid?: "must be a UUID"

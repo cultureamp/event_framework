@@ -11,6 +11,8 @@ module EventFramework
 
     class BaseSchema < Dry::Validation::Schema
       configure do
+        config.messages_file = EventFramework.root.join('config', 'dry-validation_messages.yml')
+
         def uuid?(value)
           !Types::UUID_REGEX.match(value).nil?
         end
