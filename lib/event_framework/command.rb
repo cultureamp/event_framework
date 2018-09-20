@@ -5,8 +5,6 @@ module EventFramework
   class Command < DomainStruct
     ValidationNotImplementedError = Class.new(Error)
 
-    transform_keys(&:to_sym)
-
     attribute :aggregate_id, Types::UUID
 
     class BaseSchema < Dry::Validation::Schema
