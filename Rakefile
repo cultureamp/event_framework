@@ -27,8 +27,12 @@ namespace :event_store do
         version = ENV['VERSION']&.to_i
 
         puts "Migrating in #{EventFramework.environment.inspect} environment..."
-        Sequel.connect(EventFramework.config.database_url) do |db|
-          Sequel::Migrator.run(db, "db/migrations", target: version)
+        begin
+          Sequel.connect(EventFramework.config.database_url) do |db|
+            Sequel::Migrator.run(db, "db/migrations", target: version)
+          end
+        rescue Sequel::DatabaseConnectionError => e
+          puts "Could not connect to database because of #{e.message}! Skipping migrations"
         end
       end
 
