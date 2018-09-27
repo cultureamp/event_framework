@@ -26,6 +26,7 @@ module EventFramework
 
     def ssm_client
       @_ssm_client ||= Aws::SSM::Client.new(
+        credentials: Aws::InstanceProfileCredentials.new,
         region: 'us-west-2',
       )
     end
