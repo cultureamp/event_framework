@@ -111,6 +111,19 @@ ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
 
 
 --
+-- Name: events_sequence_stats; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public.events_sequence_stats AS
+ SELECT events.aggregate_type,
+    events.event_type,
+    max(events.sequence) AS max_sequence
+   FROM public.events
+  GROUP BY events.aggregate_type, events.event_type
+  WITH NO DATA;
+
+
+--
 -- Name: question_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 

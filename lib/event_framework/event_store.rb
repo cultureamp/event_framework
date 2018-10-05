@@ -7,6 +7,7 @@ module EventFramework
     autoload :EventBuilder, 'event_framework/event_store/event_builder'
     autoload :EventTypeDeserializer, 'event_framework/event_store/event_type_deserializer'
     autoload :EventTypeSerializer, 'event_framework/event_store/event_type_serializer'
+    autoload :SequenceStats, 'event_framework/event_store/sequence_stats'
     autoload :Sink, 'event_framework/event_store/sink'
     autoload :Source, 'event_framework/event_store/source'
 
