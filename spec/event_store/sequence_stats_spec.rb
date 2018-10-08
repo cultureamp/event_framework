@@ -13,23 +13,38 @@ module EventFramework
         )
       end
 
+      before do
+        insert_event sequence: 1, aggregate_type: 'A', event_type: 'A'
+        insert_event sequence: 2, aggregate_type: 'A', event_type: 'A'
+        insert_event sequence: 3, aggregate_type: 'A', event_type: 'B'
+        insert_event sequence: 4, aggregate_type: 'B', event_type: 'A'
+        insert_event sequence: 5, aggregate_type: 'B', event_type: 'A'
+        insert_event sequence: 6, aggregate_type: 'B', event_type: 'C'
+
+        described_class.refresh
+      end
+
       describe '.all' do
         it 'the max sequence grouped by aggregate and event type' do
-          insert_event sequence: 1, aggregate_type: 'A', event_type: 'A'
-          insert_event sequence: 2, aggregate_type: 'A', event_type: 'A'
-          insert_event sequence: 3, aggregate_type: 'A', event_type: 'B'
-          insert_event sequence: 4, aggregate_type: 'B', event_type: 'A'
-          insert_event sequence: 5, aggregate_type: 'B', event_type: 'A'
-          insert_event sequence: 6, aggregate_type: 'B', event_type: 'C'
-
-          described_class.refresh
-
           expect(described_class.all).to match_array [
             { aggregate_type: 'A', event_type: 'A', max_sequence: 2 },
             { aggregate_type: 'A', event_type: 'B', max_sequence: 3 },
             { aggregate_type: 'B', event_type: 'A', max_sequence: 5 },
             { aggregate_type: 'B', event_type: 'C', max_sequence: 6 },
           ]
+        end
+      end
+
+      describe '.max_sequence' do
+        let(:event_classes) do
+          [
+            double(:event_class, to_s: 'A::A'),
+            double(:event_class, to_s: 'A::B'),
+          ]
+        end
+
+        it 'the max sequence grouped by aggregate and event type' do
+          expect(described_class.max_sequence(event_classes: event_classes)).to eq 3
         end
       end
     end
