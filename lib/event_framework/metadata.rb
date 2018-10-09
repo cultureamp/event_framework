@@ -4,12 +4,14 @@ module EventFramework
     attr_accessor :causation_id
     attr_accessor :user_id
     attr_accessor :account_id
+    attr_accessor :bypass_mongo_projection
 
     def initialize(**args)
       self.correlation_id = args[:correlation_id]
       self.causation_id = args[:causation_id]
       self.user_id = args[:user_id]
       self.account_id = args[:account_id]
+      self.bypass_mongo_projection = args[:bypass_mongo_projection]
     end
 
     def to_h
@@ -18,6 +20,7 @@ module EventFramework
         causation_id: causation_id,
         user_id: user_id,
         account_id: account_id,
+        bypass_mongo_projection: bypass_mongo_projection,
       }.delete_if { |_, v| v.nil? }
     end
   end
