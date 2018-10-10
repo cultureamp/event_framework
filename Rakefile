@@ -93,9 +93,11 @@ namespace :event_store do
     namespace :schema do
       desc "Dump database schema"
       task :dump do
-        require_relative 'lib/event_framework/tasks/schema_dump'
+        if EventFramework.environment == 'development'
+          require_relative 'lib/event_framework/tasks/schema_dump'
 
-        SchemaDump.call(EventFramework.config.database_url, filename: 'db/structure.sql')
+          SchemaDump.call(EventFramework.config.database_url, filename: 'db/structure.sql')
+        end
       end
     end
   end

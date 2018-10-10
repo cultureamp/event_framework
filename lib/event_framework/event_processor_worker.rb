@@ -40,9 +40,9 @@ module EventFramework
             event_processor.handle_event(event)
             bookmark.sequence = event.sequence
           end
-        end
 
-        logger.info "[#{event_processor.class.name}] processed up to #{bookmark.sequence.inspect}"
+          logger.info "[#{event_processor.class.name}] processed up to #{bookmark.sequence.inspect}"
+        end
       end
     end
 
