@@ -13,6 +13,8 @@ module EventFramework
       attr_reader :command_class, :callable
 
       def handle(klass, &block)
+        raise ArgumentError unless klass.is_a?(Class)
+
         @command_class = klass
         @callable = block
       end
