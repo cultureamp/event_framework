@@ -46,6 +46,18 @@ module EventFramework
         it 'the max sequence grouped by aggregate and event type' do
           expect(described_class.max_sequence(event_classes: event_classes)).to eq 3
         end
+
+        context 'when no rows are returned' do
+          let(:event_classes) do
+            [
+              double(:event_class, to_s: 'Z::Z'),
+            ]
+          end
+
+          it 'returns 0' do
+            expect(described_class.max_sequence(event_classes: event_classes)).to eq 0
+          end
+        end
       end
     end
   end

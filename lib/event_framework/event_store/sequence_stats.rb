@@ -14,7 +14,7 @@ module EventFramework
             aggregate_type: event_type_descriptions.map(&:aggregate_type),
             event_type: event_type_descriptions.map(&:event_type),
           )
-          scope.max(:max_sequence)
+          scope.max(:max_sequence).to_i
         end
 
         def refresh(database: EventStore.database)
