@@ -24,17 +24,6 @@ module EventFramework
         described_class.refresh
       end
 
-      describe '.all' do
-        it 'the max sequence grouped by aggregate and event type' do
-          expect(described_class.all).to match_array [
-            { aggregate_type: 'A', event_type: 'A', max_sequence: 2 },
-            { aggregate_type: 'A', event_type: 'B', max_sequence: 3 },
-            { aggregate_type: 'B', event_type: 'A', max_sequence: 5 },
-            { aggregate_type: 'B', event_type: 'C', max_sequence: 6 },
-          ]
-        end
-      end
-
       describe '.max_sequence' do
         let(:event_classes) do
           [

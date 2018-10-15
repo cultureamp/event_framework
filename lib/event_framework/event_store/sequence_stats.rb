@@ -2,10 +2,6 @@ module EventFramework
   module EventStore
     class SequenceStats
       class << self
-        def all(database: EventStore.database)
-          database[:events_sequence_stats].all
-        end
-
         def max_sequence(database: EventStore.database, event_classes:)
           event_type_descriptions = event_classes.map { |event_type| EventTypeSerializer.call(event_type) }
 
