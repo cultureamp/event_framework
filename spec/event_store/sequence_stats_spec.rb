@@ -32,7 +32,7 @@ module EventFramework
           ]
         end
 
-        it 'the max sequence grouped by aggregate and event type' do
+        it 'returns the max sequence for the aggregate and event type' do
           expect(described_class.max_sequence(event_classes: event_classes)).to eq 3
         end
 
