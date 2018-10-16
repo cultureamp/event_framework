@@ -12,10 +12,6 @@ module EventFramework
           )
           scope.max(:max_sequence).to_i
         end
-
-        def refresh(database: EventStore.database)
-          database.refresh_view(:events_sequence_stats)
-        end
       end
     end
   end

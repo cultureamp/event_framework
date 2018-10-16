@@ -20,8 +20,6 @@ module EventFramework
         insert_event sequence: 4, aggregate_type: 'B', event_type: 'A'
         insert_event sequence: 5, aggregate_type: 'B', event_type: 'A'
         insert_event sequence: 6, aggregate_type: 'B', event_type: 'C'
-
-        described_class.refresh
       end
 
       describe '.max_sequence' do

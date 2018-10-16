@@ -41,7 +41,6 @@ module EventFramework
     end
 
     def last_event_sequence(processor_class)
-      sequence_stats.refresh
       sequence_stats.max_sequence(event_classes: processor_class.event_handlers.handled_event_classes)
     end
   end
