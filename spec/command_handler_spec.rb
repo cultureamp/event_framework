@@ -157,6 +157,7 @@ module EventFramework
         context 'if the failure threshold has not been reached' do
           before do
             stub_const "#{described_class.name}::FAILURE_RETRY_THRESHOLD", 100
+            stub_const "#{described_class.name}::FAILURE_RETRY_SLEEP_INTERVAL", 0
           end
 
           it 'calls callable until it passes' do

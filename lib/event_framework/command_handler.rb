@@ -3,6 +3,7 @@ module EventFramework
     extend Forwardable
 
     FAILURE_RETRY_THRESHOLD = 3
+    FAILURE_RETRY_SLEEP_INTERVAL = 0.5
 
     MismatchedCommandError = Class.new(Error)
     RetryFailureThresholdExceededException = Class.new(Error)
@@ -36,7 +37,12 @@ module EventFramework
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
         instance_exec(command, executor, metadata, &callable)
       rescue RetriableException
-        (execution_attempts -= 1).zero? ? raise(RetryFailureThresholdExceededException) : retry
+        if (execution_attempts -= 1).zero?
+          raise RetryFailureThresholdExceededException
+        else
+          sleep FAILURE_RETRY_SLEEP_INTERVAL
+          retry
+        end
       end
     end
 
