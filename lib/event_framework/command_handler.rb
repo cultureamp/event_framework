@@ -2,7 +2,7 @@ module EventFramework
   class CommandHandler
     extend Forwardable
 
-    FAILURE_RETRY_THRESHOLD = 3
+    FAILURE_RETRY_THRESHOLD = 5
     FAILURE_RETRY_SLEEP_INTERVAL = 0.5
 
     MismatchedCommandError = Class.new(Error)
