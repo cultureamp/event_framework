@@ -5,7 +5,7 @@ module EventFramework
   # It fetches events using the bookmark sequence and handles each event using
   # the event processor. It then updates the bookmark sequence.
   class EventProcessorWorker
-    SLEEP_INTERVAL = 1
+    SLEEP_INTERVAL = 0.1
 
     class << self
       def call(*args)
