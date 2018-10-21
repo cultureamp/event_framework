@@ -22,6 +22,7 @@ module EventFramework
     end
 
     def call
+      set_process_name
       logger.info "[#{event_processor.class.name}] forked"
       listen_for_term_signal
 
@@ -56,6 +57,10 @@ module EventFramework
 
     def request_shutdown
       @shutdown_requested = true
+    end
+
+    def set_process_name
+      Process.setproctitle "event_processor [#{event_processor.class.name}]"
     end
   end
 end

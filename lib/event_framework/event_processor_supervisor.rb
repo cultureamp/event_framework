@@ -24,6 +24,8 @@ module EventFramework
     end
 
     def call
+      set_process_name
+
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name) do
           begin
@@ -45,5 +47,9 @@ module EventFramework
     private
 
     attr_reader :processor_classes, :process_manager, :bookmark_repository_class
+
+    def set_process_name
+      Process.setproctitle "event_processor [#{self.class.name}]"
+    end
   end
 end
