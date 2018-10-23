@@ -40,6 +40,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
+--
+-- Name: refresh_events_sequence_stats(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_events_sequence_stats() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+REFRESH MATERIALIZED VIEW CONCURRENTLY events_sequence_stats;
+RETURN NULL;
+END $$;
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -108,6 +121,19 @@ CREATE SEQUENCE public.events_sequence_seq
 --
 
 ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
+
+
+--
+-- Name: events_sequence_stats; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public.events_sequence_stats AS
+ SELECT events.aggregate_type,
+    events.event_type,
+    max(events.sequence) AS max_sequence
+   FROM public.events
+  GROUP BY events.aggregate_type, events.event_type
+  WITH NO DATA;
 
 
 --
@@ -222,6 +248,20 @@ CREATE UNIQUE INDEX events_aggregate_id_aggregate_sequence_index ON public.event
 --
 
 CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree (aggregate_type, event_type);
+
+
+--
+-- Name: events_sequence_stats_aggregate_type_event_type_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON public.events_sequence_stats USING btree (aggregate_type, event_type);
+
+
+--
+-- Name: events refresh_events_sequence_stats; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER refresh_events_sequence_stats AFTER INSERT ON public.events FOR EACH STATEMENT EXECUTE PROCEDURE public.refresh_events_sequence_stats();
 
 
 --
