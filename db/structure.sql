@@ -48,7 +48,12 @@ CREATE FUNCTION public.refresh_events_sequence_stats() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-REFRESH MATERIALIZED VIEW CONCURRENTLY events_sequence_stats;
+
+INSERT INTO events_sequence_stats(event_type, aggregate_type, max_sequence)
+VALUES(NEW.event_type, NEW.aggregate_type, NEW.sequence)
+ON CONFLICT(event_type, aggregate_type) DO
+UPDATE SET max_sequence = NEW.sequence;
+
 RETURN NULL;
 END $$;
 
@@ -124,16 +129,14 @@ ALTER SEQUENCE public.events_sequence_seq OWNED BY public.events.sequence;
 
 
 --
--- Name: events_sequence_stats; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+-- Name: events_sequence_stats; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE MATERIALIZED VIEW public.events_sequence_stats AS
- SELECT events.aggregate_type,
-    events.event_type,
-    max(events.sequence) AS max_sequence
-   FROM public.events
-  GROUP BY events.aggregate_type, events.event_type
-  WITH NO DATA;
+CREATE TABLE public.events_sequence_stats (
+    max_sequence bigint NOT NULL,
+    aggregate_type character varying(255) NOT NULL,
+    event_type character varying(255) NOT NULL
+);
 
 
 --
@@ -261,7 +264,7 @@ CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON pub
 -- Name: events refresh_events_sequence_stats; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER refresh_events_sequence_stats AFTER INSERT ON public.events FOR EACH STATEMENT EXECUTE PROCEDURE public.refresh_events_sequence_stats();
+CREATE TRIGGER refresh_events_sequence_stats AFTER INSERT ON public.events FOR EACH ROW EXECUTE PROCEDURE public.refresh_events_sequence_stats();
 
 
 --
