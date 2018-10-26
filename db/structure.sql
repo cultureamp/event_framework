@@ -191,6 +191,16 @@ CREATE TABLE public.survey_command_projection (
 
 
 --
+-- Name: survey_detail_surveys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.survey_detail_surveys (
+    survey_id uuid NOT NULL,
+    name text NOT NULL
+);
+
+
+--
 -- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -274,6 +284,14 @@ ALTER TABLE ONLY public.survey_command_projection
 
 ALTER TABLE ONLY public.survey_command_projection
     ADD CONSTRAINT survey_command_projection_survey_id_key UNIQUE (survey_id);
+
+
+--
+-- Name: survey_detail_surveys survey_detail_surveys_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.survey_detail_surveys
+    ADD CONSTRAINT survey_detail_surveys_survey_id_key UNIQUE (survey_id);
 
 
 --
