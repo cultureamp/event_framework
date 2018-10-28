@@ -221,6 +221,17 @@ CREATE TABLE public.survey_detail_sections (
 
 
 --
+-- Name: survey_detail_select_options; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.survey_detail_select_options (
+    select_option_id uuid NOT NULL,
+    question_id uuid NOT NULL,
+    value text NOT NULL
+);
+
+
+--
 -- Name: survey_detail_surveys; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -331,6 +342,14 @@ ALTER TABLE ONLY public.survey_detail_questions
 
 ALTER TABLE ONLY public.survey_detail_sections
     ADD CONSTRAINT survey_detail_sections_section_id_key UNIQUE (section_id);
+
+
+--
+-- Name: survey_detail_select_options survey_detail_select_options_select_option_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.survey_detail_select_options
+    ADD CONSTRAINT survey_detail_select_options_select_option_id_key UNIQUE (select_option_id);
 
 
 --

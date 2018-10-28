@@ -25,5 +25,11 @@ Sequel.migration do
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
     end
+
+    create_table :survey_detail_select_options do
+      column :select_option_id, :uuid, null: false, unique: true
+      column :question_id, :uuid, null: false
+      column :value, :text, null: false
+    end
   end
 end
