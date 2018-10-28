@@ -202,7 +202,7 @@ CREATE TABLE public.survey_detail_questions (
     mandatory boolean NOT NULL,
     question_type text NOT NULL,
     code text NOT NULL,
-    text text NOT NULL,
+    text jsonb NOT NULL,
     scale text NOT NULL,
     other_option boolean NOT NULL,
     selection_limit integer NOT NULL
@@ -227,7 +227,7 @@ CREATE TABLE public.survey_detail_sections (
 CREATE TABLE public.survey_detail_select_options (
     select_option_id uuid NOT NULL,
     question_id uuid NOT NULL,
-    value text NOT NULL
+    value jsonb NOT NULL
 );
 
 
@@ -238,7 +238,7 @@ CREATE TABLE public.survey_detail_select_options (
 CREATE TABLE public.survey_detail_surveys (
     survey_id uuid NOT NULL,
     survey_capture_layout_id uuid,
-    name text NOT NULL
+    name jsonb NOT NULL
 );
 
 

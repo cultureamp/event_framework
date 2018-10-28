@@ -3,7 +3,7 @@ Sequel.migration do
     create_table :survey_detail_surveys do
       column :survey_id, :uuid, null: false, unique: true
       column :survey_capture_layout_id, :uuid, unique: true
-      column :name, :text, null: false
+      column :name, :jsonb, null: false
     end
 
     create_table :survey_detail_sections do
@@ -20,7 +20,7 @@ Sequel.migration do
       column :mandatory, :boolean, null: false
       column :question_type, :text, null: false
       column :code, :text, null: false
-      column :text, :text, null: false
+      column :text, :jsonb, null: false
       column :scale, :text, null: false
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
@@ -29,7 +29,7 @@ Sequel.migration do
     create_table :survey_detail_select_options do
       column :select_option_id, :uuid, null: false, unique: true
       column :question_id, :uuid, null: false
-      column :value, :text, null: false
+      column :value, :jsonb, null: false
     end
   end
 end
