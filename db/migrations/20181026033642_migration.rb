@@ -10,6 +10,7 @@ Sequel.migration do
       column :section_id, :uuid, null: false, unique: true
       column :survey_id, :uuid, null: false
       column :order, :integer, null: false
+      column :name, :jsonb, null: false
     end
 
     create_table :survey_detail_questions do

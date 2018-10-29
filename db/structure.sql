@@ -216,7 +216,8 @@ CREATE TABLE public.survey_detail_questions (
 CREATE TABLE public.survey_detail_sections (
     section_id uuid NOT NULL,
     survey_id uuid NOT NULL,
-    "order" integer NOT NULL
+    "order" integer NOT NULL,
+    name jsonb NOT NULL
 );
 
 
