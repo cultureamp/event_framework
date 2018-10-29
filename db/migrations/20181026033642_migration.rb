@@ -11,6 +11,8 @@ Sequel.migration do
       column :survey_id, :uuid, null: false
       column :order, :integer, null: false
       column :name, :jsonb, null: false
+      column :short_description, :jsonb, null: false
+      column :long_description, :jsonb, null: false
     end
 
     create_table :survey_detail_questions do
