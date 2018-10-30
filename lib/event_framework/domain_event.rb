@@ -6,9 +6,11 @@ module EventFramework
       self.class
     end
 
-    # Override this in your subclass to upcast events.
-    def upcast(_row)
-      self
+    class << self
+      # Override this in your subclass to upcast events.
+      def upcast(row)
+        row
+      end
     end
   end
 end

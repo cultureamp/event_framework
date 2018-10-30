@@ -6,14 +6,15 @@ module TestDomain
 
     class EventBuilderUpcastingTested < EventFramework::DomainEvent
       attribute :test, EventFramework::Types::Strict::String
-      attribute :downcased_test, EventFramework::Types::Strict::String.meta(omittable: true)
-      attribute :tested_at, EventFramework::Types::DateTime.meta(omittable: true)
+      attribute :downcased_test, EventFramework::Types::Strict::String
+      attribute :tested_at, EventFramework::Types::DateTime
 
-      def upcast(row)
-        new(
-          downcased_test: test.downcase,
-          tested_at: row[:created_at].iso8601,
-        )
+      class << self
+        def upcast(row)
+          row[:body][:downcased_test] = row[:body][:test].downcase
+          row[:body][:tested_at] = row[:created_at].iso8601
+          row
+        end
       end
     end
   end
