@@ -3,6 +3,19 @@ module TestDomain
     class EventBuilderTested < EventFramework::DomainEvent
       attribute :test, EventFramework::Types::Strict::String
     end
+
+    class EventBuilderUpcastingTested < EventFramework::DomainEvent
+      attribute :test, EventFramework::Types::Strict::String
+      attribute :downcased_test, EventFramework::Types::Strict::String.meta(omittable: true)
+      attribute :tested_at, EventFramework::Types::DateTime.meta(omittable: true)
+
+      def upcast(row)
+        new(
+          downcased_test: test.downcase,
+          tested_at: row[:created_at].iso8601,
+        )
+      end
+    end
   end
 end
 
@@ -53,6 +66,16 @@ module EventFramework
         expect(event.metadata).to be_a Event::Metadata
         expect(event.metadata.account_id).to eq account_id
         expect(event.metadata.user_id).to eq user_id
+      end
+
+      describe 'upcasting' do
+        let(:event) { described_class.call(row.merge(event_type: 'EventBuilderUpcastingTested')) }
+
+        it 'upcasts the event' do
+          expect(event.domain_event.test).to eq 'Testing!'
+          expect(event.domain_event.downcased_test).to eq 'testing!'
+          expect(Date.parse(event.domain_event.tested_at).year).to eq Date.today.year
+        end
       end
     end
   end
