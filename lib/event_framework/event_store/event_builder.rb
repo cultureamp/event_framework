@@ -5,7 +5,7 @@ module EventFramework
         def call(row)
           domain_event_class = EventTypeDeserializer.call(row[:aggregate_type], row[:event_type])
 
-          row = domain_event_class.upcast(row)
+          row = domain_event_class.upcast_row(row)
 
           Event.new(
             id: row[:id],

@@ -9,12 +9,10 @@ module TestDomain
       attribute :downcased_test, EventFramework::Types::Strict::String
       attribute :tested_at, EventFramework::Types::DateTime
 
-      class << self
-        def upcast(row)
-          row[:body][:downcased_test] = row[:body][:test].downcase
-          row[:body][:tested_at] = row[:created_at].iso8601
-          row
-        end
+      upcast do |row|
+        row[:body][:downcased_test] = row[:body][:test].downcase
+        row[:body][:tested_at] = row[:created_at].iso8601
+        row
       end
     end
   end

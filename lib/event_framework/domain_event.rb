@@ -7,9 +7,19 @@ module EventFramework
     end
 
     class << self
-      # Override this in your subclass to upcast events.
-      def upcast(row)
-        row
+      # Use this to upcast your events
+      #
+      # upcast do |row|
+      #   row.merge(foo: 'bar')
+      # end
+      def upcast(&block)
+        @upcast_block = block
+      end
+
+      def upcast_row(row)
+        return row unless @upcast_block
+
+        @upcast_block.call(row)
       end
     end
   end
