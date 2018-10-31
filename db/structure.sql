@@ -198,7 +198,7 @@ CREATE TABLE public.survey_detail_questions (
     survey_id uuid NOT NULL,
     question_id uuid NOT NULL,
     section_id uuid,
-    "order" integer NOT NULL,
+    "order" integer,
     mandatory boolean NOT NULL,
     question_type text NOT NULL,
     code text NOT NULL,

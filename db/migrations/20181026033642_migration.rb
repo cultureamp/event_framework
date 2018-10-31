@@ -19,7 +19,7 @@ Sequel.migration do
       column :survey_id, :uuid, null: false
       column :question_id, :uuid, null: false, unique: true
       column :section_id, :uuid
-      column :order, :integer, null: false
+      column :order, :integer
       column :mandatory, :boolean, null: false
       column :question_type, :text, null: false
       column :code, :text, null: false
