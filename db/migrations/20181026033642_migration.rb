@@ -13,6 +13,8 @@ Sequel.migration do
       column :name, :jsonb, null: false
       column :short_description, :jsonb, null: false
       column :long_description, :jsonb, null: false
+
+      # TODO: index [:survey_id, :section_id]
     end
 
     create_table :survey_detail_questions do
@@ -27,12 +29,16 @@ Sequel.migration do
       column :scale, :text, null: false
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
+
+      # TODO: index [:survey_id, :question_id]
     end
 
     create_table :survey_detail_select_options do
       column :select_option_id, :uuid, null: false, unique: true
       column :question_id, :uuid, null: false
       column :value, :jsonb, null: false
+
+      # TODO: index [:question_id, :select_option_id]
     end
   end
 end
