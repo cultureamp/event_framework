@@ -13,6 +13,7 @@ Sequel.migration do
       column :name, :jsonb, null: false
       column :short_description, :jsonb, null: false
       column :long_description, :jsonb, null: false
+      column :status, :text, null: false
 
       # TODO: index [:survey_id, :section_id]
     end

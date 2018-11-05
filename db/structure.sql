@@ -219,7 +219,8 @@ CREATE TABLE public.survey_detail_sections (
     "order" integer NOT NULL,
     name jsonb NOT NULL,
     short_description jsonb NOT NULL,
-    long_description jsonb NOT NULL
+    long_description jsonb NOT NULL,
+    status text NOT NULL
 );
 
 
