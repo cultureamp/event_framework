@@ -30,6 +30,7 @@ Sequel.migration do
       column :scale, :text, null: false
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
+      column :status, :text, null: false
 
       # TODO: index [:survey_id, :question_id]
     end

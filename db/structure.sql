@@ -205,7 +205,8 @@ CREATE TABLE public.survey_detail_questions (
     text jsonb NOT NULL,
     scale text NOT NULL,
     other_option boolean NOT NULL,
-    selection_limit integer NOT NULL
+    selection_limit integer NOT NULL,
+    status text NOT NULL
 );
 
 
