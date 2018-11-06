@@ -206,7 +206,8 @@ CREATE TABLE public.survey_detail_questions (
     scale text NOT NULL,
     other_option boolean NOT NULL,
     selection_limit integer NOT NULL,
-    status text NOT NULL
+    status text NOT NULL,
+    select_comments boolean NOT NULL
 );
 
 

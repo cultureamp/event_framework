@@ -31,6 +31,7 @@ Sequel.migration do
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
       column :status, :text, null: false
+      column :select_comments, :boolean, null: false
 
       # TODO: index [:survey_id, :question_id]
     end
