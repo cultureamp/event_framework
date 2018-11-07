@@ -398,6 +398,20 @@ CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON pub
 
 
 --
+-- Name: survey_detail_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX survey_detail_questions_section_id_index ON public.survey_detail_questions USING btree (section_id);
+
+
+--
+-- Name: survey_detail_select_options_question_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX survey_detail_select_options_question_id_index ON public.survey_detail_select_options USING btree (question_id);
+
+
+--
 -- Name: events refresh_events_sequence_stats; Type: TRIGGER; Schema: public; Owner: -
 --
 
