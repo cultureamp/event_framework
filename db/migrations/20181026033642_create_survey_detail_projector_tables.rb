@@ -40,6 +40,7 @@ Sequel.migration do
       column :select_option_id, :uuid, null: false, unique: true
       column :question_id, :uuid, null: false
       column :value, :jsonb, null: false
+      column :order, :integer, null: false
       column :status, :text, null: false
 
       # TODO: index [:question_id, :select_option_id]

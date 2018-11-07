@@ -234,6 +234,7 @@ CREATE TABLE public.survey_detail_select_options (
     select_option_id uuid NOT NULL,
     question_id uuid NOT NULL,
     value jsonb NOT NULL,
+    "order" integer,
     status text NOT NULL
 );
 
