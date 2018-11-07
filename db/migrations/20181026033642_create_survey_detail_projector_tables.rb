@@ -27,7 +27,7 @@ Sequel.migration do
       column :question_type, :text, null: false
       column :code, :text, null: false
       column :text, :jsonb, null: false
-      column :scale, :text, null: false
+      column :scale, :text
       column :other_option, :boolean, null: false
       column :selection_limit, :integer, null: false
       column :status, :text, null: false

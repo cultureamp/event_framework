@@ -203,7 +203,7 @@ CREATE TABLE public.survey_detail_questions (
     question_type text NOT NULL,
     code text NOT NULL,
     text jsonb NOT NULL,
-    scale text NOT NULL,
+    scale text,
     other_option boolean NOT NULL,
     selection_limit integer NOT NULL,
     status text NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE public.survey_detail_select_options (
     select_option_id uuid NOT NULL,
     question_id uuid NOT NULL,
     value jsonb NOT NULL,
-    "order" integer,
+    "order" integer NOT NULL,
     status text NOT NULL
 );
 
