@@ -49,13 +49,24 @@ module EventFramework
     private
 
     def_delegators 'self.class', :command_class, :callable
-    def_delegators 'with_aggregate_proxy', :with_aggregate, :with_new_aggregate
-    private :command_class, :callable, :with_aggregate, :with_new_aggregate
+    private :command_class, :callable
 
     attr_accessor :metadata
 
-    def with_aggregate_proxy
-      WithAggregateProxy.new(repository, metadata)
+    def with_aggregate(aggregate_class, aggregate_id)
+      aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
+
+      yield aggregate
+
+      repository.save_aggregate(aggregate, metadata: metadata)
+    end
+
+    def with_new_aggregate(aggregate_class, aggregate_id)
+      aggregate = repository.new_aggregate(aggregate_class, aggregate_id)
+
+      yield aggregate
+
+      repository.save_aggregate(aggregate, metadata: metadata, ensure_new_aggregate: true)
     end
   end
 end
