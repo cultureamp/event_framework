@@ -50,7 +50,7 @@ module EventFramework
 
     def_delegators 'self.class', :command_class, :callable
     def_delegators 'with_aggregate_proxy', :with_aggregate, :with_new_aggregate
-    private :with_aggregate, :with_new_aggregate
+    private :command_class, :callable, :with_aggregate, :with_new_aggregate
 
     attr_accessor :metadata
 
