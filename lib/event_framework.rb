@@ -33,6 +33,7 @@ module EventFramework
   autoload :Repository, 'event_framework/repository'
   autoload :StagedEvent, 'event_framework/staged_event'
   autoload :Types, 'event_framework/types'
+  autoload :WithAggregateProxy, 'event_framework/with_aggregate_proxy'
 
   # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
   def self.environment
