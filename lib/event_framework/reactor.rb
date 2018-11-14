@@ -9,9 +9,7 @@ module EventFramework
     def handle_event(event)
       self._current_event = event
 
-      self.class.event_handlers.for(event.domain_event.type).each do |handler|
-        instance_exec(event.aggregate_id, event.domain_event, event.metadata, event.id, &handler)
-      end
+      super
     ensure
       self._current_event = nil
     end
