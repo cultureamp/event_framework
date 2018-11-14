@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module EventFramework
   module EventStore
     class EventBuilder
@@ -5,6 +7,9 @@ module EventFramework
         def call(row)
           domain_event_class = EventTypeDeserializer.call(row[:aggregate_type], row[:event_type])
 
+          row[:body] = row[:body].to_h
+          row[:metadata] = row[:metadata].to_h
+          row = row.deep_symbolize_keys
           row = domain_event_class.upcast_row(row)
 
           Event.new(
