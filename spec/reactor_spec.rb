@@ -22,11 +22,10 @@ module EventFramework
 
     subject(:reactor) do
       Class.new(described_class) do
-        process TestDomain::ReactorTest::TestEvent1 do |_aggregate_id, domain_event, metadata, event_id|
+        process TestDomain::ReactorTest::TestEvent1 do |_aggregate_id, domain_event, metadata|
           metadata = Metadata.new(
             account_id: metadata.account_id,
             user_id: metadata.user_id,
-            causation_id: event_id,
           )
 
           with_new_aggregate TestDomain::ReactorTest::TestAggregate, domain_event.new_aggregate_id, metadata: metadata do |aggregate| # rubocop:disable Style/SymbolProc
