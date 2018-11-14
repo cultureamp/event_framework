@@ -1,6 +1,6 @@
 module EventFramework
   class WithAggregateProxy
-    def initialize(repository, metadata)
+    def initialize(repository, metadata = nil)
       @repository = repository
       @metadata = metadata
     end
