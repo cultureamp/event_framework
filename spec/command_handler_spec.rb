@@ -181,5 +181,21 @@ module EventFramework
         end
       end
     end
+
+    describe '#command_class' do
+      let(:instance) { described_class.new }
+
+      it 'is private' do
+        expect { instance.command_class }.to raise_error NoMethodError, /private method(.*)command_class/
+      end
+    end
+
+    describe '#callable' do
+      let(:instance) { described_class.new }
+
+      it 'is private' do
+        expect { instance.callable }.to raise_error NoMethodError, /private method(.*)callable/
+      end
+    end
   end
 end

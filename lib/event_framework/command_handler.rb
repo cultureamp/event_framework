@@ -49,6 +49,7 @@ module EventFramework
     private
 
     def_delegators 'self.class', :command_class, :callable
+    private :command_class, :callable
 
     attr_accessor :metadata
 
