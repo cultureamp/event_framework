@@ -10,7 +10,7 @@ module EventFramework
       let(:logger) { instance_double(Logger) }
 
       it 'forks each event processor' do
-        expect(process_manager).to receive(:fork).with('FooProjector').and_yield
+        expect(process_manager).to receive(:fork).with('FooProjector', on_error: described_class::ON_ERROR_PROC).and_yield
         expect(Logger).to receive(:new).with(STDOUT).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
