@@ -27,7 +27,7 @@ module EventFramework
       set_process_name
 
       processor_classes.each do |processor_class|
-        process_manager.fork(processor_class.name) do
+        process_manager.fork(processor_class.name, on_error: -> (e, tries) { Logger.new(STDOUT).error("#{e.message} #{tries}") }) do
           begin
             logger = Logger.new(STDOUT)
             bookmark = bookmark_repository_class.new(name: processor_class.name).checkout
