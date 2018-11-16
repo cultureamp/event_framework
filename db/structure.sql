@@ -180,6 +180,27 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_questions_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions_questions (
+    question_id uuid NOT NULL,
+    section_id uuid,
+    status text NOT NULL
+);
+
+
+--
+-- Name: section_questions_sections; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions_sections (
+    section_id uuid NOT NULL,
+    status text NOT NULL
+);
+
+
+--
 -- Name: survey_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -321,6 +342,22 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: section_questions_questions section_questions_questions_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_questions
+    ADD CONSTRAINT section_questions_questions_question_id_key UNIQUE (question_id);
+
+
+--
+-- Name: section_questions_sections section_questions_sections_section_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_sections
+    ADD CONSTRAINT section_questions_sections_section_id_key UNIQUE (section_id);
+
+
+--
 -- Name: survey_command_projection survey_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -395,6 +432,13 @@ CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree
 --
 
 CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON public.events_sequence_stats USING btree (aggregate_type, event_type);
+
+
+--
+-- Name: section_questions_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX section_questions_questions_section_id_index ON public.section_questions_questions USING btree (section_id);
 
 
 --
