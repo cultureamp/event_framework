@@ -191,16 +191,6 @@ CREATE TABLE public.section_questions_questions (
 
 
 --
--- Name: section_questions_sections; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.section_questions_sections (
-    section_id uuid NOT NULL,
-    status text NOT NULL
-);
-
-
---
 -- Name: survey_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -347,14 +337,6 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public.section_questions_questions
     ADD CONSTRAINT section_questions_questions_question_id_key UNIQUE (question_id);
-
-
---
--- Name: section_questions_sections section_questions_sections_section_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.section_questions_sections
-    ADD CONSTRAINT section_questions_sections_section_id_key UNIQUE (section_id);
 
 
 --
