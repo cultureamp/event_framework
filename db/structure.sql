@@ -180,6 +180,16 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_questions_correlation_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions_correlation_ids (
+    event_id uuid NOT NULL,
+    correlation_id uuid NOT NULL
+);
+
+
+--
 -- Name: section_questions_questions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -329,6 +339,22 @@ ALTER TABLE ONLY public.question_command_projection
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
+
+
+--
+-- Name: section_questions_correlation_ids section_questions_correlation_ids_correlation_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_correlation_ids
+    ADD CONSTRAINT section_questions_correlation_ids_correlation_id_key UNIQUE (correlation_id);
+
+
+--
+-- Name: section_questions_correlation_ids section_questions_correlation_ids_event_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_correlation_ids
+    ADD CONSTRAINT section_questions_correlation_ids_event_id_key UNIQUE (event_id);
 
 
 --

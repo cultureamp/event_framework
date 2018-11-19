@@ -7,5 +7,10 @@ Sequel.migration do
 
       index :section_id
     end
+
+    create_table :section_questions_correlation_ids do
+      column :event_id, :uuid, null: false, unique: true
+      column :correlation_id, :uuid, null: false, unique: true
+    end
   end
 end
