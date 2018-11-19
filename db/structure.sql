@@ -180,6 +180,18 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_command_projection (
+    section_id uuid NOT NULL,
+    survey_capture_layout_id uuid NOT NULL,
+    status text NOT NULL,
+    intended_purpose text NOT NULL
+);
+
+
+--
 -- Name: survey_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -321,6 +333,22 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: section_command_projection section_command_projection_section_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_command_projection
+    ADD CONSTRAINT section_command_projection_section_id_key UNIQUE (section_id);
+
+
+--
+-- Name: section_command_projection section_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_command_projection
+    ADD CONSTRAINT section_command_projection_survey_capture_layout_id_key UNIQUE (survey_capture_layout_id);
+
+
+--
 -- Name: survey_command_projection survey_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -395,6 +423,13 @@ CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree
 --
 
 CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON public.events_sequence_stats USING btree (aggregate_type, event_type);
+
+
+--
+-- Name: section_command_projection_section_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX section_command_projection_section_id_index ON public.section_command_projection USING btree (section_id);
 
 
 --
