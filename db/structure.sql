@@ -180,23 +180,23 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions (
+    question_id uuid NOT NULL,
+    section_id uuid,
+    status text NOT NULL
+);
+
+
+--
 -- Name: section_questions_correlation_ids; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.section_questions_correlation_ids (
     event_id uuid NOT NULL,
     correlation_id uuid NOT NULL
-);
-
-
---
--- Name: section_questions_questions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.section_questions_questions (
-    question_id uuid NOT NULL,
-    section_id uuid,
-    status text NOT NULL
 );
 
 
@@ -358,11 +358,11 @@ ALTER TABLE ONLY public.section_questions_correlation_ids
 
 
 --
--- Name: section_questions_questions section_questions_questions_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: section_questions section_questions_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.section_questions_questions
-    ADD CONSTRAINT section_questions_questions_question_id_key UNIQUE (question_id);
+ALTER TABLE ONLY public.section_questions
+    ADD CONSTRAINT section_questions_question_id_key UNIQUE (question_id);
 
 
 --
@@ -443,10 +443,10 @@ CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON pub
 
 
 --
--- Name: section_questions_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: section_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX section_questions_questions_section_id_index ON public.section_questions_questions USING btree (section_id);
+CREATE INDEX section_questions_section_id_index ON public.section_questions USING btree (section_id);
 
 
 --
