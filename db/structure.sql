@@ -426,13 +426,6 @@ CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON pub
 
 
 --
--- Name: section_command_projection_section_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX section_command_projection_section_id_index ON public.section_command_projection USING btree (section_id);
-
-
---
 -- Name: survey_detail_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
 --
 

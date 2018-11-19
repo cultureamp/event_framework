@@ -5,8 +5,6 @@ Sequel.migration do
       column :survey_capture_layout_id, :uuid, null: false, unique: true
       column :status, :text, null: false
       column :intended_purpose, :text, null: false
-
-      index :section_id
     end
   end
 end
