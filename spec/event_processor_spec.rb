@@ -21,11 +21,13 @@ module EventFramework
 
     describe '#handle_event' do
       let(:metadata) { double :metadata }
-      let(:aggregate_id) { double :metadata }
+      let(:event_id) { double :event_id }
+      let(:aggregate_id) { double :aggregate_id }
       let(:domain_event) { FooTestEvent.new }
       let(:event) do
         instance_double(
           Event,
+          id: event_id,
           domain_event: domain_event,
           aggregate_id: aggregate_id,
           metadata: metadata,
