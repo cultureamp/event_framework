@@ -32,6 +32,17 @@ module EventFramework
             aggregate.do_a_thing
           end
         end
+
+        process TestDomain::ReactorTest::TestEvent2 do |aggregate_id, _domain_event, metadata|
+          metadata = Metadata.new(
+            account_id: metadata.account_id,
+            user_id: metadata.user_id,
+          )
+
+          with_aggregate TestDomain::ReactorTest::TestAggregate, aggregate_id, metadata: metadata do |aggregate|
+            aggregate.do_a_thing
+          end
+        end
       end.new
     end
 
@@ -64,6 +75,39 @@ module EventFramework
         expect(last_event.metadata.account_id).to eq metadata.account_id
         expect(last_event.metadata.user_id).to eq metadata.user_id
         expect(last_event.metadata.causation_id).to eq event.id
+      end
+
+      context 'when a concurrency exception occurs' do
+        let(:domain_event) { test_event_2.new }
+
+        it 'retries saving the event' do
+          EventStore::Sink.sink [
+            EventFramework::StagedEvent.new(
+              aggregate_id: event.aggregate_id,
+              aggregate_sequence: 1,
+              domain_event: test_event_1.new(new_aggregate_id: SecureRandom.uuid),
+              mutable_metadata: Metadata.new(
+                account_id: metadata.account_id,
+                user_id: metadata.user_id,
+              ),
+            ),
+          ]
+
+          # Cause a concurrency error by setting the aggregate_sequence to 0
+          original_source_get_for_aggregate = EventStore::Source.method(:get_for_aggregate)
+          simulate_concurrency_error = true
+          allow(EventStore::Source).to receive(:get_for_aggregate) do |aggregate_id|
+            events = original_source_get_for_aggregate.call(aggregate_id)
+            if simulate_concurrency_error
+              simulate_concurrency_error = false
+              events.map { |e| e.new(aggregate_sequence: 0) }
+            else
+              events
+            end
+          end
+
+          reactor.handle_event(event)
+        end
       end
     end
   end
