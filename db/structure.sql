@@ -192,6 +192,27 @@ CREATE TABLE public.section_command_projection (
 
 
 --
+-- Name: section_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions (
+    question_id uuid NOT NULL,
+    section_id uuid,
+    status text NOT NULL
+);
+
+
+--
+-- Name: section_questions_correlation_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_questions_correlation_ids (
+    event_id uuid NOT NULL,
+    correlation_id uuid NOT NULL
+);
+
+
+--
 -- Name: survey_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -349,6 +370,30 @@ ALTER TABLE ONLY public.section_command_projection
 
 
 --
+-- Name: section_questions_correlation_ids section_questions_correlation_ids_correlation_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_correlation_ids
+    ADD CONSTRAINT section_questions_correlation_ids_correlation_id_key UNIQUE (correlation_id);
+
+
+--
+-- Name: section_questions_correlation_ids section_questions_correlation_ids_event_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions_correlation_ids
+    ADD CONSTRAINT section_questions_correlation_ids_event_id_key UNIQUE (event_id);
+
+
+--
+-- Name: section_questions section_questions_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_questions
+    ADD CONSTRAINT section_questions_question_id_key UNIQUE (question_id);
+
+
+--
 -- Name: survey_command_projection survey_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -423,6 +468,13 @@ CREATE INDEX events_aggregate_type_event_type_index ON public.events USING btree
 --
 
 CREATE UNIQUE INDEX events_sequence_stats_aggregate_type_event_type_index ON public.events_sequence_stats USING btree (aggregate_type, event_type);
+
+
+--
+-- Name: section_questions_section_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX section_questions_section_id_index ON public.section_questions USING btree (section_id);
 
 
 --
