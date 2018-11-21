@@ -180,6 +180,18 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_command_projection (
+    section_id uuid NOT NULL,
+    survey_capture_layout_id uuid NOT NULL,
+    status text NOT NULL,
+    intended_purpose text NOT NULL
+);
+
+
+--
 -- Name: section_questions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -339,6 +351,22 @@ ALTER TABLE ONLY public.question_command_projection
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
+
+
+--
+-- Name: section_command_projection section_command_projection_section_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_command_projection
+    ADD CONSTRAINT section_command_projection_section_id_key UNIQUE (section_id);
+
+
+--
+-- Name: section_command_projection section_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_command_projection
+    ADD CONSTRAINT section_command_projection_survey_capture_layout_id_key UNIQUE (survey_capture_layout_id);
 
 
 --
