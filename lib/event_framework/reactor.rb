@@ -1,5 +1,7 @@
 module EventFramework
   class Reactor < EventProcessor
+    CONCURRENCY_RETRY_THRESHOLD = 3
+
     def initialize(repository = Repository.new)
       @repository = repository
     end
@@ -20,6 +22,7 @@ module EventFramework
     attr_reader :repository
 
     def with_aggregate(aggregate_class, aggregate_id, metadata:)
+      execution_attempts ||= CONCURRENCY_RETRY_THRESHOLD
       aggregate = repository.load_aggregate(aggregate_class, aggregate_id)
 
       yield aggregate
@@ -27,6 +30,13 @@ module EventFramework
       metadata.causation_id ||= _current_event.id
 
       repository.save_aggregate(aggregate, metadata: metadata)
+    rescue EventStore::Sink::ConcurrencyError
+      if execution_attempts.zero?
+        raise
+      else
+        execution_attempts -= 1
+        retry
+      end
     end
 
     def with_new_aggregate(aggregate_class, aggregate_id, metadata:)
