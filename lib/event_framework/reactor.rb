@@ -2,8 +2,12 @@ module EventFramework
   class Reactor < EventProcessor
     CONCURRENCY_RETRY_THRESHOLD = 3
 
-    def initialize(repository = Repository.new)
+    def initialize(
+      repository: Repository.new,
+      error_reporter: EventFramework.config.event_processor_error_reporter
+    )
       @repository = repository
+      @error_reporter = error_reporter
     end
 
     extend Forwardable

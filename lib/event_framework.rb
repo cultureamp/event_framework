@@ -54,6 +54,10 @@ module EventFramework
   # An Object that responds to `.call` that is called with an array of new
   # Events any time an event or list of events is saved.
   setting :after_sink_hook, -> (events) {}
+
+  # An Object that responds to `.call` that is called with an error and an
+  # event any time an error is raised in an event processor.
+  setting :event_processor_error_reporter, -> (error, event) {}
 end
 
 require_relative "../config/environments/#{EventFramework.environment}"
