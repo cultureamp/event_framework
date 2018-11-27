@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/keys'
+require_relative '../transformations'
 
 module EventFramework
   module EventStore
@@ -9,7 +9,7 @@ module EventFramework
 
           row[:body] = row[:body].to_h
           row[:metadata] = row[:metadata].to_h
-          row = row.deep_symbolize_keys
+          row = Transformations[:deep_symbolize_keys].call(row)
           row = domain_event_class.upcast_row(row)
 
           Event.new(
