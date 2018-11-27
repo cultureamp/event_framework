@@ -9,7 +9,7 @@ module EventFramework
 
       subject(:event_processor_monitor) do
         described_class.new(
-          logger: logger,
+          splunk_logger: logger,
           sequence_stats: sequence_stats,
           bookmark_readonly_class: bookmark_readonly_class,
           metrics: metrics,

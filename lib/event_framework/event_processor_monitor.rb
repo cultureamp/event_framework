@@ -3,14 +3,14 @@ module EventFramework
     SLEEP_INTERVAL = 1
 
     def initialize(
-      logger: Splunk::Logger.new(Logger.new(STDOUT)),
+      splunk_logger:,
       bookmark_readonly_class: BookmarkReadonly,
       sequence_stats: EventStore::SequenceStats,
       metrics:,
       database: EventStore.database,
       sleep_interval: SLEEP_INTERVAL
     )
-      @logger = logger
+      @logger = splunk_logger
       @bookmark_readonly_class = bookmark_readonly_class
       @sequence_stats = sequence_stats
       @metrics = metrics
