@@ -21,7 +21,7 @@ module EventFramework
       let(:bookmark) { instance_double(Bookmark, sequence: 0) }
       let(:event_source) { class_double(EventStore::Source) }
 
-      subject(:event_processor_supervisor) do
+      subject(:event_processor_worker) do
         described_class.new(
           event_processor: event_processor,
           logger: logger,
@@ -32,25 +32,25 @@ module EventFramework
 
       before do
         allow(logger).to receive(:info)
-        allow(event_processor_supervisor).to receive(:sleep)
+        allow(event_processor_worker).to receive(:sleep)
         allow(event_source).to receive(:get_after)
           .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
 
         # NOTE: Shut down after the first loop.
-        allow(event_processor_supervisor).to receive(:shutdown_requested).and_return(false, true)
+        allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, true)
       end
 
       it 'logs that the process has forked' do
         expect(logger).to receive(:info).with('[FooProjector] forked')
 
-        event_processor_supervisor.call
+        event_processor_worker.call
       end
 
       context 'with no events' do
         it 'sleeps' do
-          expect(event_processor_supervisor).to receive(:sleep)
+          expect(event_processor_worker).to receive(:sleep)
 
-          event_processor_supervisor.call
+          event_processor_worker.call
         end
       end
 
@@ -69,20 +69,20 @@ module EventFramework
           expect(event_processor).to receive(:handle_event).with(event_1)
           expect(event_processor).to receive(:handle_event).with(event_2)
 
-          event_processor_supervisor.call
+          event_processor_worker.call
         end
 
         it 'updates the bookmark sequence' do
           expect(bookmark).to receive(:sequence=).with(1)
           expect(bookmark).to receive(:sequence=).with(2)
 
-          event_processor_supervisor.call
+          event_processor_worker.call
         end
 
         it 'logs the last processed sequence' do
           expect(logger).to receive(:info).with('[FooProjector] processed up to 2')
 
-          event_processor_supervisor.call
+          event_processor_worker.call
         end
       end
     end
