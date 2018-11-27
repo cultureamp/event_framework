@@ -6,7 +6,20 @@ module EventFramework
   # Worker and forks.
   class EventProcessorSupervisor
     UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
-    ON_ERROR_PROC = -> (e, tries) { Logger.new(STDOUT).error("#{e.message} #{tries}") }
+
+    class OnForkedError
+      def initialize(processor_name)
+        @processor_name = processor_name
+      end
+
+      def call(error, tries)
+        Logger.new(STDOUT).error("[#{processor_name}] error: #{error.inspect}, tries: #{tries}")
+      end
+
+      private
+
+      attr_reader :processor_name
+    end
 
     class << self
       def call(processor_classes)
@@ -28,7 +41,7 @@ module EventFramework
       set_process_name
 
       processor_classes.each do |processor_class|
-        process_manager.fork(processor_class.name, on_error: ON_ERROR_PROC) do
+        process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
           begin
             logger = Logger.new(STDOUT)
             bookmark = bookmark_repository_class.new(name: processor_class.name).checkout

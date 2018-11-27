@@ -8,9 +8,12 @@ module EventFramework
       let(:bookmark) { instance_double(Bookmark) }
       let(:event_processor) { instance_double(event_processor_class) }
       let(:logger) { instance_double(Logger) }
+      let(:event_processor_error_reporter) { double(:event_processor_error_reporter) }
+      let(:on_forked_error) { instance_double(described_class::OnForkedError) }
 
       it 'forks each event processor' do
-        expect(process_manager).to receive(:fork).with('FooProjector', on_error: described_class::ON_ERROR_PROC).and_yield
+        expect(described_class::OnForkedError).to receive(:new).with('FooProjector').and_return(on_forked_error)
+        expect(process_manager).to receive(:fork).with('FooProjector', on_error: on_forked_error).and_yield
         expect(Logger).to receive(:new).with(STDOUT).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
