@@ -3,7 +3,7 @@ module EventFramework
     SLEEP_INTERVAL = 1
 
     def initialize(
-      logger: Logger.new(STDOUT),
+      logger: Splunk::Logger.new(Logger.new(STDOUT)),
       bookmark_readonly_class: BookmarkReadonly,
       sequence_stats: EventStore::SequenceStats,
       metrics:,
@@ -23,9 +23,9 @@ module EventFramework
         processor_classes.each do |processor_class|
           processor_lag = last_event_sequence(processor_class) - last_processed_event_sequence(processor_class)
 
-          logger.info "[#{processor_class.name}] #{processor_lag}"
+          logger.log(processor_class_name: processor_class.name, processor_lag: processor_lag)
 
-          metrics.emit_point('murmur.event_processor_lag', processor_lag, tags: ["processor_name:#{processor_class.name}"])
+          metrics.emit(processor_class_name: processor_class.name, processor_lag: processor_lag)
         end
 
         sleep sleep_interval

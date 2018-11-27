@@ -40,8 +40,8 @@ module EventFramework
         # There are 3 events in the source
         allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
 
-        allow(logger).to receive(:info)
-        allow(metrics).to receive(:emit_point)
+        allow(logger).to receive(:log)
+        allow(metrics).to receive(:emit)
       end
 
       def monitor
@@ -49,17 +49,17 @@ module EventFramework
       end
 
       it 'logs the processor lag' do
-        expect(logger).to receive(:info).with('[event_processor_class_1] 3')
-        expect(logger).to receive(:info).with('[event_processor_class_1] 2')
-        expect(logger).to receive(:info).with('[event_processor_class_1] 0')
+        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
+        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
+        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
 
         monitor
       end
 
       it 'sends processor lag metrics' do
-        allow(metrics).to receive(:emit_point).with('murmur.event_processor_lag', 3, tags: ['processor_name:event_processor_class_1'])
-        allow(metrics).to receive(:emit_point).with('murmur.event_processor_lag', 2, tags: ['processor_name:event_processor_class_1'])
-        allow(metrics).to receive(:emit_point).with('murmur.event_processor_lag', 0, tags: ['processor_name:event_processor_class_1'])
+        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
+        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
+        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
 
         monitor
       end
