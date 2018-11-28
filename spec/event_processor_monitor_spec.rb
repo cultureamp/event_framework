@@ -9,7 +9,7 @@ module EventFramework
 
       subject(:event_processor_monitor) do
         described_class.new(
-          splunk_logger: logger,
+          logger: logger,
           sequence_stats: sequence_stats,
           bookmark_readonly_class: bookmark_readonly_class,
           metrics: metrics,
@@ -40,7 +40,7 @@ module EventFramework
         # There are 3 events in the source
         allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
 
-        allow(logger).to receive(:log)
+        allow(logger).to receive(:info)
         allow(metrics).to receive(:call)
       end
 
@@ -49,9 +49,9 @@ module EventFramework
       end
 
       it 'logs the processor lag' do
-        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
-        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
-        expect(logger).to receive(:log).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
+        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '3')
+        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '2')
+        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '0')
 
         monitor
       end

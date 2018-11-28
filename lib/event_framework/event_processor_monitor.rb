@@ -3,14 +3,14 @@ module EventFramework
     SLEEP_INTERVAL = 1
 
     def initialize(
-      splunk_logger:,
+      logger:,
       bookmark_readonly_class: BookmarkReadonly,
       sequence_stats: EventStore::SequenceStats,
       metrics:,
       database: EventStore.database,
       sleep_interval: SLEEP_INTERVAL
     )
-      @logger = splunk_logger
+      @logger = logger
       @bookmark_readonly_class = bookmark_readonly_class
       @sequence_stats = sequence_stats
       @metrics = metrics
@@ -23,7 +23,7 @@ module EventFramework
         processor_classes.each do |processor_class|
           processor_lag = last_event_sequence(processor_class) - last_processed_event_sequence(processor_class)
 
-          logger.log(processor_class_name: processor_class.name, processor_lag: processor_lag)
+          logger.info(processor_class_name: processor_class.name, processor_lag: processor_lag.to_s)
 
           metrics.call(processor_class_name: processor_class.name, processor_lag: processor_lag)
         end
