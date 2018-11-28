@@ -362,14 +362,6 @@ ALTER TABLE ONLY public.section_command_projection
 
 
 --
--- Name: section_command_projection section_command_projection_survey_capture_layout_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.section_command_projection
-    ADD CONSTRAINT section_command_projection_survey_capture_layout_id_key UNIQUE (survey_capture_layout_id);
-
-
---
 -- Name: section_questions_correlation_ids section_questions_correlation_ids_correlation_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
