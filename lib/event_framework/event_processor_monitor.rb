@@ -25,7 +25,7 @@ module EventFramework
 
           logger.log(processor_class_name: processor_class.name, processor_lag: processor_lag)
 
-          metrics.emit(processor_class_name: processor_class.name, processor_lag: processor_lag)
+          metrics.call(processor_class_name: processor_class.name, processor_lag: processor_lag)
         end
 
         sleep sleep_interval

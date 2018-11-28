@@ -41,7 +41,7 @@ module EventFramework
         allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
 
         allow(logger).to receive(:log)
-        allow(metrics).to receive(:emit)
+        allow(metrics).to receive(:call)
       end
 
       def monitor
@@ -57,9 +57,9 @@ module EventFramework
       end
 
       it 'sends processor lag metrics' do
-        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
-        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
-        allow(metrics).to receive(:emit).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
+        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
+        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
+        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
 
         monitor
       end
