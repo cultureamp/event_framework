@@ -13,7 +13,7 @@ module EventFramework
       end
 
       def call(error, tries)
-        Logger.new(STDOUT).error("[#{processor_name}] error: #{error.inspect}, tries: #{tries}")
+        Logger.new(STDOUT).error(msg: error.message, error: error.class.name, tries: tries)
       end
 
       private
