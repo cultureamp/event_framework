@@ -74,7 +74,7 @@ module EventFramework
       logger.info(
         {
           event_processor_class_name: event_processor.class.name,
-          msg: "event_processor.#{msg_suffix}",
+          msg: "event_processor.worker.#{msg_suffix}",
         }.merge(params),
       )
     end

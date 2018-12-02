@@ -43,7 +43,7 @@ module EventFramework
       it 'logs that the process has forked' do
         expect(logger).to receive(:info).with(
           event_processor_class_name: 'FooProjector',
-          msg: 'event_processor.forked',
+          msg: 'event_processor.worker.forked',
         )
 
         event_processor_worker.call
@@ -85,7 +85,7 @@ module EventFramework
         it 'logs the last processed sequence' do
           expect(logger).to receive(:info).with(
             event_processor_class_name: 'FooProjector',
-            msg: 'event_processor.processed_up_to',
+            msg: 'event_processor.worker.processed_up_to',
             last_processed_event_sequence: 2,
             last_processed_event_id: events.last.id,
           )
