@@ -41,7 +41,10 @@ module EventFramework
       end
 
       it 'logs that the process has forked' do
-        expect(logger).to receive(:info).with('[FooProjector] forked')
+        expect(logger).to receive(:info).with(
+          event_processor_class_name: 'FooProjector',
+          msg: 'event_processor.forked',
+        )
 
         event_processor_worker.call
       end
@@ -56,8 +59,8 @@ module EventFramework
 
       context 'with some events' do
         let(:events) { [event_1, event_2] }
-        let(:event_1) { instance_double(Event, sequence: 1) }
-        let(:event_2) { instance_double(Event, sequence: 2) }
+        let(:event_1) { instance_double(Event, sequence: 1, id: SecureRandom.uuid) }
+        let(:event_2) { instance_double(Event, sequence: 2, id: SecureRandom.uuid) }
 
         before do
           allow(event_processor).to receive(:handle_event)
@@ -80,7 +83,12 @@ module EventFramework
         end
 
         it 'logs the last processed sequence' do
-          expect(logger).to receive(:info).with('[FooProjector] processed up to 2')
+          expect(logger).to receive(:info).with(
+            event_processor_class_name: 'FooProjector',
+            msg: 'event_processor.processed_up_to',
+            last_processed_event_sequence: 2,
+            last_processed_event_id: events.last.id,
+          )
 
           event_processor_worker.call
         end

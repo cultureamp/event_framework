@@ -49,7 +49,7 @@ module EventFramework
 
             EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
           rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
-            logger.info "[#{processor_class.name}] #{e.message}"
+            logger.info(processor_class_name: processor_class.name, msg: e.message)
             sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
           end
         end

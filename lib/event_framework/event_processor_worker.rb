@@ -23,7 +23,7 @@ module EventFramework
 
     def call
       set_process_name
-      logger.info "[#{event_processor.class.name}] forked"
+      logger.info(event_processor_class_name: event_processor.class.name, msg: 'event_processor.forked')
       listen_for_term_signal
 
       loop do
@@ -42,7 +42,12 @@ module EventFramework
             bookmark.sequence = event.sequence
           end
 
-          logger.info "[#{event_processor.class.name}] processed up to #{bookmark.sequence.inspect}"
+          logger.info(
+            event_processor_class_name: event_processor.class.name,
+            msg: 'event_processor.processed_up_to',
+            last_processed_event_sequence: bookmark.sequence,
+            last_processed_event_id: events.last.id,
+          )
         end
       end
     end
