@@ -20,8 +20,10 @@ module EventFramework
 
     def call(processor_classes:)
       loop do
+        cached_last_event_sequence = last_event_sequence
+
         processor_classes.each do |processor_class|
-          processor_lag = last_event_sequence(processor_class) - last_processed_event_sequence(processor_class)
+          processor_lag = cached_last_event_sequence - last_processed_event_sequence(processor_class)
 
           logger.info(processor_class_name: processor_class.name, processor_lag: processor_lag.to_s)
 
@@ -40,8 +42,8 @@ module EventFramework
       bookmark_readonly_class.new(name: processor_class.name).sequence
     end
 
-    def last_event_sequence(processor_class)
-      sequence_stats.max_sequence(event_classes: processor_class.event_handlers.handled_event_classes)
+    def last_event_sequence
+      sequence_stats.max_sequence
     end
   end
 end
