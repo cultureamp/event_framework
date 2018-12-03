@@ -29,10 +29,7 @@ module EventFramework
       loop do
         break if shutdown_requested
 
-        events = event_source.get_after(
-          bookmark.sequence,
-          event_classes: event_processor.handled_event_classes,
-        )
+        events = event_source.get_after(bookmark.sequence)
 
         if events.empty?
           sleep SLEEP_INTERVAL

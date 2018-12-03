@@ -38,7 +38,7 @@ module EventFramework
         allow(event_processor_monitor).to receive(:loop).and_yield.and_yield.and_yield
 
         # There are 3 events in the source
-        allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
+        allow(sequence_stats).to receive(:max_sequence).and_return(3)
 
         allow(logger).to receive(:info)
         allow(metrics).to receive(:call)

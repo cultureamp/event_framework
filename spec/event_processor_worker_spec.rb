@@ -33,8 +33,7 @@ module EventFramework
       before do
         allow(logger).to receive(:info)
         allow(event_processor_worker).to receive(:sleep)
-        allow(event_source).to receive(:get_after)
-          .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
+        allow(event_source).to receive(:get_after).with(0).and_return(events)
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, true)
