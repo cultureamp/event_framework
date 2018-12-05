@@ -6,7 +6,7 @@ module EventFramework
       AggregateIdMismatchError = Class.new(Error)
 
       class << self
-        def sink(staged_events)
+        def sink(staged_events, database: EventStore.database)
           return if staged_events.empty?
 
           new_event_rows = []
