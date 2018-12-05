@@ -159,7 +159,6 @@ module EventFramework
     end
 
     describe 'locking' do
-      let(:an_integer) { an_object_having_attributes(class: Integer) }
       let(:logger_1) { instance_spy(Logger) }
       let(:logger_2) { instance_spy(Logger) }
 
@@ -227,7 +226,7 @@ module EventFramework
 
           expect(logger_1).to_not have_received(:info)
           expect(logger_2).to have_received(:info)
-            .with(msg: 'event_framework.event_store.sink.retry', tries: an_integer).at_least(:once)
+            .with(msg: 'event_framework.event_store.sink.retry', tries: an_instance_of(Integer)).at_least(:once)
         ensure
           # NOTE: Clean up the separate database connection so DatabaseCleaner
           # doesn't try to clean it.
