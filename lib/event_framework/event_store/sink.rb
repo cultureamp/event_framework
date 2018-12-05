@@ -1,9 +1,8 @@
 module EventFramework
   module EventStore
     class Sink
-      ConcurrencyError = Class.new(RetriableException)
-
       AggregateIdMismatchError = Class.new(Error)
+      ConcurrencyError = Class.new(RetriableException)
 
       class << self
         def sink(staged_events, database: EventStore.database)
