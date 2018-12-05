@@ -8,11 +8,11 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Sink do
-    def build_staged_event(aggregate_sequence:)
+    def build_staged_event(aggregate_sequence: 1, aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5')
       instance_double(
         StagedEvent,
         body: { foo: 'bar' },
-        aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
+        aggregate_id: aggregate_id,
         aggregate_sequence: aggregate_sequence,
         aggregate_type: 'Thing',
         event_type: 'EventHappened',
@@ -154,6 +154,43 @@ module EventFramework
           end
 
           expect(persisted_tuples_for_aggregate(staged_events.first.aggregate_id).length).to eql 1
+        end
+      end
+    end
+
+    describe 'locking' do
+      it 'ensures events are sunk sequentially by locking the database' do
+        begin
+          aggregate_id_1 = '00000000-0000-4000-a000-000000000001'
+          aggregate_id_2 = '00000000-0000-4000-a000-000000000002'
+
+          allow(EventFramework.config.after_sink_hook).to receive(:call) do |new_events|
+            if new_events.first.aggregate_id == aggregate_id_1
+              # Sleep so the second thread needs to wait to acquire a lock
+              sleep 0.2
+              # Aggregate 2 should not be saved yet because it doesn't have a lock
+              expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
+            end
+          end
+
+          other_database_connection = Sequel.connect(EventFramework.config.database_url)
+          other_database_connection.extension :pg_json
+
+          t1 = Thread.new do
+            Thread.current.report_on_exception = false # Don't double report RSpec failures
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)])
+          end
+          t2 = Thread.new do
+            sleep 0.1 # Ensure this thread gets the lock last
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: other_database_connection)
+          end
+
+          [t1, t2].each(&:join)
+        ensure
+          # NOTE: Clean up the separate databse connection so DatabaseCleaner
+          # doesn't try to clean it.
+          other_database_connection.disconnect
+          Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
         end
       end
     end

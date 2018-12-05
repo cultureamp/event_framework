@@ -9,6 +9,14 @@ module EventFramework
         def sink(staged_events, database: EventStore.database)
           return if staged_events.empty?
 
+          begin
+            lock_result = try_lock(database)
+            raise ConcurrencyError unless locked?(lock_result)
+          rescue ConcurrencyError
+            sleep 0.01
+            retry
+          end
+
           new_event_rows = sink_staged_events(staged_events, database)
 
           # NOTE: This is the "ugly" part of the framework that is only here to
@@ -20,6 +28,8 @@ module EventFramework
           EventFramework.config.after_sink_hook.call(new_events)
 
           nil
+        ensure
+          unlock(database) if locked?(lock_result)
         end
 
         private
@@ -46,6 +56,18 @@ module EventFramework
           end
 
           new_event_rows
+        end
+
+        def try_lock(database)
+          database.select(Sequel.function(:pg_try_advisory_lock, -1)).first
+        end
+
+        def unlock(database)
+          database.select(Sequel.function(:pg_advisory_unlock, -1)).first[:pg_advisory_unlock]
+        end
+
+        def locked?(lock_result)
+          lock_result && lock_result[:pg_try_advisory_lock]
         end
       end
     end
