@@ -28,11 +28,11 @@ module EventFramework
     end
 
     def try_lock(lock_key)
-      database.select(Sequel.function(:pg_try_advisory_lock, lock_key))
+      database.select(Sequel.function(:pg_try_advisory_lock, lock_key)).first
     end
 
     def locked?(lock_result)
-      lock_result.first[:pg_try_advisory_lock]
+      lock_result[:pg_try_advisory_lock]
     end
 
     def find_bookmark
