@@ -4,14 +4,19 @@ module EventFramework
       AggregateIdMismatchError = Class.new(Error)
       ConcurrencyError = Class.new(RetriableException)
 
+      MAX_RETRIES = 100
+
       class << self
         def sink(staged_events, database: EventStore.database)
           return if staged_events.empty?
 
+          tries = 0
           begin
             lock_result = try_lock(database)
-            raise ConcurrencyError unless locked?(lock_result)
-          rescue ConcurrencyError
+            raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
+          rescue ConcurrencyError => e
+            tries += 1
+            raise e if tries > MAX_RETRIES
             sleep 0.01
             retry
           end
