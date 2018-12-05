@@ -159,6 +159,10 @@ module EventFramework
     end
 
     describe 'locking' do
+      let(:an_integer) { an_object_having_attributes(class: Integer) }
+      let(:logger_1) { instance_spy(Logger) }
+      let(:logger_2) { instance_spy(Logger) }
+
       it 'ensures events are sunk sequentially by locking the database' do
         begin
           aggregate_id_1 = '00000000-0000-4000-a000-000000000001'
@@ -178,14 +182,18 @@ module EventFramework
 
           t1 = Thread.new do
             Thread.current.report_on_exception = false # Don't double report RSpec failures
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)])
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)], logger: logger_1)
           end
           t2 = Thread.new do
             sleep 0.1 # Ensure this thread gets the lock last
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: other_database_connection)
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: other_database_connection, logger: logger_2)
           end
 
           [t1, t2].each(&:join)
+
+          expect(logger_1).to_not have_received(:info)
+          expect(logger_2).to have_received(:info)
+            .with(msg: 'event_framework.event_store.sink.retry', tries: an_integer).at_least(:once)
         ensure
           # NOTE: Clean up the separate database connection so DatabaseCleaner
           # doesn't try to clean it.

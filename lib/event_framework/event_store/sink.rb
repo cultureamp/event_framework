@@ -7,7 +7,7 @@ module EventFramework
       MAX_RETRIES = 100
 
       class << self
-        def sink(staged_events, database: EventStore.database)
+        def sink(staged_events, database: EventStore.database, logger: Logger.new(STDOUT))
           return if staged_events.empty?
 
           tries = 0
@@ -17,6 +17,7 @@ module EventFramework
           rescue ConcurrencyError => e
             tries += 1
             raise e if tries > MAX_RETRIES
+            logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries)
             sleep 0.01
             retry
           end
