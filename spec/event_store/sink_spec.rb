@@ -165,31 +165,65 @@ module EventFramework
 
       it 'ensures events are sunk sequentially by locking the database' do
         begin
-          aggregate_id_1 = '00000000-0000-4000-a000-000000000001'
-          aggregate_id_2 = '00000000-0000-4000-a000-000000000002'
+          # Testing concurrency can be painful, however there are some direct metrics
+          # we can reasonably expect to occur, given our implementation.
+          #
+          # We know that we're relying on PostgreSQL's table-locking feature
+          # (https://www.postgresql.org/docs/10/explicit-locking.html) to ensure
+          # sequentiality when sinking events.
+          #
+          # Givent the way we've implemented locking, it's reasonable to assume that
+          # given a series of connections (c1, c2... cn), the number of times
+          # each connection has to call `pg_try_advisory_lock` will be greater
+          # than that of the connection that preceded it.
+          #
+          # We can measure this by injecting an object that delegates all
+          # behaviour to the actual connection object, but also measures
+          # the data we need to be able to assert our expectations.
+          #
+          # In addition, we can also use the same object to introduce an
+          # artificial delay, in order to make measurement more reliable.
+          class DatabaseWrapper < SimpleDelegator
+            attr_reader :__try_lock_count
 
-          allow(EventFramework.config.after_sink_hook).to receive(:call) do |new_events|
-            if new_events.first.aggregate_id == aggregate_id_1
-              # Sleep so the second thread needs to wait to acquire a lock
+            def select(pg_function)
+              @__try_lock_count ||= 0
+              @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_lock
+
+              __getobj__.select(pg_function)
+            end
+
+            def transaction(&block)
+              __getobj__.transaction(&block)
               sleep 0.2
-              # Aggregate 2 should not be saved yet because it doesn't have a lock
-              expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
             end
           end
+
+          aggregate_id_1 = '00000000-0000-4000-a000-000000000001'
+          aggregate_id_2 = '00000000-0000-4000-a000-000000000002'
 
           other_database_connection = Sequel.connect(EventFramework.config.database_url)
           other_database_connection.extension :pg_json
 
+          d1 = DatabaseWrapper.new(EventStore.database)
+          d2 = DatabaseWrapper.new(other_database_connection)
+
           t1 = Thread.new do
             Thread.current.report_on_exception = false # Don't double report RSpec failures
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)], logger: logger_1)
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)], database: d1, logger: logger_1)
+
+            # Aggregate 2 should not be saved yet because it doesn't have a lock
+            expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
           end
+
           t2 = Thread.new do
             sleep 0.1 # Ensure this thread gets the lock last
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: other_database_connection, logger: logger_2)
+            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: d2, logger: logger_2)
           end
 
           [t1, t2].each(&:join)
+
+          expect(d1.__try_lock_count).to be < d2.__try_lock_count
 
           expect(logger_1).to_not have_received(:info)
           expect(logger_2).to have_received(:info)
