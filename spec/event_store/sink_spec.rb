@@ -159,54 +159,55 @@ module EventFramework
     end
 
     describe 'locking' do
+      let(:database_wrapper) do
+        # Testing concurrency can be painful, however there are some direct metrics
+        # we can reasonably expect to occur, given our implementation.
+        #
+        # We know that we're relying on PostgreSQL's table-locking feature
+        # (https://www.postgresql.org/docs/10/explicit-locking.html) to ensure
+        # sequentiality when sinking events.
+        #
+        # Givent the way we've implemented locking, it's reasonable to assume that
+        # given a series of connections (c1, c2... cn), the number of times
+        # each connection has to call `pg_try_advisory_lock` will be greater
+        # than that of the connection that preceded it.
+        #
+        # We can measure this by injecting an object that delegates all
+        # behaviour to the actual connection object, but also measures
+        # the data we need to be able to assert our expectations.
+        #
+        # In addition, we can also use the same object to introduce an
+        # artificial delay, in order to make measurement more reliable.
+        Class.new(SimpleDelegator) do
+          attr_reader :__try_lock_count
+
+          def select(pg_function)
+            @__try_lock_count ||= 0
+            @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_lock
+
+            __getobj__.select(pg_function)
+          end
+
+          def transaction(&block)
+            __getobj__.transaction(&block)
+            sleep 0.2
+          end
+        end
+      end
+      let(:other_database_connection) do
+        Sequel.connect(EventFramework.config.database_url).tap do |db|
+          db.extension :pg_json
+        end
+      end
+      let(:d1) { database_wrapper.new(EventStore.database) }
+      let(:d2) { database_wrapper.new(other_database_connection) }
       let(:logger_1) { instance_spy(Logger) }
       let(:logger_2) { instance_spy(Logger) }
+      let(:aggregate_id_1) { '00000000-0000-4000-a000-000000000001' }
+      let(:aggregate_id_2) { '00000000-0000-4000-a000-000000000002' }
 
       it 'ensures events are sunk sequentially by locking the database' do
         begin
-          # Testing concurrency can be painful, however there are some direct metrics
-          # we can reasonably expect to occur, given our implementation.
-          #
-          # We know that we're relying on PostgreSQL's table-locking feature
-          # (https://www.postgresql.org/docs/10/explicit-locking.html) to ensure
-          # sequentiality when sinking events.
-          #
-          # Givent the way we've implemented locking, it's reasonable to assume that
-          # given a series of connections (c1, c2... cn), the number of times
-          # each connection has to call `pg_try_advisory_lock` will be greater
-          # than that of the connection that preceded it.
-          #
-          # We can measure this by injecting an object that delegates all
-          # behaviour to the actual connection object, but also measures
-          # the data we need to be able to assert our expectations.
-          #
-          # In addition, we can also use the same object to introduce an
-          # artificial delay, in order to make measurement more reliable.
-          class DatabaseWrapper < SimpleDelegator
-            attr_reader :__try_lock_count
-
-            def select(pg_function)
-              @__try_lock_count ||= 0
-              @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_lock
-
-              __getobj__.select(pg_function)
-            end
-
-            def transaction(&block)
-              __getobj__.transaction(&block)
-              sleep 0.2
-            end
-          end
-
-          aggregate_id_1 = '00000000-0000-4000-a000-000000000001'
-          aggregate_id_2 = '00000000-0000-4000-a000-000000000002'
-
-          other_database_connection = Sequel.connect(EventFramework.config.database_url)
-          other_database_connection.extension :pg_json
-
-          d1 = DatabaseWrapper.new(EventStore.database)
-          d2 = DatabaseWrapper.new(other_database_connection)
-
           t1 = Thread.new do
             Thread.current.report_on_exception = false # Don't double report RSpec failures
             described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)], database: d1, logger: logger_1)
