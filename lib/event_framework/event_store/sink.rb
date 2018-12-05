@@ -17,6 +17,7 @@ module EventFramework
           rescue ConcurrencyError => e
             tries += 1
             raise e if tries > MAX_RETRIES
+
             logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries)
             sleep 0.01
             retry
