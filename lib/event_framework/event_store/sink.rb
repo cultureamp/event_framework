@@ -21,7 +21,6 @@ module EventFramework
           # NOTE: This is the "ugly" part of the framework that is only here to
           # support our current use-case where we need to update our MongoDB
           # synchronously.
-          # binding.pry
           new_events = new_event_rows.map { |row| EventBuilder.call(row) }
 
           EventFramework.config.after_sink_hook.call(new_events)

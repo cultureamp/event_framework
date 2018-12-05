@@ -187,7 +187,7 @@ module EventFramework
 
           [t1, t2].each(&:join)
         ensure
-          # NOTE: Clean up the separate databse connection so DatabaseCleaner
+          # NOTE: Clean up the separate database connection so DatabaseCleaner
           # doesn't try to clean it.
           other_database_connection.disconnect
           Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
