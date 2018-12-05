@@ -164,9 +164,11 @@ module EventFramework
       end
 
       it 'does not call the database' do
-        expect(described_class).to_not receive(:database)
+        database = double(:database)
 
-        described_class.sink([])
+        expect(database).not_to receive(:[])
+
+        described_class.sink([], database: database)
       end
     end
 

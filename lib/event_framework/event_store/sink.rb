@@ -9,6 +9,22 @@ module EventFramework
         def sink(staged_events, database: EventStore.database)
           return if staged_events.empty?
 
+          new_event_rows = sink_staged_events(staged_events, database)
+
+          # NOTE: This is the "ugly" part of the framework that is only here to
+          # support our current use-case where we need to update our MongoDB
+          # synchronously.
+          # binding.pry
+          new_events = new_event_rows.map { |row| EventBuilder.call(row) }
+
+          EventFramework.config.after_sink_hook.call(new_events)
+
+          nil
+        end
+
+        private
+
+        def sink_staged_events(staged_events, database)
           new_event_rows = []
 
           database.transaction do
@@ -29,20 +45,7 @@ module EventFramework
             end
           end
 
-          # NOTE: This is the "ugly" part of the framework that is only here to
-          # support our current use-case where we need to update our MongoDB
-          # synchronously.
-          new_events = new_event_rows.map { |row| EventBuilder.call(row) }
-
-          EventFramework.config.after_sink_hook.call(new_events)
-
-          nil
-        end
-
-        private
-
-        def database
-          EventStore.database
+          new_event_rows
         end
       end
     end
