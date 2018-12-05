@@ -35,7 +35,7 @@ module EventFramework
             begin
               lock_key = EventStore.database[:bookmarks].first[:lock_key]
 
-              # Note: Get a separate database connection
+              # NOTE: Get a separate database connection
               other_database_connection = Sequel.connect(EventFramework.config.database_url)
               repository = described_class.new(name: 'foo', database: other_database_connection)
 
