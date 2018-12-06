@@ -8,7 +8,7 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Sink do
-    def build_staged_event(aggregate_sequence: 1, aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5')
+    def build_staged_event(aggregate_sequence: 1, aggregate_id: SecureRandom.uuid)
       StagedEvent.new(
         domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
         aggregate_id: aggregate_id,
@@ -41,7 +41,8 @@ module EventFramework
     end
 
     context 'persisting a single event to the database' do
-      let(:staged_events) { [build_staged_event(aggregate_sequence: 1)] }
+      let(:aggregate_id) { SecureRandom.uuid }
+      let(:staged_events) { [build_staged_event(aggregate_id: aggregate_id)] }
 
       let(:persisted_tuple) do
         persisted_tuples_for_aggregate(staged_events.first.aggregate_id).first
@@ -56,7 +57,7 @@ module EventFramework
           id: a_string_matching(Types::UUID_REGEX),
           sequence: last_value_for_sequence('events_sequence_seq'),
           aggregate_sequence: 1,
-          aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5',
+          aggregate_id: aggregate_id,
           aggregate_type: 'Thing',
           event_type: 'EventHappened',
         )
@@ -85,11 +86,12 @@ module EventFramework
     end
 
     context 'when persisting multiple events' do
+      let(:aggregate_id) { SecureRandom.uuid }
       let(:staged_events) do
         [
-          build_staged_event(aggregate_sequence: 1),
-          build_staged_event(aggregate_sequence: 2),
-          build_staged_event(aggregate_sequence: 3),
+          build_staged_event(aggregate_id: aggregate_id, aggregate_sequence: 1),
+          build_staged_event(aggregate_id: aggregate_id, aggregate_sequence: 2),
+          build_staged_event(aggregate_id: aggregate_id, aggregate_sequence: 3),
         ]
       end
 
