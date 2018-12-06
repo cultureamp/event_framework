@@ -16,8 +16,10 @@ module EventFramework
             raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
           rescue ConcurrencyError => e
             tries += 1
-            raise e if tries > MAX_RETRIES
-
+            if tries > MAX_RETRIES
+              logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries)
+              raise e
+            end
             logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries)
             sleep 0.01
             retry
