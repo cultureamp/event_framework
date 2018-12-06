@@ -9,14 +9,13 @@ end
 module EventFramework
   RSpec.describe EventStore::Sink do
     def build_staged_event(aggregate_sequence: 1, aggregate_id: '94cfdc57-f8ad-44b4-8ea3-ae4043c52ff5')
-      instance_double(
-        StagedEvent,
-        body: { foo: 'bar' },
+      StagedEvent.new(
+        domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
         aggregate_id: aggregate_id,
         aggregate_sequence: aggregate_sequence,
         aggregate_type: 'Thing',
         event_type: 'EventHappened',
-        metadata: metadata,
+        mutable_metadata: metadata,
       )
     end
 
@@ -255,15 +254,10 @@ module EventFramework
     end
 
     context 'with missing metadata attributes' do
-      it 'raises an error' do
-        event = EventFramework::StagedEvent.new(
-          aggregate_id: SecureRandom.uuid,
-          aggregate_sequence: 1,
-          domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
-          mutable_metadata: nil,
-        )
+      let(:metadata) { Metadata.new }
 
-        expect { EventFramework::EventStore::Sink.sink [event] }
+      it 'raises an error' do
+        expect { EventFramework::EventStore::Sink.sink [build_staged_event] }
           .to raise_error Dry::Struct::Error, /account_id is missing in Hash input/
       end
     end
