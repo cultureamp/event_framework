@@ -21,9 +21,9 @@ module EventFramework
 
     let(:metadata) do
       Metadata.new(
-        account_id: '402f0e91-c51b-4cf9-80ba-b0665fbc6f05',
-        user_id: 'a64ae92d-e577-4f59-94b4-a9ec601ebdfa',
-        correlation_id: '7d25a7e5-e239-4a78-9491-17cb86c541b6',
+        account_id: SecureRandom.uuid,
+        user_id: SecureRandom.uuid,
+        correlation_id: SecureRandom.uuid,
       )
     end
 
@@ -73,9 +73,9 @@ module EventFramework
         metadata_hash = persisted_tuple[:metadata].to_h
 
         expect(metadata_hash).to include(
-          'account_id'     => '402f0e91-c51b-4cf9-80ba-b0665fbc6f05',
-          'user_id'        => 'a64ae92d-e577-4f59-94b4-a9ec601ebdfa',
-          'correlation_id' => '7d25a7e5-e239-4a78-9491-17cb86c541b6',
+          'account_id' => metadata.account_id,
+          'user_id' => metadata.user_id,
+          'correlation_id' => metadata.correlation_id,
         )
       end
 
