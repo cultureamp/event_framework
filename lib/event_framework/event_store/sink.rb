@@ -15,12 +15,14 @@ module EventFramework
             lock_result = try_lock(database)
             raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
           rescue ConcurrencyError => e
+            metadata = staged_events.first.metadata
+
             tries += 1
             if tries > MAX_RETRIES
-              logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries)
+              logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries, correlation_id: metadata.correlation_id)
               raise e
             end
-            logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries)
+            logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries, correlation_id: metadata.correlation_id)
             sleep 0.01
             retry
           end

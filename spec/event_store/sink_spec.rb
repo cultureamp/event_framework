@@ -21,11 +21,11 @@ module EventFramework
     end
 
     let(:metadata) do
-      {
+      Metadata.new(
         account_id: '402f0e91-c51b-4cf9-80ba-b0665fbc6f05',
         user_id: 'a64ae92d-e577-4f59-94b4-a9ec601ebdfa',
         correlation_id: '7d25a7e5-e239-4a78-9491-17cb86c541b6',
-      }
+      )
     end
 
     def last_value_for_sequence(sequence_name)
@@ -226,8 +226,11 @@ module EventFramework
           expect(d1.__try_lock_count).to be < d2.__try_lock_count
 
           expect(logger_1).to_not have_received(:info)
-          expect(logger_2).to have_received(:info)
-            .with(msg: 'event_framework.event_store.sink.retry', tries: an_instance_of(Integer)).at_least(:once)
+          expect(logger_2).to have_received(:info).with(
+            msg: 'event_framework.event_store.sink.retry',
+            tries: an_instance_of(Integer),
+            correlation_id: metadata.correlation_id,
+          ).at_least(:once)
         ensure
           # NOTE: Clean up the separate database connection so DatabaseCleaner
           # doesn't try to clean it.
