@@ -35,6 +35,7 @@ module EventFramework
   autoload :Types, 'event_framework/types'
 
   # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
+  # TODO: Delete everything below after configuration re-factor is complete
   def self.environment
     ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
@@ -60,4 +61,5 @@ module EventFramework
   setting :event_processor_error_reporter, -> (error, event) {}
 end
 
+# TODO: Delete after configuration re-factor is complete
 require_relative "../config/environments/#{EventFramework.environment}"
