@@ -1,6 +1,7 @@
 require 'aws-sdk-core'
 require 'aws-sdk-ssm'
 
+# TODO: Delete after configuration re-factor is complete
 module EventFramework
   # Parameters are stored in the format /murmur/event_store/$FARM/database_url
   class ParameterStoreDatabaseConfiguration
