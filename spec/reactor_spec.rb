@@ -81,7 +81,7 @@ module EventFramework
         let(:domain_event) { test_event_2.new }
 
         it 'retries saving the event' do
-          EventStore::Sink.sink [
+          EventStore::Sink.new.sink [
             EventFramework::StagedEvent.new(
               aggregate_id: event.aggregate_id,
               aggregate_sequence: 1,

@@ -98,7 +98,7 @@ RSpec.describe 'integration' do
     end
 
     before do
-      EventFramework::EventStore::Sink.sink(existing_events)
+      EventFramework::EventStore::Sink.new.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
       handler.handle(command: command, metadata: metadata, executor: nil)
     end

@@ -40,6 +40,8 @@ module EventFramework
         .all
     end
 
+    subject { described_class.new }
+
     context 'persisting a single event to the database' do
       let(:aggregate_id) { SecureRandom.uuid }
       let(:staged_events) { [build_staged_event(aggregate_id: aggregate_id)] }
@@ -49,7 +51,7 @@ module EventFramework
       end
 
       before do
-        described_class.sink(staged_events)
+        subject.sink(staged_events)
       end
 
       it 'persists the main event attributes', aggregate_failures: true do
@@ -100,7 +102,7 @@ module EventFramework
       end
 
       it 'persists multiple events in one call' do
-        described_class.sink(staged_events)
+        subject.sink(staged_events)
 
         expect(persisted_tuples.length).to eql 3
         expect(persisted_tuples.map { |t| t[:aggregate_sequence] }).to contain_exactly(1, 2, 3)
@@ -132,7 +134,7 @@ module EventFramework
           ]
         end
 
-        described_class.sink(staged_events)
+        subject.sink(staged_events)
       end
     end
 
@@ -141,16 +143,16 @@ module EventFramework
         let(:staged_events) { [build_staged_event(aggregate_sequence: 1)] }
 
         before do
-          described_class.sink(staged_events)
+          subject.sink(staged_events)
         end
 
         it 'raises a concurrency error' do
-          expect { described_class.sink(staged_events) }.to raise_error described_class::ConcurrencyError
+          expect { subject.sink(staged_events) }.to raise_error described_class::ConcurrencyError
         end
 
         it 'does not persist the event' do
           begin
-            described_class.sink(staged_events)
+            subject.sink(staged_events)
           rescue described_class::ConcurrencyError # rubocop:disable Lint/HandleExceptions
           end
 
@@ -210,16 +212,18 @@ module EventFramework
       it 'ensures events are sunk sequentially by locking the database' do
         begin
           t1 = Thread.new do
+            sinker = described_class.new(database: d1, logger: logger_1)
             Thread.current.report_on_exception = false # Don't double report RSpec failures
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_1)], database: d1, logger: logger_1)
+            sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
 
             # Aggregate 2 should not be saved yet because it doesn't have a lock
             expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
           end
 
           t2 = Thread.new do
+            sinker = described_class.new(database: d2, logger: logger_2)
             sleep 0.1 # Ensure this thread gets the lock last
-            described_class.sink([build_staged_event(aggregate_id: aggregate_id_2)], database: d2, logger: logger_2)
+            sinker.sink([build_staged_event(aggregate_id: aggregate_id_2)])
           end
 
           [t1, t2].each(&:join)
@@ -243,15 +247,16 @@ module EventFramework
 
     describe 'when passed no events' do
       it 'returns nil' do
-        expect(described_class.sink([])).to be_nil
+        expect(subject.sink([])).to be_nil
       end
 
       it 'does not call the database' do
         database = double(:database)
+        sinker = described_class.new(database: database)
 
         expect(database).not_to receive(:[])
 
-        described_class.sink([], database: database)
+        sinker.sink([])
       end
     end
 
@@ -259,7 +264,7 @@ module EventFramework
       let(:metadata) { Metadata.new }
 
       it 'raises an error' do
-        expect { EventFramework::EventStore::Sink.sink [build_staged_event] }
+        expect { subject.sink [build_staged_event] }
           .to raise_error Dry::Struct::Error, /account_id is missing in Hash input/
       end
     end
