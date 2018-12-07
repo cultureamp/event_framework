@@ -19,7 +19,7 @@ module EventFramework
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
       let(:bookmark) { instance_double(Bookmark, sequence: 0) }
-      let(:event_source) { class_double(EventStore::Source) }
+      let(:event_source) { instance_double(EventStore::Source) }
 
       subject(:event_processor_worker) do
         described_class.new(

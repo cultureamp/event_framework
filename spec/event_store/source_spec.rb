@@ -31,6 +31,8 @@ module EventFramework
 
     let(:aggregate_id) { SecureRandom.uuid }
 
+    subject { described_class.new }
+
     before do
       insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }
       insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'bar' }
@@ -38,7 +40,7 @@ module EventFramework
     end
 
     describe '.get_after' do
-      let(:events) { described_class.get_after(14) }
+      let(:events) { subject.get_after(14) }
 
       it 'only returns events with a sequence value greater or equal to the given argument' do
         expect(events).to all be_an(Event)
@@ -49,7 +51,7 @@ module EventFramework
       end
 
       context 'when scoped to certain event types' do
-        let(:events) { described_class.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
+        let(:events) { subject.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
 
         it 'only returns events of the specified type' do
           expect(events).to match [
@@ -59,7 +61,7 @@ module EventFramework
       end
 
       context 'when no events are found' do
-        let(:events) { described_class.get_after(16) }
+        let(:events) { subject.get_after(16) }
 
         it 'returns an empty array' do
           expect(events).to be_empty
@@ -68,7 +70,7 @@ module EventFramework
     end
 
     describe '.get_for_aggregate' do
-      let(:events) { described_class.get_for_aggregate(aggregate_id) }
+      let(:events) { subject.get_for_aggregate(aggregate_id) }
 
       it 'returns events scoped to the aggregate' do
         expect(events).to all be_an(Event)
@@ -79,7 +81,7 @@ module EventFramework
       end
 
       context 'when no events are found' do
-        let(:events) { described_class.get_for_aggregate(SecureRandom.uuid) }
+        let(:events) { subject.get_for_aggregate(SecureRandom.uuid) }
 
         it 'returns an empty array' do
           expect(events).to be_empty

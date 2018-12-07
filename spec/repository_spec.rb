@@ -2,8 +2,8 @@ require 'dry/struct'
 
 module EventFramework
   RSpec.describe Repository do
-    let(:sink) { double(EventStore::Sink) }
-    let(:source) { double(EventStore::Source) }
+    let(:sink) { instance_double(EventStore::Sink) }
+    let(:source) { instance_double(EventStore::Source) }
     let(:repository) { Repository.new(sink: sink, source: source) }
 
     describe '#new_aggregate' do

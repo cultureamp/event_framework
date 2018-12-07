@@ -13,6 +13,8 @@ module EventFramework
         end
       end
     end
+    let(:sink) { EventStore::Sink.new }
+    let(:source) { EventStore::Source.new }
 
     before do
       stub_const('TestDomain::ReactorTest::TestEvent1', test_event_1)
@@ -43,7 +45,7 @@ module EventFramework
             aggregate.do_a_thing
           end
         end
-      end.new
+      end.new(repository: Repository.new(sink: sink, source: source))
     end
 
     describe 'emitting events' do
@@ -62,7 +64,7 @@ module EventFramework
       it 'emits an event via an aggregate' do
         reactor.handle_event(event)
 
-        last_event = EventStore::Source.get_after(0).last
+        last_event = source.get_after(0).last
 
         # event
         expect(last_event.aggregate_id).to eq domain_event.new_aggregate_id
@@ -81,7 +83,7 @@ module EventFramework
         let(:domain_event) { test_event_2.new }
 
         it 'retries saving the event' do
-          EventStore::Sink.new.sink [
+          sink.sink [
             EventFramework::StagedEvent.new(
               aggregate_id: event.aggregate_id,
               aggregate_sequence: 1,
@@ -94,9 +96,9 @@ module EventFramework
           ]
 
           # Cause a concurrency error by setting the aggregate_sequence to 0
-          original_source_get_for_aggregate = EventStore::Source.method(:get_for_aggregate)
+          original_source_get_for_aggregate = source.method(:get_for_aggregate)
           simulate_concurrency_error = true
-          allow(EventStore::Source).to receive(:get_for_aggregate) do |aggregate_id|
+          allow(source).to receive(:get_for_aggregate) do |aggregate_id|
             events = original_source_get_for_aggregate.call(aggregate_id)
             if simulate_concurrency_error
               simulate_concurrency_error = false

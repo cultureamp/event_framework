@@ -79,7 +79,7 @@ RSpec.describe 'integration' do
     )
   end
 
-  let(:events) { EventFramework::EventStore::Source.get_for_aggregate(aggregate_id) }
+  let(:events) { EventFramework::EventStore::Source.new.get_for_aggregate(aggregate_id) }
 
   describe 'persisting a single event from a command' do
     let(:after_sink_hook) { spy(:after_sink_hook) }
