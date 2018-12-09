@@ -21,14 +21,15 @@ module EventFramework
       let(:bookmark) { instance_double(Bookmark, sequence: 0) }
       let(:event_source) { instance_double(EventStore::Source) }
 
-      subject(:event_processor_worker) do
-        described_class.new(
+      let(:event_processor_worker_arguments) do
+        {
           event_processor: event_processor,
           logger: logger,
           bookmark: bookmark,
           event_source: event_source,
-        )
+        }
       end
+      subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments) }
 
       before do
         allow(logger).to receive(:info)
@@ -37,6 +38,18 @@ module EventFramework
 
         # NOTE: Shut down after the first loop.
         allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, true)
+      end
+
+      context 'default arguments' do
+        subject(:event_processor_worker) do
+          event_processor_worker_arguments.delete(:event_source)
+          described_class.new(event_processor_worker_arguments)
+        end
+
+        it 'does not raise an exception' do
+          expect { event_processor_worker.call }
+            .to_not raise_error
+        end
       end
 
       it 'logs that the process has forked' do
