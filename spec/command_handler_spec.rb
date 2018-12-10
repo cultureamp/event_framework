@@ -89,19 +89,19 @@ module EventFramework
 
     describe '#handle' do
       after do
-        described_class.instance_variable_set(:@callable, nil)
+        described_class.instance_variable_set(:@handler_proc, nil)
         described_class.instance_variable_set(:@command_class, nil)
       end
 
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
-          described_class.instance_variable_set(:@callable, 'foo')
+          described_class.instance_variable_set(:@handler_proc, 'foo')
           expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
 
-      context 'when callable is not defined' do
+      context 'when handler_proc is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
           expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
@@ -116,7 +116,7 @@ module EventFramework
 
         it 'accepts the command' do
           described_class.instance_variable_set(:@command_class, superclass)
-          described_class.instance_variable_set(:@callable, ->(_, _, _) { :success })
+          described_class.instance_variable_set(:@handler_proc, ->(_, _, _) { :success })
           expect(described_class.new.handle(command: command, metadata: nil, executor: nil))
             .to eql :success
         end
@@ -125,16 +125,16 @@ module EventFramework
       context 'when command is not of the correct type' do
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
-          described_class.instance_variable_set(:@callable, ->(_, _, _) {})
+          described_class.instance_variable_set(:@handler_proc, ->(_, _, _) {})
           expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
 
-      describe 'when callable#call fails' do
+      describe 'when handler_proc#call fails' do
         # Given that we can't pass an RSpec double to instance_exec (grrr), we need
         # a Proc that can track how many times it has been called.
-        let!(:callable) do
+        let!(:handler_proc) do
           proc do |_, _, _|
             @attempt_count ||= 0
 
@@ -151,7 +151,7 @@ module EventFramework
 
         before do
           described_class.instance_variable_set(:@command_class, command_class)
-          described_class.instance_variable_set(:@callable, callable)
+          described_class.instance_variable_set(:@handler_proc, handler_proc)
         end
 
         context 'if the failure threshold has not been reached' do
@@ -160,7 +160,7 @@ module EventFramework
             stub_const "#{described_class.name}::FAILURE_RETRY_SLEEP_INTERVAL", 0
           end
 
-          it 'calls callable until it passes' do
+          it 'calls handler_proc until it passes' do
             expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }.not_to raise_error
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 4
@@ -190,11 +190,11 @@ module EventFramework
       end
     end
 
-    describe '#callable' do
+    describe '#handler_proc' do
       let(:instance) { described_class.new }
 
       it 'is private' do
-        expect { instance.callable }.to raise_error NoMethodError, /private method(.*)callable/
+        expect { instance.handler_proc }.to raise_error NoMethodError, /private method(.*)handler_proc/
       end
     end
   end

@@ -17,7 +17,7 @@ module EventFramework
     class << self
       # Public: Returns the Proc that is executed on invocation of
       # the CommandHandler
-      attr_reader :callable
+      attr_reader :handler_proc
 
       # Public: Returns the Class that defines the structure of the data
       # required by the CommandHandler
@@ -35,16 +35,16 @@ module EventFramework
       # implementing the boiler-plate logic of argument validation, aggregate
       # hydration, and retry-on-failure
       #
-      # klass - The Class<Command> that defines the data structure expected by
-      #         the block
-      # block - The block to be executed on invocation
+      # klass        - The Class<Command> that defines the data structure
+      #                expected by the given block
+      # handler_proc - The block to be executed on invocation
       #
       # Returns nothing.
-      def handle(klass, &block)
+      def handle(klass, &handler_proc)
         raise ArgumentError unless klass.is_a?(Class)
 
         @command_class = klass
-        @callable = block
+        @handler_proc = handler_proc
       end
     end
 
@@ -73,7 +73,7 @@ module EventFramework
     # Raises RetryFailureThresholdExceededException if the number of automatic
     # retries exceeds the designated threshold.
     def handle(command:, executor:, metadata:)
-      raise NotImplementedError if command_class.nil? || callable.nil?
+      raise NotImplementedError if command_class.nil? || handler_proc.nil?
       raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
 
       # ensure that the instance of metadata passed in as an argument to `handle`
@@ -82,7 +82,7 @@ module EventFramework
 
       begin
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
-        instance_exec(command, executor, metadata, &callable)
+        instance_exec(command, executor, metadata, &handler_proc)
       rescue RetriableException
         if (execution_attempts -= 1).zero?
           raise RetryFailureThresholdExceededException
@@ -95,10 +95,10 @@ module EventFramework
 
     private
 
-    # Make `command_class` and `callable` accessible as instance-level accessors
-    def_delegators 'self.class', :command_class, :callable
+    # Make `command_class` and `handler_proc` accessible as instance-level accessors
+    def_delegators 'self.class', :command_class, :handler_proc
 
-    private :command_class, :callable
+    private :command_class, :handler_proc
 
     # Internal: the Metadata passed to `handle`
     attr_accessor :metadata
