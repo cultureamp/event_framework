@@ -100,7 +100,7 @@ RSpec.describe 'integration' do
     before do
       EventFramework::EventStore::Sink.new.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
-      handler.handle(command: command, metadata: metadata, executor: nil)
+      handler.call(command: command, metadata: metadata, executor: nil)
     end
 
     it 'persists a single event' do
@@ -164,7 +164,7 @@ RSpec.describe 'integration' do
         bar: 'Bar',
       )
     end
-    before { handler.handle(command: command, metadata: metadata, executor: nil) }
+    before { handler.call(command: command, metadata: metadata, executor: nil) }
 
     it 'persists multiple events' do
       expect(events.length).to eql 6

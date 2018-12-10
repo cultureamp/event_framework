@@ -72,11 +72,11 @@ module EventFramework
     # Raises NotImplementedError if no handler has been defined.
     # Raises RetryFailureThresholdExceededException if the number of automatic
     # retries exceeds the designated threshold.
-    def handle(command:, executor:, metadata:)
+    def call(command:, executor:, metadata:)
       raise NotImplementedError if command_class.nil? || handler_proc.nil?
       raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
 
-      # ensure that the instance of metadata passed in as an argument to `handle`
+      # ensure that the instance of metadata passed in as an argument to `call`
       # is available via the attribute accessor when calling with_aggregate, et al
       self.metadata = metadata
 

@@ -87,7 +87,7 @@ module EventFramework
       end
     end
 
-    describe '#handle' do
+    describe '#call' do
       after do
         described_class.instance_variable_set(:@handler_proc, nil)
         described_class.instance_variable_set(:@command_class, nil)
@@ -96,7 +96,7 @@ module EventFramework
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@handler_proc, 'foo')
-          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -104,7 +104,7 @@ module EventFramework
       context 'when handler_proc is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
-          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -117,7 +117,7 @@ module EventFramework
         it 'accepts the command' do
           described_class.instance_variable_set(:@command_class, superclass)
           described_class.instance_variable_set(:@handler_proc, ->(_, _, _) { :success })
-          expect(described_class.new.handle(command: command, metadata: nil, executor: nil))
+          expect(described_class.new.call(command: command, metadata: nil, executor: nil))
             .to eql :success
         end
       end
@@ -126,7 +126,7 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@handler_proc, ->(_, _, _) {})
-          expect { described_class.new.handle(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
@@ -161,7 +161,7 @@ module EventFramework
           end
 
           it 'calls handler_proc until it passes' do
-            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }.not_to raise_error
+            expect { instance.call(command: command_instance, metadata: nil, executor: nil) }.not_to raise_error
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 4
           end
@@ -173,7 +173,7 @@ module EventFramework
           end
 
           it 'raises an error' do
-            expect { instance.handle(command: command_instance, metadata: nil, executor: nil) }
+            expect { instance.call(command: command_instance, metadata: nil, executor: nil) }
               .to raise_error(described_class::RetryFailureThresholdExceededException)
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 1
