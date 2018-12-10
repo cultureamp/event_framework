@@ -35,15 +35,15 @@ module EventFramework
       # implementing the boiler-plate logic of argument validation, aggregate
       # hydration, and retry-on-failure
       #
-      # klass        - The Class<Command> that defines the data structure
-      #                expected by the given block
-      # handler_proc - The block to be executed on invocation
+      # command_class - The Class<Command> that defines the data structure
+      #                 expected by the given block
+      # handler_proc  - The block to be executed on invocation
       #
       # Returns nothing.
-      def handle(klass, &handler_proc)
-        raise ArgumentError unless klass.is_a?(Class)
+      def handle(command_class, &handler_proc)
+        raise ArgumentError unless command_class.is_a?(Class)
 
-        @command_class = klass
+        @command_class = command_class
         @handler_proc = handler_proc
       end
     end
