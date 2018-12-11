@@ -137,7 +137,7 @@ module EventFramework
     #
     # Yields an instance of the Class passed in via AggregateClass
     #
-    # Raises Repository::AggregateAlreadyExists if no events for the given
+    # Raises Repository::AggregateAlreadyExists if events for the given
     # aggregate_id exist in the Event Source
     def with_new_aggregate(aggregate_class, aggregate_id)
       aggregate = repository.new_aggregate(aggregate_class, aggregate_id)
