@@ -37,7 +37,7 @@ module EventFramework
 
       def check_configuration
         if database_url.nil?
-          warn "No DATABASE_URL configured for Domains::SurveyDesign in #{Domains::SurveyDesign.environment.inspect}; exiting."
+          warn "No DATABASE_URL configured in #{environment.inspect}; exiting."
           exit
         end
       end
