@@ -59,6 +59,12 @@ module EventFramework
   # An Object that responds to `.call` that is called with an error and an
   # event any time an error is raised in an event processor.
   setting :event_processor_error_reporter, -> (error, event) {}
+
+  # The default directory for database files
+  setting :db_dir, File.expand_path('../db', __dir__)
+
+  # The default directory for database migration files
+  setting :migrations_path, File.expand_path('../db/migrations', __dir__)
 end
 
 # TODO: Delete after configuration re-factor is complete
