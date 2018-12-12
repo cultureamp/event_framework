@@ -45,6 +45,11 @@ module EventFramework
     Pathname.new(__dir__).join('..')
   end
 
+  def self.load_tasks
+    require "rake"
+    Dir[File.expand_path('event_framework/tasks/*.rake', __dir__)].each(&method(:load))
+  end
+
   # The Module from which Event definitions are sourced; defaults to Object
   setting :event_namespace_class, Object
 
