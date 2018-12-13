@@ -16,6 +16,7 @@ module EventFramework
   autoload :BookmarkRepository, 'event_framework/bookmark_repository'
   autoload :Command, 'event_framework/command'
   autoload :CommandHandler, 'event_framework/command_handler'
+  autoload :Context, 'event_framework/context'
   autoload :ControllerHelpers, 'event_framework/controller_helpers'
   autoload :DomainEvent, 'event_framework/domain_event'
   autoload :DomainStruct, 'event_framework/domain_struct'
