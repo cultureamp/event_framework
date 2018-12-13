@@ -6,7 +6,7 @@ module EventFramework
     DatabaseNotSupported = Class.new(StandardError)
 
     module DatabaseTasks
-      module_function
+      extend self # rubocop:disable Style/ModuleFunction
 
       attr_writer :database_directory, :migrations_path, :environment, :adapter
       attr_accessor :database_url
