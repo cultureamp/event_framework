@@ -2,6 +2,8 @@ module EventFramework
   # Encapsulates the configuration and interface required to establish a
   # connection to a PostgreSQL database
   class DatabaseConnection
+    MissingConnectionURLError = Class.new(Error)
+
     # A Symbol, identifying the name / role / nature of this database
     # within it's parent context
     attr_reader :label
@@ -11,6 +13,12 @@ module EventFramework
 
     def initialize(label)
       @label = label.to_sym
+    end
+
+    def uri
+      raise MissingConnectionURLError if connection_url.nil?
+
+      URI(connection_url)
     end
   end
 end
