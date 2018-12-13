@@ -7,13 +7,13 @@ module EventFramework
     module DatabaseTasks
       module_function
 
-      attr_writer :db_dir, :migrations_path, :environment, :adapter
+      attr_writer :database_directory, :migrations_path, :environment, :adapter
       attr_accessor :database_url
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
-      def db_dir
-        @db_dir ||= EventFramework.config.db_dir
+      def database_directory
+        @database_directory ||= EventFramework.config.database_directory
       end
 
       def migrations_path
@@ -82,7 +82,7 @@ module EventFramework
 
       def dump_schema
         require_relative 'schema_dump'
-        SchemaDump.call(database_url, filename: "#{db_dir}/structure.sql") if environment == 'development'
+        SchemaDump.call(database_url, filename: "#{database_directory}/structure.sql") if environment == 'development'
       end
 
       def target_version

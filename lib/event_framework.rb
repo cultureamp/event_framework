@@ -66,7 +66,7 @@ module EventFramework
   setting :event_processor_error_reporter, -> (error, event) {}
 
   # The default directory for database files
-  setting :db_dir, File.expand_path('../db', __dir__)
+  setting :database_directory, File.expand_path('../db', __dir__)
 
   # The default directory for database migration files
   setting :migrations_path, File.expand_path('../db/migrations', __dir__)
