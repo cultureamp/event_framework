@@ -1,10 +1,6 @@
 module EventFramework
   module Tasks
     class PostgreSQLDatabaseTasks
-      DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
-      ON_ERROR_STOP_1 = 'ON_ERROR_STOP=1'.freeze
-      SQL_COMMENT_BEGIN = '--'.freeze
-
       attr_reader :database_url
 
       def initialize(database_url)
