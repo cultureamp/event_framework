@@ -14,6 +14,10 @@ module EventFramework
         def uuid?(value)
           !Types::UUID_REGEX.match(value).nil?
         end
+
+        def utc?(value)
+          value.zone == '+00:00'
+        end
       end
 
       define! do
