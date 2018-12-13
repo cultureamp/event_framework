@@ -1,0 +1,16 @@
+module EventFramework
+  # Encapsulates the configuration and interface required to establish a
+  # connection to a PostgreSQL database
+  class DatabaseConnection
+    # A Symbol, identifying the name / role / nature of this database
+    # within it's parent context
+    attr_reader :label
+
+    # A String, containing a URL to be used to connect to the database
+    attr_accessor :connection_url
+
+    def initialize(label)
+      @label = label.to_sym
+    end
+  end
+end
