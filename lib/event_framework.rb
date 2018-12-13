@@ -67,9 +67,6 @@ module EventFramework
 
   # The default directory for database files
   setting :database_directory, File.expand_path('../db', __dir__)
-
-  # The default directory for database migration files
-  setting :migrations_path, File.expand_path('../db/migrations', __dir__)
 end
 
 # TODO: Delete after configuration re-factor is complete

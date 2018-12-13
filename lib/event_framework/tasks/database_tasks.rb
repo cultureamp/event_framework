@@ -17,7 +17,7 @@ module EventFramework
       end
 
       def migrations_path
-        @migrations_path ||= EventFramework.config.migrations_path
+        @migrations_path ||= "#{database_directory}/migrations"
       end
 
       def environment
