@@ -28,6 +28,7 @@ module EventFramework
   autoload :EventProcessorWorker, 'event_framework/event_processor_worker'
   autoload :EventProcessorMonitor, 'event_framework/event_processor_monitor'
   autoload :EventStore, 'event_framework/event_store'
+  autoload :Frameworker, 'event_framework/frameworker'
   autoload :Metadata, 'event_framework/metadata'
   autoload :ParameterStoreDatabaseConfiguration, 'event_framework/parameter_store_database_configuration'
   autoload :Projector, 'event_framework/projector'

@@ -31,7 +31,7 @@ module EventFramework
       end
 
       def config
-        root.join('config')
+        @root.join('config')
       end
     end
 
