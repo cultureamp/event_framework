@@ -13,11 +13,25 @@ module EventFramework
       context_module.extend DatabaseRegistration
 
       context_module.define_singleton_method :root do
-        Pathname.new(path_to_root).join('..')
+        @root ||= Pathname.new(path_to_root).join('..')
+      end
+
+      context_module.define_singleton_method :paths do
+        @paths ||= Paths.new(root)
       end
 
       context_module.define_singleton_method :container do
         @container ||= Dry::Container.new
+      end
+    end
+
+    class Paths
+      def initialize(root)
+        @root = root
+      end
+
+      def config
+        root.join('config')
       end
     end
 
