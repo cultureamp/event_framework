@@ -21,7 +21,7 @@ module EventFramework
       end
 
       define! do
-        required(:aggregate_id).filled(:str?, :uuid?)
+        required(:aggregate_id) { str? & uuid? }
       end
     end
 
