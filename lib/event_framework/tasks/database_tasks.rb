@@ -2,8 +2,9 @@ require_relative 'postgresql_database_tasks'
 
 module EventFramework
   module Tasks
-    class DatabaseAlreadyExists < StandardError; end # :nodoc:
-    class DatabaseNotSupported < StandardError; end # :nodoc:
+    DatabaseAlreadyExists = Class.new(StandardError)
+    DatabaseNotSupported = Class.new(StandardError)
+
     module DatabaseTasks
       module_function
 
