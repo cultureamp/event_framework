@@ -8,6 +8,8 @@ module EventFramework
         true
       end
 
+      register Tasks::Generators::MigrationGenerator, "generate:migration", "generate:migration CONTEXT DATABASE_NAME", "Generates an empty migration"
+
       desc "create_database CONTEXT DATABASE_NAME", "Creates the PostgreSQL database for the indicated context/database"
       def create_database(context_name, database_name)
         connection = context_module(context_name).database(database_name.to_sym)
