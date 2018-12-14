@@ -46,6 +46,13 @@ module EventFramework
         DatabaseManager.new(connection).dump_schema(schema_path: mod.paths.db(database_name).join('structure.sql'))
       end
 
+      desc "reset_database CONTEXT DATABASE_NAME", "Drops, creates and migrates the database for the indicated context/database"
+      def reset_database(_context_name, _database_name)
+        invoke :drop_database
+        invoke :create_database
+        invoke :migrate_database
+      end
+
       private
 
       def context_module(name)
