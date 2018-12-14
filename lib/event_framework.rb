@@ -28,13 +28,13 @@ module EventFramework
   autoload :EventProcessorWorker, 'event_framework/event_processor_worker'
   autoload :EventProcessorMonitor, 'event_framework/event_processor_monitor'
   autoload :EventStore, 'event_framework/event_store'
-  autoload :Frameworker, 'event_framework/frameworker'
   autoload :Metadata, 'event_framework/metadata'
   autoload :ParameterStoreDatabaseConfiguration, 'event_framework/parameter_store_database_configuration'
   autoload :Projector, 'event_framework/projector'
   autoload :Reactor, 'event_framework/reactor'
   autoload :Repository, 'event_framework/repository'
   autoload :StagedEvent, 'event_framework/staged_event'
+  autoload :Tasks, 'event_framework/tasks'
   autoload :Types, 'event_framework/types'
 
   # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
