@@ -17,6 +17,13 @@ module EventFramework
         puts "#{context_name}/#{database_name} already exists, skipping"
       end
 
+      desc "drop_database CONTEXT DATABASE_NAME", "Drops the PostgreSQL database for the indicated context/database"
+      def drop_database(context_name, database_name)
+        connection = context_module(context_name).database(database_name.to_sym)
+
+        DatabaseManager.new(connection).drop
+      end
+
       private
 
       def context_module(name)

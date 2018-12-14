@@ -23,6 +23,12 @@ module EventFramework
         end
       end
 
+      def drop
+        Sequel.connect(root_database_uri.to_s) do |db|
+          db.execute "DROP DATABASE IF EXISTS #{db_name}"
+        end
+      end
+
       private
 
       def root_database_uri
