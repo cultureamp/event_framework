@@ -24,6 +24,28 @@ module EventFramework
         DatabaseManager.new(connection).drop
       end
 
+      desc "migrate_database CONTEXT DATABASE_NAME", "Runs the migrations for the indicated context/database"
+      method_option :version, type: :numeric
+      def migrate_database(context_name, database_name, bypass_schema_dump: false)
+        mod = context_module(context_name)
+        connection = mod.database(database_name.to_sym)
+
+        DatabaseManager.new(connection).migrate(
+          migrations_path: mod.paths.db(database_name).join('migrations'),
+          target_version: options[:version],
+        )
+
+        invoke :dump_database_schema if !bypass_schema_dump && mod.environment == "development"
+      end
+
+      desc "dump_database_schema CONTEXT DATABASE_NAME", "Dumps the curent SQL schema, for the indicated context/database"
+      def dump_database_schema(context_name, database_name)
+        mod = context_module(context_name)
+        connection = mod.database(database_name.to_sym)
+
+        DatabaseManager.new(connection).dump_schema(schema_path: mod.paths.db(database_name).join('structure.sql'))
+      end
+
       private
 
       def context_module(name)

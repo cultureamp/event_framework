@@ -33,6 +33,10 @@ module EventFramework
       def config
         @root.join('config')
       end
+
+      def db(database_name)
+        @root.join('db', database_name)
+      end
     end
 
     module Environment
