@@ -58,6 +58,12 @@ module EventFramework
       rescue Dry::Container::Error
         raise NoSuchDatabaseRegisteredError, "No database has been regisered for #{label}"
       end
+
+      def databases
+        container.each do |key, value|
+          yield value if key.start_with? 'database'
+        end
+      end
     end
   end
 end
