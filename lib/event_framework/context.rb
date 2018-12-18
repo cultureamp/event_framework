@@ -47,8 +47,10 @@ module EventFramework
     end
 
     module DatabaseRegistration
+      NAMESPACE_PREFIX = 'databases'.freeze
+
       def register_database(label)
-        container.namespace(:databases) do
+        container.namespace(NAMESPACE_PREFIX) do
           register label.to_sym, DatabaseConnection.new(label.to_sym)
         end
       end
@@ -61,7 +63,7 @@ module EventFramework
 
       def databases
         container.each do |key, value|
-          yield value if key.start_with? 'database'
+          yield value if key.split('.').first == NAMESPACE_PREFIX
         end
       end
     end
