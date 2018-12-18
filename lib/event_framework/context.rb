@@ -62,9 +62,10 @@ module EventFramework
       end
 
       def databases
-        container.each do |key, value|
-          yield value if key.split('.').first == NAMESPACE_PREFIX
-        end
+        container
+          .to_enum
+          .select { |key, _value| key.split('.').first == NAMESPACE_PREFIX }
+          .map(&:last)
       end
     end
   end

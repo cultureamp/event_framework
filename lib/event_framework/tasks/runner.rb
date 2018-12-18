@@ -70,7 +70,7 @@ module EventFramework
       desc "prepare_all", "Creates and migrates all databases for all known contexts"
       def prepare_all
         EventFramework::Tasks.registered_contexts.each do |context_name|
-          context_module(context_name).databases do |connection|
+          context_module(context_name).databases.each do |connection|
             begin
               create_database(context_name, connection.label.to_s)
               migrate_database(context_name, connection.label.to_s, bypass_schema_dump: true)
