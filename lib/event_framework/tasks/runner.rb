@@ -20,7 +20,7 @@ module EventFramework
 
         say_with_db context_name, database_name, "created"
       rescue EventFramework::Context::NoSuchDatabaseRegisteredError
-        say_with_db context_name, database_name, "uknown database; has it been registered?", :red
+        say_with_db context_name, database_name, "unknown database; has it been registered?", :red
       rescue DatabaseManager::DatabaseAlreadyExistsError
         say_with_db context_name, database_name, "already exists, skipping", :yellow
       end
