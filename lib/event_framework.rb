@@ -16,7 +16,9 @@ module EventFramework
   autoload :BookmarkRepository, 'event_framework/bookmark_repository'
   autoload :Command, 'event_framework/command'
   autoload :CommandHandler, 'event_framework/command_handler'
+  autoload :Context, 'event_framework/context'
   autoload :ControllerHelpers, 'event_framework/controller_helpers'
+  autoload :DatabaseConnection, 'event_framework/database_connection'
   autoload :DomainEvent, 'event_framework/domain_event'
   autoload :DomainStruct, 'event_framework/domain_struct'
   autoload :Event, 'event_framework/event'
@@ -32,6 +34,7 @@ module EventFramework
   autoload :Reactor, 'event_framework/reactor'
   autoload :Repository, 'event_framework/repository'
   autoload :StagedEvent, 'event_framework/staged_event'
+  autoload :Tasks, 'event_framework/tasks'
   autoload :Types, 'event_framework/types'
 
   # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
@@ -43,11 +46,6 @@ module EventFramework
   # The root path of the EventFramework files
   def self.root
     Pathname.new(__dir__).join('..')
-  end
-
-  def self.load_tasks
-    require "rake"
-    Dir[File.expand_path('event_framework/tasks/*.rake', __dir__)].each(&method(:load))
   end
 
   # The Module from which Event definitions are sourced; defaults to Object
