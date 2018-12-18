@@ -15,10 +15,10 @@ module EventFramework
       @label = label.to_sym
     end
 
-    def raw_connection
+    def connection
       raise MissingConnectionURLError if connection_url.nil?
 
-      @_raw_connection ||= Sequel.connect(connection_url).tap do |database|
+      @_connection ||= Sequel.connect(connection_url).tap do |database|
         database.extension :pg_json
       end
     end
