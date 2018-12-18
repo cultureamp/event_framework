@@ -71,10 +71,8 @@ module EventFramework
       def prepare_all
         EventFramework::Tasks.registered_contexts.each do |context_name|
           context_module(context_name).databases.each do |connection|
-            begin
-              create_database(context_name, connection.label.to_s)
-              migrate_database(context_name, connection.label.to_s, bypass_schema_dump: true)
-            end
+            create_database(context_name, connection.label.to_s)
+            migrate_database(context_name, connection.label.to_s, bypass_schema_dump: true)
           end
         end
       end
