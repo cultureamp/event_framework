@@ -2,7 +2,7 @@ require 'aws-sdk-core'
 require 'aws-sdk-ssm'
 
 # TODO: Delete after configuration re-factor is complete
-module Domains
+module EventFramework
   # Parameters are stored in the format /murmur/event_store/$FARM/database_url
   class ParameterStoreDatabaseConfiguration
     PARAMETER_PREFIX = '/murmur/event_store'
