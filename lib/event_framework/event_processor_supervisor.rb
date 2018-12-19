@@ -42,16 +42,14 @@ module EventFramework
 
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
-          begin
-            logger = Logger.new(STDOUT)
-            bookmark = bookmark_repository_class.new(name: processor_class.name).checkout
-            event_processor = processor_class.new
+          logger = Logger.new(STDOUT)
+          bookmark = bookmark_repository_class.new(name: processor_class.name).checkout
+          event_processor = processor_class.new
 
-            EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
-          rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
-            logger.info(processor_class_name: processor_class.name, msg: e.message)
-            sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
-          end
+          EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
+        rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
+          logger.info(processor_class_name: processor_class.name, msg: e.message)
+          sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
         end
       end
 

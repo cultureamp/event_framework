@@ -54,19 +54,17 @@ module EventFramework
 
         database.transaction do
           staged_events.each do |staged_event|
-            begin
-              new_event_rows += database[:events].returning.insert(
-                aggregate_id: staged_event.aggregate_id,
-                aggregate_sequence: staged_event.aggregate_sequence,
-                aggregate_type: staged_event.aggregate_type,
-                event_type: staged_event.event_type,
-                body: Sequel.pg_jsonb(staged_event.body),
-                metadata: Sequel.pg_jsonb(staged_event.metadata.to_h),
-              )
-            rescue Sequel::UniqueConstraintViolation
-              raise ConcurrencyError,
-                    "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
-            end
+            new_event_rows += database[:events].returning.insert(
+              aggregate_id: staged_event.aggregate_id,
+              aggregate_sequence: staged_event.aggregate_sequence,
+              aggregate_type: staged_event.aggregate_type,
+              event_type: staged_event.event_type,
+              body: Sequel.pg_jsonb(staged_event.body),
+              metadata: Sequel.pg_jsonb(staged_event.metadata.to_h),
+            )
+          rescue Sequel::UniqueConstraintViolation
+            raise ConcurrencyError,
+                  "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
           end
         end
 

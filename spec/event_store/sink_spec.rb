@@ -210,38 +210,36 @@ module EventFramework
       let(:aggregate_id_2) { '00000000-0000-4000-a000-000000000002' }
 
       it 'ensures events are sunk sequentially by locking the database' do
-        begin
-          t1 = Thread.new do
-            sinker = described_class.new(database: d1, logger: logger_1)
-            Thread.current.report_on_exception = false # Don't double report RSpec failures
-            sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
+        t1 = Thread.new do
+          sinker = described_class.new(database: d1, logger: logger_1)
+          Thread.current.report_on_exception = false # Don't double report RSpec failures
+          sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
 
-            # Aggregate 2 should not be saved yet because it doesn't have a lock
-            expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
-          end
-
-          t2 = Thread.new do
-            sinker = described_class.new(database: d2, logger: logger_2)
-            sleep 0.1 # Ensure this thread gets the lock last
-            sinker.sink([build_staged_event(aggregate_id: aggregate_id_2)])
-          end
-
-          [t1, t2].each(&:join)
-
-          expect(d1.__try_lock_count).to be < d2.__try_lock_count
-
-          expect(logger_1).to_not have_received(:info)
-          expect(logger_2).to have_received(:info).with(
-            msg: 'event_framework.event_store.sink.retry',
-            tries: an_instance_of(Integer),
-            correlation_id: metadata.correlation_id,
-          ).at_least(:once)
-        ensure
-          # NOTE: Clean up the separate database connection so DatabaseCleaner
-          # doesn't try to clean it.
-          other_database_connection.disconnect
-          Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
+          # Aggregate 2 should not be saved yet because it doesn't have a lock
+          expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
         end
+
+        t2 = Thread.new do
+          sinker = described_class.new(database: d2, logger: logger_2)
+          sleep 0.1 # Ensure this thread gets the lock last
+          sinker.sink([build_staged_event(aggregate_id: aggregate_id_2)])
+        end
+
+        [t1, t2].each(&:join)
+
+        expect(d1.__try_lock_count).to be < d2.__try_lock_count
+
+        expect(logger_1).to_not have_received(:info)
+        expect(logger_2).to have_received(:info).with(
+          msg: 'event_framework.event_store.sink.retry',
+          tries: an_instance_of(Integer),
+          correlation_id: metadata.correlation_id,
+        ).at_least(:once)
+      ensure
+        # NOTE: Clean up the separate database connection so DatabaseCleaner
+        # doesn't try to clean it.
+        other_database_connection.disconnect
+        Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
       end
     end
 
