@@ -140,16 +140,6 @@ CREATE TABLE public.events_sequence_stats (
 
 
 --
--- Name: question_command_projection; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.question_command_projection (
-    question_id uuid NOT NULL,
-    survey_id uuid NOT NULL
-);
-
-
---
 -- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -335,14 +325,6 @@ ALTER TABLE ONLY public.question_command_projection_b
 
 ALTER TABLE ONLY public.question_command_projection_b_surveys
     ADD CONSTRAINT question_command_projection_b_surveys_survey_id_key UNIQUE (survey_id);
-
-
---
--- Name: question_command_projection question_command_projection_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.question_command_projection
-    ADD CONSTRAINT question_command_projection_question_id_key UNIQUE (question_id);
 
 
 --
