@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module EventFramework
   # Public: Encapsulates the process of executing a command against an aggregate
   # within an event-sourced system.
