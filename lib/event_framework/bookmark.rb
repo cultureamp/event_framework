@@ -1,20 +1,34 @@
 module EventFramework
   class Bookmark
-    def initialize(name:, bookmarks_table:)
+    ReadonlyError = Class.new(Error)
+
+    def initialize(name:, database:, read_only: false)
       @name = name
-      @bookmarks_table = bookmarks_table
+      @database = database
+      @read_only = read_only
     end
 
     def sequence
-      bookmarks_table.select(:sequence).first(name: name)[:sequence]
+      row = bookmarks_table.select(:sequence).first(name: name)
+      row.nil? ? 0 : row[:sequence]
     end
 
     def sequence=(value)
+      raise ReadonlyError if read_only?
+
       bookmarks_table.where(name: name).update(sequence: value)
     end
 
     private
 
-    attr_reader :name, :bookmarks_table
+    attr_reader :name, :database
+
+    def read_only?
+      @read_only
+    end
+
+    def bookmarks_table
+      database[:bookmarks]
+    end
   end
 end
