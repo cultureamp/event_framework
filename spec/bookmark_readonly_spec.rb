@@ -1,6 +1,6 @@
 module EventFramework
   RSpec.describe BookmarkReadonly do
-    let(:bookmarks_table) { EventStore.database[:bookmarks] }
+    let(:bookmarks_table) { EventFramework.test_database[:bookmarks] }
     let(:bookmark) { Bookmark.new(name: 'foo', bookmarks_table: bookmarks_table) }
 
     before do

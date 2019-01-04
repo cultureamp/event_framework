@@ -1,6 +1,6 @@
 module EventFramework
   class Bookmark
-    def initialize(name:, bookmarks_table: EventStore.database[:bookmarks])
+    def initialize(name:, bookmarks_table:)
       @name = name
       @bookmarks_table = bookmarks_table
     end

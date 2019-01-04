@@ -1,51 +1,51 @@
 module EventFramework
   RSpec.describe BookmarkRepository do
+    subject(:bookmark_repository) do
+      described_class.new(name: 'foo', database: EventFramework.test_database)
+    end
+
     describe '#checkout' do
       context 'when the bookmark does not exist' do
         it 'returns a bookmark starting a 0' do
-          bookmark = described_class.new(name: 'foo').checkout
+          bookmark = bookmark_repository.checkout
 
           expect(bookmark.sequence).to eq 0
         end
 
         it 'inserts a new record into the database' do
-          described_class.new(name: 'foo').checkout
+          bookmark_repository.checkout
 
-          expect(EventStore.database[:bookmarks].all).to match [a_hash_including(name: 'foo', sequence: 0)]
+          expect(EventFramework.test_database[:bookmarks].all).to match [a_hash_including(name: 'foo', sequence: 0)]
         end
       end
 
       context 'when the bookmark exists' do
         before do
-          EventStore.database[:bookmarks].insert(name: 'foo', sequence: 42)
+          EventFramework.test_database[:bookmarks].insert(name: 'foo', sequence: 42)
         end
 
         it 'returns the bookmark' do
-          bookmark = described_class.new(name: 'foo').checkout
+          bookmark = bookmark_repository.checkout
 
           expect(bookmark.sequence).to eq 42
         end
 
         context 'when a lock is already taken' do
           before do
-            described_class.new(name: 'foo').checkout
+            bookmark_repository.checkout
           end
 
           it 'raises an error' do
-            lock_key = EventStore.database[:bookmarks].first[:lock_key]
+            lock_key = EventFramework.test_database[:bookmarks].first[:lock_key]
 
             # NOTE: Get a separate database connection
-            other_database_connection = Sequel.connect(EventFramework.config.database_url)
-            repository = described_class.new(name: 'foo', database: other_database_connection)
+            other_database_connection = Sequel.connect(RSpec.configuration.database_url)
 
-            expect { repository.checkout }
+            other_repository = described_class.new(name: 'foo', database: other_database_connection)
+
+            expect { other_repository.checkout }
               .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
                               "Unable to checkout foo (#{lock_key}); another process is already using this bookmark"
-          ensure
-            # NOTE: Clean up the separate databse connection so
-            # DatabaseCleaner doesn't try to clean it.
-            other_database_connection.disconnect
-            Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
           end
         end
       end
