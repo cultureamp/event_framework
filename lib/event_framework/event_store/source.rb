@@ -3,7 +3,7 @@ module EventFramework
     class Source
       LIMIT = 1000
 
-      def initialize(database: EventStore.database, logger: Logger.new(STDOUT))
+      def initialize(database:, logger: Logger.new(STDOUT))
         @database = database
         @logger = logger
       end

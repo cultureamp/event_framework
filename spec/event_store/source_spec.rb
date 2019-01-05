@@ -12,13 +12,15 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Source do
+    let(:database) { EventFramework.test_database }
+
     def insert_event(sequence:, aggregate_id:, aggregate_sequence:, aggregate_type:, event_type:, body:)
       metadata = {
         account_id: SecureRandom.uuid,
         user_id: SecureRandom.uuid,
       }
 
-      EventStore.database[:events].overriding_system_value.insert(
+      database[:events].overriding_system_value.insert(
         sequence: sequence,
         aggregate_id: aggregate_id,
         aggregate_sequence: aggregate_sequence,
@@ -31,7 +33,7 @@ module EventFramework
 
     let(:aggregate_id) { SecureRandom.uuid }
 
-    subject { described_class.new }
+    subject { described_class.new(database: database) }
 
     before do
       insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }
