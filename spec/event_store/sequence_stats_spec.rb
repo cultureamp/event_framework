@@ -2,7 +2,7 @@ module EventFramework
   module EventStore
     RSpec.describe SequenceStats do
       def insert_event(sequence:, aggregate_type:, event_type:)
-        EventStore.database[:events].overriding_system_value.insert(
+        EventFramework.test_database[:events].overriding_system_value.insert(
           sequence: sequence,
           aggregate_id: SecureRandom.uuid,
           aggregate_sequence: 1,
@@ -22,6 +22,8 @@ module EventFramework
         insert_event sequence: 6, aggregate_type: 'B', event_type: 'C'
       end
 
+      subject(:sequence_stats) { described_class.new(database: EventFramework.test_database) }
+
       describe '.max_sequence' do
         let(:event_classes) do
           [
@@ -31,7 +33,7 @@ module EventFramework
         end
 
         it 'returns the max sequence for the aggregate and event type' do
-          expect(described_class.max_sequence(event_classes: event_classes)).to eq 3
+          expect(sequence_stats.max_sequence(event_classes: event_classes)).to eq 3
         end
 
         context 'when no rows are returned' do
@@ -42,7 +44,7 @@ module EventFramework
           end
 
           it 'returns 0' do
-            expect(described_class.max_sequence(event_classes: event_classes)).to eq 0
+            expect(sequence_stats.max_sequence(event_classes: event_classes)).to eq 0
           end
         end
       end

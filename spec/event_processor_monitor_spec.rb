@@ -2,7 +2,7 @@ module EventFramework
   RSpec.describe EventProcessorMonitor do
     describe '.call' do
       let(:logger) { instance_double(Logger) }
-      let(:sequence_stats) { EventStore::SequenceStats }
+      let(:sequence_stats) { instance_spy(EventStore::SequenceStats) }
 
       let(:bookmark_repository) { instance_spy(BookmarkRepository, query: bookmark) }
       let(:bookmark) { instance_spy(Bookmark) }

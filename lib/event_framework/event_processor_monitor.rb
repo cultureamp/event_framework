@@ -5,9 +5,8 @@ module EventFramework
     def initialize(
       logger:,
       bookmark_repository:,
-      sequence_stats: EventStore::SequenceStats,
+      sequence_stats:,
       metrics:,
-      database: EventStore.database,
       sleep_interval: SLEEP_INTERVAL
     )
       @logger = logger
