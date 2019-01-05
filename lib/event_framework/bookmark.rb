@@ -1,6 +1,7 @@
 module EventFramework
   class Bookmark
     ReadonlyError = Class.new(Error)
+    NoRecordError = Class.new(Error)
 
     def initialize(name:, database:, read_only: false)
       @name = name
@@ -9,8 +10,9 @@ module EventFramework
     end
 
     def sequence
-      row = bookmarks_table.select(:sequence).first(name: name)
-      row.nil? ? 0 : row[:sequence]
+      bookmarks_table.select(:sequence).first!(name: name)[:sequence]
+    rescue Sequel::NoMatchingRow
+      raise NoRecordError, "No row exists in bookmarks for #{name}"
     end
 
     def sequence=(value)
@@ -19,13 +21,13 @@ module EventFramework
       bookmarks_table.where(name: name).update(sequence: value)
     end
 
-    private
-
-    attr_reader :name, :database
-
     def read_only?
       @read_only
     end
+
+    private
+
+    attr_reader :name, :database
 
     def bookmarks_table
       database[:bookmarks]
