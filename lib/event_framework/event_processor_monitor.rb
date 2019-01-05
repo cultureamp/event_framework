@@ -4,14 +4,14 @@ module EventFramework
 
     def initialize(
       logger:,
-      bookmark_readonly_class: BookmarkReadonly,
+      bookmark_repository:,
       sequence_stats: EventStore::SequenceStats,
       metrics:,
       database: EventStore.database,
       sleep_interval: SLEEP_INTERVAL
     )
       @logger = logger
-      @bookmark_readonly_class = bookmark_readonly_class
+      @bookmark_repository = bookmark_repository
       @sequence_stats = sequence_stats
       @metrics = metrics
       @database = database

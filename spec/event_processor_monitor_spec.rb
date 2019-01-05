@@ -3,15 +3,17 @@ module EventFramework
     describe '.call' do
       let(:logger) { instance_double(Logger) }
       let(:sequence_stats) { EventStore::SequenceStats }
-      let(:bookmark_readonly_class) { class_double(Bookmark) }
-      let(:bookmark) { instance_double(Bookmark) }
+
+      let(:bookmark_repository) { instance_spy(BookmarkRepository, query: bookmark) }
+      let(:bookmark) { instance_spy(Bookmark) }
+
       let(:metrics) { double(:metrics) }
 
       subject(:event_processor_monitor) do
         described_class.new(
           logger: logger,
           sequence_stats: sequence_stats,
-          bookmark_readonly_class: bookmark_readonly_class,
+          bookmark_repository: bookmark_repository,
           metrics: metrics,
           sleep_interval: 0,
         )
@@ -29,8 +31,6 @@ module EventFramework
       end
 
       before do
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1').and_return(bookmark)
-
         # Simulate the event processor catching up
         allow(bookmark).to receive(:sequence).and_return(0, 1, 3)
 
