@@ -30,11 +30,11 @@ module EventFramework
     def initialize(
       processor_classes:,
       process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)),
-      bookmark_repository_class: BookmarkRepository
+      bookmark_repository:
     )
       @processor_classes = processor_classes
       @process_manager = process_manager
-      @bookmark_repository_class = bookmark_repository_class
+      @bookmark_repository = bookmark_repository
     end
 
     def call
@@ -43,7 +43,7 @@ module EventFramework
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
           logger = Logger.new(STDOUT)
-          bookmark = bookmark_repository_class.new(name: processor_class.name).checkout
+          bookmark = bookmark_repository.checkout(processor_class.name)
           event_processor = processor_class.new
 
           EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
@@ -58,7 +58,7 @@ module EventFramework
 
     private
 
-    attr_reader :processor_classes, :process_manager, :bookmark_repository_class
+    attr_reader :processor_classes, :process_manager, :bookmark_repository
 
     def set_process_name
       Process.setproctitle "event_processor [#{self.class.name}]"

@@ -36,10 +36,10 @@ module EventFramework
 
     private
 
-    attr_reader :logger, :bookmark_readonly_class, :sequence_stats, :metrics, :database, :sleep_interval
+    attr_reader :logger, :bookmark_repository, :sequence_stats, :metrics, :database, :sleep_interval
 
     def last_processed_event_sequence(processor_class)
-      bookmark_readonly_class.new(name: processor_class.name).sequence
+      bookmark_repository.query(processor_class.name).sequence
     end
 
     def last_event_sequence
