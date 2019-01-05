@@ -6,7 +6,7 @@ module EventFramework
 
       MAX_RETRIES = 100
 
-      def initialize(database: EventStore.database, logger: Logger.new(STDOUT))
+      def initialize(database:, logger: Logger.new(STDOUT))
         @database = database
         @logger = logger
       end

@@ -8,6 +8,8 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Sink do
+    let(:database) { EventFramework.test_database }
+
     def build_staged_event(aggregate_sequence: 1, aggregate_id: SecureRandom.uuid)
       StagedEvent.new(
         domain_event: TestDomain::Thing::EventHappened.new(foo: 'bar'),
@@ -28,19 +30,18 @@ module EventFramework
     end
 
     def last_value_for_sequence(sequence_name)
-      EventStore.database["SELECT last_value FROM #{sequence_name}"].to_a.last[:last_value]
+      database["SELECT last_value FROM #{sequence_name}"].to_a.last[:last_value]
     end
 
     def persisted_tuples_for_aggregate(aggregate_id)
-      EventStore
-        .database
+      database
         .from(:events)
         .where(aggregate_id: aggregate_id)
         .order(:sequence)
         .all
     end
 
-    subject { described_class.new }
+    subject { described_class.new(database: database) }
 
     context 'persisting a single event to the database' do
       let(:aggregate_id) { SecureRandom.uuid }
@@ -197,12 +198,14 @@ module EventFramework
           end
         end
       end
+
       let(:other_database_connection) do
-        Sequel.connect(EventFramework.config.database_url).tap do |db|
+        Sequel.connect(RSpec.configuration.database_url).tap do |db|
           db.extension :pg_json
         end
       end
-      let(:d1) { database_wrapper.new(EventStore.database) }
+
+      let(:d1) { database_wrapper.new(database) }
       let(:d2) { database_wrapper.new(other_database_connection) }
       let(:logger_1) { instance_spy(Logger) }
       let(:logger_2) { instance_spy(Logger) }
@@ -216,7 +219,7 @@ module EventFramework
           sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
 
           # Aggregate 2 should not be saved yet because it doesn't have a lock
-          expect(EventStore.database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
+          expect(database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
         end
 
         t2 = Thread.new do
