@@ -26,31 +26,6 @@ module EventFramework
       )
     end
 
-    # All domain events are implemented as classes in the form `AggregateName::EventName`,
-    # with an optional preceding containing module name (e.g. Domains, TestDomain).
-    # When persisting events, we only care about the last two.
-    describe '#event_type' do
-      it 'returns the event type of the event being staged' do
-        staged_event = build_staged_event(TestDomain::Thing::LongEvent.new)
-
-        expect(staged_event.event_type).to eql 'LongEvent'
-      end
-    end
-
-    describe '#aggregate_type' do
-      it 'returns the aggregate type of the event being staged' do
-        staged_event = build_staged_event(TestDomain::Thing::LongEvent.new)
-
-        expect(staged_event.aggregate_type).to eql 'Thing'
-      end
-
-      it 'raises an error if the domain event class has no container' do
-        staged_event = build_staged_event(ShortEvent.new)
-
-        expect { staged_event.aggregate_type }.to raise_error(described_class::InvalidDomainEventError)
-      end
-    end
-
     describe '#body' do
       it 'returns the contents of the domain event' do
         staged_event = build_staged_event(TestDomain::Thing::LongEventWithBody.new(foo: 'bar'))

@@ -9,6 +9,13 @@ end
 module EventFramework
   RSpec.describe EventStore::Sink do
     let(:database) { EventFramework.test_database }
+    let(:event_type_serializer) { instance_spy EventStore::EventTypeSerializer }
+
+    before do
+      allow(event_type_serializer).to receive(:call)
+        .with(TestDomain::Thing::EventHappened)
+        .and_return(double(event_type: "EventHappened", aggregate_type: "Thing"))
+    end
 
     def build_staged_event(aggregate_sequence: 1, aggregate_id: SecureRandom.uuid)
       StagedEvent.new(
@@ -41,7 +48,7 @@ module EventFramework
         .all
     end
 
-    subject { described_class.new(database: database) }
+    subject { described_class.new(database: database, event_type_serializer: event_type_serializer) }
 
     context 'persisting a single event to the database' do
       let(:aggregate_id) { SecureRandom.uuid }
@@ -214,7 +221,7 @@ module EventFramework
 
       it 'ensures events are sunk sequentially by locking the database' do
         t1 = Thread.new do
-          sinker = described_class.new(database: d1, logger: logger_1)
+          sinker = described_class.new(database: d1, event_type_serializer: event_type_serializer, logger: logger_1)
           Thread.current.report_on_exception = false # Don't double report RSpec failures
           sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
 
@@ -223,7 +230,7 @@ module EventFramework
         end
 
         t2 = Thread.new do
-          sinker = described_class.new(database: d2, logger: logger_2)
+          sinker = described_class.new(database: d2, event_type_serializer: event_type_serializer, logger: logger_2)
           sleep 0.1 # Ensure this thread gets the lock last
           sinker.sink([build_staged_event(aggregate_id: aggregate_id_2)])
         end
@@ -253,7 +260,7 @@ module EventFramework
 
       it 'does not call the database' do
         database = double(:database)
-        sinker = described_class.new(database: database)
+        sinker = described_class.new(database: database, event_type_serializer: event_type_serializer)
 
         expect(database).not_to receive(:[])
 
