@@ -79,14 +79,22 @@ RSpec.describe 'integration' do
     )
   end
 
-  let(:events) { EventFramework::EventStore::Source.new.get_for_aggregate(aggregate_id) }
+  let(:event_type_serializer) { EventFramework::EventStore::EventTypeSerializer.new(event_context_module: TestDomain) }
+  let(:event_type_deserializer) { EventFramework::EventStore::EventTypeDeserializer.new(event_context_module: TestDomain) }
+
+  let(:sink) { EventFramework::EventStore::Sink.new(database: EventFramework.test_database, event_type_serializer: event_type_serializer) }
+  let(:source) { EventFramework::EventStore::Source.new(database: EventFramework.test_database, event_type_deserializer: event_type_deserializer) }
+
+  let(:repository) { EventFramework::Repository.new(sink: sink, source: source) }
+
+  let(:events) { source.get_for_aggregate(aggregate_id) }
 
   describe 'persisting a single event from a command' do
     let(:after_sink_hook) { spy(:after_sink_hook) }
     let(:existing_events) { [] }
 
     let(:handler) do
-      TestDomain::Thing::ImplementThingHandler.new
+      TestDomain::Thing::ImplementThingHandler.new(repository: repository)
     end
 
     let(:command) do
@@ -98,7 +106,7 @@ RSpec.describe 'integration' do
     end
 
     before do
-      EventFramework::EventStore::Sink.new.sink(existing_events)
+      sink.sink(existing_events)
       allow(EventFramework.config).to receive(:after_sink_hook).and_return(after_sink_hook)
       handler.call(command: command, metadata: metadata, executor: nil)
     end
@@ -139,8 +147,9 @@ RSpec.describe 'integration' do
           ),
         ]
       end
+
       let(:handler) do
-        TestDomain::Thing::ExistingImplementThingHandler.new
+        TestDomain::Thing::ExistingImplementThingHandler.new(repository: repository)
       end
 
       it 'persists the event with an incremented aggregate_sequence' do
@@ -154,7 +163,7 @@ RSpec.describe 'integration' do
 
   describe 'persisting multiple events from a command' do
     let(:handler) do
-      TestDomain::Thing::ImplementThingsHandler.new
+      TestDomain::Thing::ImplementThingsHandler.new(repository: repository)
     end
 
     let(:command) do
@@ -164,6 +173,7 @@ RSpec.describe 'integration' do
         bar: 'Bar',
       )
     end
+
     before { handler.call(command: command, metadata: metadata, executor: nil) }
 
     it 'persists multiple events' do
