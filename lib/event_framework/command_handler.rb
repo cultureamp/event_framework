@@ -52,7 +52,7 @@ module EventFramework
     #
     # repository - A Repository, pre-configured with the required Event Sink and
     # Event Store
-    def initialize(repository: Repository.new)
+    def initialize(repository:)
       @repository = repository
     end
 

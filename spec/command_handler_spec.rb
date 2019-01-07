@@ -8,9 +8,10 @@ module EventFramework
       double :metadata, user_id: user_id, account_id: account_id
     end
 
-    describe '#metadata' do
-      let(:instance) { described_class.new }
+    let(:repository) { instance_spy "Repository" }
+    let(:instance) { described_class.new(repository: repository) }
 
+    describe '#metadata' do
       it 'is private' do
         expect { instance.metadata }
           .to raise_error(NoMethodError, /private method(.*)metadata/)
@@ -19,12 +20,8 @@ module EventFramework
 
     describe '#with_aggregate' do
       let(:aggregate) { double :aggregate }
-      let(:repository) { spy :repository, load_aggregate: aggregate }
+      let(:repository) { instance_spy "Repository", load_aggregate: aggregate }
       let(:thing_class) { class_double "Thing" }
-
-      let(:instance) do
-        described_class.new(repository: repository)
-      end
 
       let(:empty_block) { -> (aggregate) {} }
 
@@ -54,7 +51,7 @@ module EventFramework
 
     describe '#with_new_aggregate' do
       let(:aggregate) { double :aggregate }
-      let(:repository) { spy :repository, new_aggregate: aggregate }
+      let(:repository) { instance_spy "Repository", new_aggregate: aggregate }
       let(:thing_class) { class_double "Thing" }
 
       let(:instance) do
@@ -96,7 +93,7 @@ module EventFramework
       context 'when command_class is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@handler_proc, 'foo')
-          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new(repository: repository).call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -104,7 +101,7 @@ module EventFramework
       context 'when handler_proc is not defined' do
         it 'raises a NotImplementedError' do
           described_class.instance_variable_set(:@command_class, NilClass)
-          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new(repository: repository).call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(NotImplementedError)
         end
       end
@@ -117,7 +114,7 @@ module EventFramework
         it 'accepts the command' do
           described_class.instance_variable_set(:@command_class, superclass)
           described_class.instance_variable_set(:@handler_proc, ->(_, _, _) { :success })
-          expect(described_class.new.call(command: command, metadata: nil, executor: nil))
+          expect(described_class.new(repository: repository).call(command: command, metadata: nil, executor: nil))
             .to eql :success
         end
       end
@@ -126,7 +123,7 @@ module EventFramework
         it 'raises a MismatchedCommand error' do
           described_class.instance_variable_set(:@command_class, FalseClass)
           described_class.instance_variable_set(:@handler_proc, ->(_, _, _) {})
-          expect { described_class.new.call(command: nil, metadata: nil, executor: nil) }
+          expect { described_class.new(repository: repository).call(command: nil, metadata: nil, executor: nil) }
             .to raise_error(EventFramework::CommandHandler::MismatchedCommandError)
         end
       end
@@ -147,7 +144,7 @@ module EventFramework
 
         let(:command_class) { Class.new }
         let(:command_instance) { command_class.new }
-        let(:instance) { described_class.new }
+        let(:instance) { described_class.new(repository: instance_spy("Repository")) }
 
         before do
           described_class.instance_variable_set(:@command_class, command_class)
@@ -183,7 +180,7 @@ module EventFramework
     end
 
     describe '#command_class' do
-      let(:instance) { described_class.new }
+      let(:instance) { described_class.new(repository: instance_spy("Repository")) }
 
       it 'is private' do
         expect { instance.command_class }.to raise_error NoMethodError, /private method(.*)command_class/
@@ -191,7 +188,7 @@ module EventFramework
     end
 
     describe '#handler_proc' do
-      let(:instance) { described_class.new }
+      let(:instance) { described_class.new(repository: instance_spy("Repository")) }
 
       it 'is private' do
         expect { instance.handler_proc }.to raise_error NoMethodError, /private method(.*)handler_proc/
