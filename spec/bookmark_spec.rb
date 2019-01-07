@@ -3,7 +3,7 @@ module EventFramework
     let(:database) { EventFramework.test_database }
     let(:bookmark_name) { "BookmarkSpec" }
 
-    let(:bookmark) { Bookmark.new(name: bookmark_name, database: database) }
+    let(:bookmark) { Bookmark.new(name: bookmark_name, database: database, immutable: false) }
 
     before do
       database[:bookmarks].insert(name: bookmark_name, sequence: 42)
@@ -36,11 +36,11 @@ module EventFramework
         end
       end
 
-      context 'when the bookmark is read-only' do
-        let(:bookmark) { Bookmark.new(name: bookmark_name, database: database, read_only: true) }
+      context 'when the bookmark is immutable' do
+        let(:bookmark) { Bookmark.new(name: bookmark_name, database: database) }
 
         it 'raises an error' do
-          expect { bookmark.sequence = 43 }.to raise_error(Bookmark::ReadonlyError)
+          expect { bookmark.sequence = 43 }.to raise_error(Bookmark::ImmutableBookmarkError)
         end
       end
     end

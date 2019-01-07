@@ -35,8 +35,8 @@ module EventFramework
         bookmark_repository.query(bookmark_name)
       end
 
-      it 'returns a read-only bookmark' do
-        expect(bookmark).to be_read_only
+      it 'returns an immutable bookmark' do
+        expect(bookmark).to be_immutable
       end
 
       include_examples 'bookmark creation and loading'
@@ -47,8 +47,8 @@ module EventFramework
         bookmark_repository.checkout(bookmark_name)
       end
 
-      it 'returns a writable bookmark' do
-        expect(bookmark).not_to be_read_only
+      it 'returns a mutable bookmark' do
+        expect(bookmark).not_to be_immutable
       end
 
       include_examples 'bookmark creation and loading'

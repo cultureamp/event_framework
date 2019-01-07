@@ -1,12 +1,12 @@
 module EventFramework
   class Bookmark
-    ReadonlyError = Class.new(Error)
+    ImmutableBookmarkError = Class.new(Error)
     NoRecordError = Class.new(Error)
 
-    def initialize(name:, database:, read_only: false)
+    def initialize(name:, database:, immutable: true)
       @name = name
       @database = database
-      @read_only = read_only
+      @immutable = immutable
     end
 
     def sequence
@@ -16,13 +16,13 @@ module EventFramework
     end
 
     def sequence=(value)
-      raise ReadonlyError if read_only?
+      raise ImmutableBookmarkError if immutable?
 
       bookmarks_table.where(name: name).update(sequence: value)
     end
 
-    def read_only?
-      @read_only
+    def immutable?
+      @immutable
     end
 
     private

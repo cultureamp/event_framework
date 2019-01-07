@@ -10,14 +10,14 @@ module EventFramework
     def query(name)
       find_bookmark(name) || construct_new_bookmark(name)
 
-      Bookmark.new(name: name, database: database, read_only: true)
+      Bookmark.new(name: name, database: database)
     end
 
     def checkout(name)
       @bookmarks[name] ||= begin
         acquire_lock(name)
 
-        Bookmark.new(name: name, database: database)
+        Bookmark.new(name: name, database: database, immutable: false)
       end
     end
 
