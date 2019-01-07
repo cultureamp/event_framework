@@ -13,8 +13,12 @@ module EventFramework
         end
       end
     end
-    let(:sink) { EventStore::Sink.new }
-    let(:source) { EventStore::Source.new }
+
+    let(:event_type_serializer) { EventStore::EventTypeSerializer.new(event_context_module: TestDomain) }
+    let(:event_type_deserializer) { EventStore::EventTypeDeserializer.new(event_context_module: TestDomain) }
+
+    let(:sink) { EventStore::Sink.new(database: EventFramework.test_database, event_type_serializer: event_type_serializer) }
+    let(:source) { EventStore::Source.new(database: EventFramework.test_database, event_type_deserializer: event_type_deserializer) }
 
     before do
       stub_const('TestDomain::ReactorTest::TestEvent1', test_event_1)
