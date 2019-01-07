@@ -25,27 +25,8 @@ module EventFramework
       subject(:sequence_stats) { described_class.new(database: EventFramework.test_database) }
 
       describe '.max_sequence' do
-        let(:event_classes) do
-          [
-            double(:event_class, to_s: 'A::A'),
-            double(:event_class, to_s: 'A::B'),
-          ]
-        end
-
-        it 'returns the max sequence for the aggregate and event type' do
-          expect(sequence_stats.max_sequence(event_classes: event_classes)).to eq 3
-        end
-
-        context 'when no rows are returned' do
-          let(:event_classes) do
-            [
-              double(:event_class, to_s: 'Z::Z'),
-            ]
-          end
-
-          it 'returns 0' do
-            expect(sequence_stats.max_sequence(event_classes: event_classes)).to eq 0
-          end
+        it 'returns the max sequence in the event store' do
+          expect(sequence_stats.max_sequence).to eq 6
         end
       end
     end
