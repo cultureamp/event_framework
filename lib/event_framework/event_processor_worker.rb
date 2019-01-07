@@ -13,7 +13,7 @@ module EventFramework
       end
     end
 
-    def initialize(event_processor:, logger:, event_source: EventStore::Source.new, bookmark:)
+    def initialize(event_processor:, logger:, event_source:, bookmark:)
       @event_processor = event_processor
       @logger = logger
       @event_source = event_source
