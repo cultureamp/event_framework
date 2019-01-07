@@ -52,16 +52,6 @@ module EventFramework
         ]
       end
 
-      context 'when scoped to certain event types' do
-        let(:events) { subject.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
-
-        it 'only returns events of the specified type' do
-          expect(events).to match [
-            have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
-          ]
-        end
-      end
-
       context 'when no events are found' do
         let(:events) { subject.get_after(16) }
 
