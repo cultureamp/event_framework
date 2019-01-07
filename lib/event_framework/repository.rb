@@ -3,7 +3,7 @@ module EventFramework
     AggregateNotFound = Class.new(Error)
     AggregateAlreadyExists = Class.new(Error)
 
-    def initialize(sink: EventStore::Sink.new, source: EventStore::Source.new)
+    def initialize(sink:, source:)
       @sink = sink
       @source = source
     end
