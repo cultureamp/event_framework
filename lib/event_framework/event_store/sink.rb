@@ -37,7 +37,19 @@ module EventFramework
         # NOTE: This is the "ugly" part of the framework that is only here to
         # support our current use-case where we need to update our MongoDB
         # synchronously.
-        new_events = new_event_rows.map { |row| EventBuilder.call(row) }
+        new_events = new_event_rows.map.with_index do |row, index|
+          corresponding_staged_event = staged_events[index]
+
+          Event.new(
+            id: row[:id],
+            sequence: row[:sequence],
+            aggregate_id: row[:aggregate_id],
+            aggregate_sequence: row[:aggregate_sequence],
+            created_at: row[:created_at],
+            metadata: Event::Metadata.new(row[:metadata]),
+            domain_event: corresponding_staged_event.domain_event.class.new(row[:body]),
+          )
+        end
 
         EventFramework.config.after_sink_hook.call(new_events)
 
