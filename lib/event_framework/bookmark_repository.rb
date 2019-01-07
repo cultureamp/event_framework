@@ -8,7 +8,7 @@ module EventFramework
     end
 
     def query(name)
-      find_bookmark(name) || construct_new_bookmark(name)
+      get_bookmark_record(name) || initialize_bookmark_record(name)
 
       Bookmark.new(name: name, database: database)
     end
@@ -26,7 +26,7 @@ module EventFramework
     attr_reader :database, :name
 
     def acquire_lock(name)
-      bookmark_record = find_bookmark(name) || construct_new_bookmark(name)
+      bookmark_record = get_bookmark_record(name) || initialize_bookmark_record(name)
       lock_result = try_lock(bookmark_record[:lock_key])
 
       unless locked?(lock_result)
@@ -43,11 +43,11 @@ module EventFramework
       lock_result[:pg_try_advisory_lock]
     end
 
-    def find_bookmark(name)
+    def get_bookmark_record(name)
       database[:bookmarks].select(:lock_key).first(name: name)
     end
 
-    def construct_new_bookmark(name)
+    def initialize_bookmark_record(name)
       database[:bookmarks].returning.insert(name: name, sequence: 0).first
     end
   end
