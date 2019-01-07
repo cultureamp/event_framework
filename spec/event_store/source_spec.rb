@@ -13,6 +13,12 @@ end
 module EventFramework
   RSpec.describe EventStore::Source do
     let(:database) { EventFramework.test_database }
+    let(:event_type_deserializer) { instance_double(EventStore::EventTypeDeserializer) }
+
+    before do
+      allow(event_type_deserializer).to receive(:call).with('Thing', 'FooAdded').and_return(TestDomain::Thing::FooAdded)
+      allow(event_type_deserializer).to receive(:call).with('Thing', 'BarAdded').and_return(TestDomain::Thing::BarAdded)
+    end
 
     def insert_event(sequence:, aggregate_id:, aggregate_sequence:, aggregate_type:, event_type:, body:)
       metadata = {
@@ -33,7 +39,7 @@ module EventFramework
 
     let(:aggregate_id) { SecureRandom.uuid }
 
-    subject { described_class.new(database: database) }
+    subject { described_class.new(database: database, event_type_deserializer: event_type_deserializer) }
 
     before do
       insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }

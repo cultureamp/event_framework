@@ -20,7 +20,15 @@ end
 
 module EventFramework
   RSpec.describe EventStore::EventBuilder do
-    describe '.call', aggregate_failures: true do
+    subject(:event_builder) { described_class.new(event_type_deserializer: event_type_deserializer) }
+    let(:event_type_deserializer) { instance_double(EventStore::EventTypeDeserializer) }
+
+    before do
+      allow(event_type_deserializer).to receive(:call).with('Thing', 'EventBuilderTested').and_return(TestDomain::Thing::EventBuilderTested)
+      allow(event_type_deserializer).to receive(:call).with('Thing', 'EventBuilderUpcastingTested').and_return(TestDomain::Thing::EventBuilderUpcastingTested)
+    end
+
+    describe '#call', aggregate_failures: true do
       let(:event_id) { SecureRandom.uuid }
       let(:aggregate_id) { SecureRandom.uuid }
       let(:account_id) { SecureRandom.uuid }
@@ -44,7 +52,8 @@ module EventFramework
           },
         }
       end
-      let(:event) { described_class.call(row) }
+
+      let(:event) { event_builder.call(row) }
 
       it 'returns an event' do
         expect(event).to be_a Event
@@ -68,7 +77,7 @@ module EventFramework
       end
 
       describe 'upcasting' do
-        let(:event) { described_class.call(row.merge(event_type: 'EventBuilderUpcastingTested')) }
+        let(:event) { event_builder.call(row.merge(event_type: 'EventBuilderUpcastingTested')) }
 
         it 'upcasts the event' do
           expect(event.domain_event.test).to eq 'Testing!'
