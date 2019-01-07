@@ -12,7 +12,7 @@ OtherEventTypeDeserializerTested = Class.new(EventFramework::DomainEvent)
 
 module EventFramework
   RSpec.describe EventStore::EventTypeDeserializer do
-    subject(:event_type_deserializer) { described_class.new(event_container: TestDomain) }
+    subject(:event_type_deserializer) { described_class.new(event_context_module: TestDomain) }
 
     describe '#call' do
       context 'with an aggregate_type and an event_type' do

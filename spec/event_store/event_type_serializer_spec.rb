@@ -7,7 +7,7 @@ end
 module EventFramework
   module EventStore
     RSpec.describe EventTypeSerializer do
-      subject(:event_type_serializer) { described_class.new(event_container: TestDomain) }
+      subject(:event_type_serializer) { described_class.new(event_context_module: TestDomain) }
 
       describe '#call' do
         it 'returns an event type description' do
