@@ -23,6 +23,27 @@ module EventFramework
       # required by the CommandHandler
       attr_reader :command_class
 
+      # Public: Returns a new sub-class of CommandHandler with an overloaded
+      # constructor that automatically injects required dependencies from
+      # the given context_module
+      #
+      # This is a handy bit of syntactic magic which allows
+      #
+      # context_module - A Module that has been prepared as a context using
+      #                  Context.initialize_context and
+      #                  Context.enable_magic_dependencies!
+      def [](context_module)
+        Class.new(self).tap do |subclass|
+          context_repository = context_module.container.resolve('repository')
+
+          subclass.define_singleton_method(:new) do |repository: context_repository|
+            allocate.tap do |instance|
+              instance.send(:initialize, repository: repository)
+            end
+          end
+        end
+      end
+
       # Public: Define the behaviour to be executed on invocation of
       # this CommandHandler.
       #

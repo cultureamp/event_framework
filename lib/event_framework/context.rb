@@ -11,6 +11,7 @@ module EventFramework
     def self.initialize_context(context_module, path_to_root)
       context_module.extend Environment
       context_module.extend DatabaseRegistration
+      context_module.extend MagicDependencies
 
       context_module.define_singleton_method :root do
         @root ||= Pathname.new(path_to_root).join('..')
@@ -66,6 +67,35 @@ module EventFramework
           .to_enum
           .select { |key, _value| key.split('.').first == NAMESPACE_PREFIX }
           .map(&:last)
+      end
+    end
+
+    module MagicDependencies
+      def enable_magic_dependencies!
+        container.register('event_store.event_type_resolver') do
+          EventStore::EventTypeResolver.new(event_context_module: self)
+        end
+
+        container.register('event_store.sink') do
+          EventStore::Sink.new(
+            database: database(:event_store).connection,
+            event_type_resolver: container.resolve('event_store.event_type_resolver'),
+          )
+        end
+
+        container.register('event_store.source') do
+          EventStore::Source.new(
+            database: database(:event_store).connection,
+            event_type_resolver: container.resolve('event_store.event_type_resolver'),
+          )
+        end
+
+        container.register('repository') do
+          Repository.new(
+            sink: container.resolve('event_store.sink'),
+            source: container.resolve('event_store.source'),
+          )
+        end
       end
     end
   end
