@@ -24,7 +24,6 @@ module EventFramework
         raise UnknownEventTypeError, [aggregate_type, event_type].join('::')
       end
 
-
       private
 
       attr_reader :event_context_module
