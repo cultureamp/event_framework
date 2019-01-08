@@ -12,7 +12,7 @@ module EventFramework
         config.messages_file = EventFramework.root.join('config', 'dry-validation_messages.yml')
 
         def uuid?(value)
-          !Types::UUID_REGEX.match(value).nil?
+          !Types::UUID_REGEX.match(value.to_s).nil?
         end
 
         def utc?(value)
@@ -21,7 +21,7 @@ module EventFramework
       end
 
       define! do
-        required(:aggregate_id) { str? & uuid? }
+        required(:aggregate_id) { uuid? }
       end
     end
 
