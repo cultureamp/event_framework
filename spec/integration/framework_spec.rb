@@ -79,11 +79,10 @@ RSpec.describe 'integration' do
     )
   end
 
-  let(:event_type_serializer) { EventFramework::EventStore::EventTypeSerializer.new(event_context_module: TestDomain) }
-  let(:event_type_deserializer) { EventFramework::EventStore::EventTypeDeserializer.new(event_context_module: TestDomain) }
+  let(:event_type_resolver) { EventFramework::EventStore::EventTypeResolver.new(event_context_module: TestDomain) }
 
-  let(:sink) { EventFramework::EventStore::Sink.new(database: EventFramework.test_database, event_type_serializer: event_type_serializer) }
-  let(:source) { EventFramework::EventStore::Source.new(database: EventFramework.test_database, event_type_deserializer: event_type_deserializer) }
+  let(:sink) { EventFramework::EventStore::Sink.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
+  let(:source) { EventFramework::EventStore::Source.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
 
   let(:repository) { EventFramework::Repository.new(sink: sink, source: source) }
 

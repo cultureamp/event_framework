@@ -6,9 +6,9 @@ module EventFramework
 
       MAX_RETRIES = 100
 
-      def initialize(database:, event_type_serializer:, logger: Logger.new(STDOUT))
+      def initialize(database:, event_type_resolver:, logger: Logger.new(STDOUT))
         @database = database
-        @event_type_serializer = event_type_serializer
+        @event_type_resolver = event_type_resolver
         @logger = logger
       end
 
@@ -60,14 +60,14 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_serializer, :logger
+      attr_reader :database, :event_type_resolver, :logger
 
       def sink_staged_events(staged_events, database)
         new_event_rows = []
 
         database.transaction do
           staged_events.each do |staged_event|
-            serialized_event_type = event_type_serializer.call(staged_event.domain_event.class)
+            serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
 
             new_event_rows += database[:events].returning.insert(
               aggregate_id: staged_event.aggregate_id,

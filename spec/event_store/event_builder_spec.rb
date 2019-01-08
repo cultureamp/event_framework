@@ -20,12 +20,12 @@ end
 
 module EventFramework
   RSpec.describe EventStore::EventBuilder do
-    subject(:event_builder) { described_class.new(event_type_deserializer: event_type_deserializer) }
-    let(:event_type_deserializer) { instance_double(EventStore::EventTypeDeserializer) }
+    subject(:event_builder) { described_class.new(event_type_resolver: event_type_resolver) }
+    let(:event_type_resolver) { instance_double(EventStore::EventTypeResolver) }
 
     before do
-      allow(event_type_deserializer).to receive(:call).with('Thing', 'EventBuilderTested').and_return(TestDomain::Thing::EventBuilderTested)
-      allow(event_type_deserializer).to receive(:call).with('Thing', 'EventBuilderUpcastingTested').and_return(TestDomain::Thing::EventBuilderUpcastingTested)
+      allow(event_type_resolver).to receive(:deserialize).with('Thing', 'EventBuilderTested').and_return(TestDomain::Thing::EventBuilderTested)
+      allow(event_type_resolver).to receive(:deserialize).with('Thing', 'EventBuilderUpcastingTested').and_return(TestDomain::Thing::EventBuilderUpcastingTested)
     end
 
     describe '#call', aggregate_failures: true do

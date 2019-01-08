@@ -3,12 +3,12 @@ require_relative '../transformations'
 module EventFramework
   module EventStore
     class EventBuilder
-      def initialize(event_type_deserializer:)
-        @event_type_deserializer = event_type_deserializer
+      def initialize(event_type_resolver:)
+        @event_type_resolver = event_type_resolver
       end
 
       def call(row)
-        domain_event_class = event_type_deserializer.call(row[:aggregate_type], row[:event_type])
+        domain_event_class = event_type_resolver.deserialize(row[:aggregate_type], row[:event_type])
 
         row[:body] = row[:body].to_h
         row[:metadata] = row[:metadata].to_h
@@ -28,7 +28,7 @@ module EventFramework
 
       private
 
-      attr_reader :event_type_deserializer
+      attr_reader :event_type_resolver
     end
   end
 end
