@@ -15,6 +15,10 @@ module EventFramework
       allow(event_type_resolver).to receive(:serialize)
         .with(TestDomain::Thing::EventHappened)
         .and_return(double(event_type: "EventHappened", aggregate_type: "Thing"))
+
+      allow(event_type_resolver).to receive(:deserialize)
+        .with('Thing', 'EventHappened')
+        .and_return(TestDomain::Thing::EventHappened)
     end
 
     def build_staged_event(aggregate_sequence: 1, aggregate_id: SecureRandom.uuid)

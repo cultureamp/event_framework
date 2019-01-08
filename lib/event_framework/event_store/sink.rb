@@ -10,6 +10,7 @@ module EventFramework
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
+        @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
       end
 
       def sink(staged_events)
@@ -37,19 +38,7 @@ module EventFramework
         # NOTE: This is the "ugly" part of the framework that is only here to
         # support our current use-case where we need to update our MongoDB
         # synchronously.
-        new_events = new_event_rows.map.with_index do |row, index|
-          corresponding_staged_event = staged_events[index]
-
-          Event.new(
-            id: row[:id],
-            sequence: row[:sequence],
-            aggregate_id: row[:aggregate_id],
-            aggregate_sequence: row[:aggregate_sequence],
-            created_at: row[:created_at],
-            metadata: Event::Metadata.new(row[:metadata]),
-            domain_event: corresponding_staged_event.domain_event.class.new(row[:body]),
-          )
-        end
+        new_events = new_event_rows.map { |row| event_builder.call(row) }
 
         EventFramework.config.after_sink_hook.call(new_events)
 
@@ -60,7 +49,7 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger
+      attr_reader :database, :event_type_resolver, :logger, :event_builder
 
       def sink_staged_events(staged_events, database)
         new_event_rows = []
