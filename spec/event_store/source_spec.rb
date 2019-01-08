@@ -18,6 +18,10 @@ module EventFramework
     before do
       allow(event_type_resolver).to receive(:deserialize).with('Thing', 'FooAdded').and_return(TestDomain::Thing::FooAdded)
       allow(event_type_resolver).to receive(:deserialize).with('Thing', 'BarAdded').and_return(TestDomain::Thing::BarAdded)
+
+      allow(event_type_resolver).to receive(:serialize)
+        .with(TestDomain::Thing::FooAdded)
+        .and_return(double(event_type: "FooAdded", aggregate_type: "Thing"))
     end
 
     def insert_event(sequence:, aggregate_id:, aggregate_sequence:, aggregate_type:, event_type:, body:)
@@ -56,6 +60,16 @@ module EventFramework
           have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
           have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: 'qux')),
         ]
+      end
+
+      context 'when scoped to certain event types' do
+        let(:events) { subject.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
+
+        it 'only returns events of the specified type' do
+          expect(events).to match [
+            have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
+          ]
+        end
       end
 
       context 'when no events are found' do
