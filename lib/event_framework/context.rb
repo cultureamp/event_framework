@@ -11,7 +11,7 @@ module EventFramework
     def self.initialize_context(context_module, path_to_root)
       context_module.extend Environment
       context_module.extend DatabaseRegistration
-      context_module.extend MagicDependencies
+      context_module.extend CommandDependencyChain
 
       context_module.define_singleton_method :root do
         @root ||= Pathname.new(path_to_root).join('..')
@@ -70,22 +70,22 @@ module EventFramework
       end
     end
 
-    module MagicDependencies
-      def enable_magic_dependencies!
+    module CommandDependencyChain
+      def build_command_dependency_chain!(event_store_database: :event_store)
         container.register('event_store.event_type_resolver') do
           EventStore::EventTypeResolver.new(event_context_module: self)
         end
 
         container.register('event_store.sink') do
           EventStore::Sink.new(
-            database: database(:event_store).connection,
+            database: database(event_store_database).connection,
             event_type_resolver: container.resolve('event_store.event_type_resolver'),
           )
         end
 
         container.register('event_store.source') do
           EventStore::Source.new(
-            database: database(:event_store).connection,
+            database: database(event_store_database).connection,
             event_type_resolver: container.resolve('event_store.event_type_resolver'),
           )
         end

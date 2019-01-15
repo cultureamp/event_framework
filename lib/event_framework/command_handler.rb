@@ -31,7 +31,7 @@ module EventFramework
       #
       # context_module - A Module that has been prepared as a context using
       #                  Context.initialize_context and
-      #                  Context.enable_magic_dependencies!
+      #                  Context.build_command_dependency_chain!
       def [](context_module)
         Class.new(self).tap do |subclass|
           context_repository = context_module.container.resolve('repository')
