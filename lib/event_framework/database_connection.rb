@@ -1,7 +1,11 @@
+require 'sequel'
+
+Sequel::Database.load_adapter :postgres
+
 module EventFramework
   # Encapsulates the configuration and interface required to establish a
   # connection to a PostgreSQL database
-  class DatabaseConnection
+  class DatabaseConnection < DelegateClass(Sequel::Postgres::Database)
     MissingConnectionURLError = Class.new(Error)
 
     # A Symbol, identifying the name / role / nature of this database
@@ -13,6 +17,10 @@ module EventFramework
 
     def initialize(label)
       @label = label.to_sym
+    end
+
+    def __getobj__
+      connection
     end
 
     def connection

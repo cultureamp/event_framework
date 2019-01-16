@@ -37,7 +37,7 @@ module EventFramework
       end
 
       def migrate(migrations_path:, target_version:)
-        Sequel::Migrator.run(connection.connection, migrations_path, target: target_version)
+        Sequel::Migrator.run(connection, migrations_path, target: target_version)
       end
 
       def dump_schema(schema_path:)

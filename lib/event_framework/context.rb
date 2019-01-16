@@ -78,14 +78,14 @@ module EventFramework
 
         container.register('event_store.sink') do
           EventStore::Sink.new(
-            database: database(event_store_database).connection,
+            database: database(event_store_database),
             event_type_resolver: container.resolve('event_store.event_type_resolver'),
           )
         end
 
         container.register('event_store.source') do
           EventStore::Source.new(
-            database: database(event_store_database).connection,
+            database: database(event_store_database),
             event_type_resolver: container.resolve('event_store.event_type_resolver'),
           )
         end
