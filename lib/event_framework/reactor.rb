@@ -2,6 +2,30 @@ module EventFramework
   class Reactor < EventProcessor
     CONCURRENCY_RETRY_THRESHOLD = 3
 
+    class << self
+      # Public: Returns a new sub-class of Reactor with an overloaded
+      # constructor that automatically injects required dependencies from
+      # the given context_module
+      #
+      # This is a handy bit of syntactic magic which allows
+      #
+      # context_module - A Module that has been prepared as a context using
+      #                  Context.initialize_context and
+      #                  Context.build_command_dependency_chain!
+      def [](context_module)
+        Class.new(self).tap do |subclass|
+          context_repository = context_module.container.resolve('repository')
+          default_error_reporter = EventFramework.config.event_processor_error_reporter
+
+          subclass.define_singleton_method(:new) do |repository: context_repository, error_reporter: default_error_reporter|
+            allocate.tap do |instance|
+              instance.send(:initialize, repository: repository, error_reporter: error_reporter)
+            end
+          end
+        end
+      end
+    end
+
     def initialize(repository:, error_reporter: EventFramework.config.event_processor_error_reporter)
       @repository = repository
       @error_reporter = error_reporter
