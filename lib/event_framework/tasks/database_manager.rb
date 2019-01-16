@@ -31,7 +31,6 @@ module EventFramework
       end
 
       def drop
-        byebug
         Sequel.connect(root_database_uri.to_s) do |db|
           db.execute "DROP DATABASE IF EXISTS #{db_name}"
         end
