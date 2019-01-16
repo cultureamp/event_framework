@@ -13,6 +13,10 @@ module EventFramework
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
       end
 
+      def transaction
+        database.transaction { yield }
+      end
+
       def sink(staged_events)
         return if staged_events.empty?
 
