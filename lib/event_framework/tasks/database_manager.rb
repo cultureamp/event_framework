@@ -31,13 +31,14 @@ module EventFramework
       end
 
       def drop
+        byebug
         Sequel.connect(root_database_uri.to_s) do |db|
           db.execute "DROP DATABASE IF EXISTS #{db_name}"
         end
       end
 
       def migrate(migrations_path:, target_version:)
-        Sequel::Migrator.run(connection, migrations_path, target: target_version)
+        Sequel::Migrator.run(connection.connection, migrations_path, target: target_version)
       end
 
       def dump_schema(schema_path:)

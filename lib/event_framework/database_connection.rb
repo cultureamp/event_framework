@@ -1,3 +1,4 @@
+require 'uri'
 require 'sequel'
 
 Sequel::Database.load_adapter :postgres
@@ -34,7 +35,7 @@ module EventFramework
     def uri
       raise MissingConnectionURLError if connection_url.nil?
 
-      URI(connection_url)
+      URI.parse(connection_url)
     end
   end
 end
