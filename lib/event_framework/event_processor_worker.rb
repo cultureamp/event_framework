@@ -25,6 +25,7 @@ module EventFramework
       set_process_name
       log('forked')
       listen_for_term_signal
+      event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
       loop do
         break if shutdown_requested
