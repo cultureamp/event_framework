@@ -30,8 +30,8 @@ module EventFramework
       # This is a handy bit of syntactic magic which allows
       #
       # context_module - A Module that has been prepared as a context using
-      #                  Context.initialize_context and
-      #                  Context.build_command_dependency_chain!
+      #                  BoundedContext.initialize_bounded_context and
+      #                  BoundedContext.build_command_dependency_chain!
       def [](context_module)
         Class.new(self).tap do |subclass|
           context_repository = context_module.container.resolve('repository')

@@ -3,12 +3,13 @@ require 'dry/inflector'
 require 'sequel'
 
 module EventFramework
-  module Context
+  # https://martinfowler.com/bliki/BoundedContext.html
+  module BoundedContext
     NoSuchDatabaseRegisteredError = Class.new(Error)
 
     # Extends the given module with the behavior required for it to be used
     # as a Context
-    def self.initialize_context(context_module, path_to_root)
+    def self.initialize_bounded_context(context_module, path_to_root)
       context_module.extend Environment
       context_module.extend DatabaseRegistration
       context_module.extend CommandDependencyChain
