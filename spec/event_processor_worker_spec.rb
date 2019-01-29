@@ -105,6 +105,16 @@ module EventFramework
           event_processor_worker.call
         end
       end
+
+      context 'when the event processor responds to logger=' do
+        let(:event_processor) { Struct.new(:logger).new }
+
+        it 'sets the logger' do
+          expect(event_processor).to receive(:logger=).with(logger)
+
+          event_processor_worker.call
+        end
+      end
     end
   end
 end

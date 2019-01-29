@@ -14,10 +14,10 @@ module EventFramework
       it 'forks each event processor' do
         expect(described_class::OnForkedError).to receive(:new).with('FooProjector').and_return(on_forked_error)
         expect(process_manager).to receive(:fork).with('FooProjector', on_error: on_forked_error).and_yield
-        expect(Logger).to receive(:new).with(STDOUT).and_return(logger)
+        expect(Logger).to receive(:new).with(STDOUT).at_least(1).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
-          .with(name: 'FooProjector').and_return(bookmark_repository)
+          .with(name: 'FooProjector', database: EventFramework::EventStore.database).and_return(bookmark_repository)
         expect(bookmark_repository).to receive(:checkout)
           .and_return(bookmark)
         expect(process_manager).to receive(:wait_for_shutdown)
@@ -25,6 +25,7 @@ module EventFramework
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
+          event_source: an_instance_of(EventFramework::EventStore::Source),
         )
 
         described_class.call(

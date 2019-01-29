@@ -30,11 +30,15 @@ module EventFramework
     def initialize(
       processor_classes:,
       process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)),
-      bookmark_repository_class: BookmarkRepository
+      bookmark_repository_class: BookmarkRepository,
+      projection_database: EventFramework::EventStore.database,
+      event_source: EventStore::Source.new
     )
       @processor_classes = processor_classes
       @process_manager = process_manager
       @bookmark_repository_class = bookmark_repository_class
+      @projection_database = projection_database
+      @event_source = event_source
     end
 
     def call
@@ -43,10 +47,18 @@ module EventFramework
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
           logger = Logger.new(STDOUT)
-          bookmark = bookmark_repository_class.new(name: processor_class.name).checkout
+          bookmark = bookmark_repository_class.new(
+            name: processor_class.name,
+            database: projection_database,
+          ).checkout
           event_processor = processor_class.new
 
-          EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
+          EventProcessorWorker.call(
+            event_processor: event_processor,
+            logger: logger,
+            bookmark: bookmark,
+            event_source: event_source,
+          )
         rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
           logger.info(processor_class_name: processor_class.name, msg: e.message)
           sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
@@ -58,7 +70,8 @@ module EventFramework
 
     private
 
-    attr_reader :processor_classes, :process_manager, :bookmark_repository_class
+    attr_reader :processor_classes, :process_manager, :bookmark_repository_class,
+                :projection_database, :event_source
 
     def set_process_name
       Process.setproctitle "event_processor [#{self.class.name}]"
