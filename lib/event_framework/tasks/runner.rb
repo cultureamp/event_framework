@@ -45,7 +45,7 @@ module EventFramework
 
         say_with_db context_name, database_name, "migrated"
 
-        invoke :dump_database_schema if !bypass_schema_dump && mod.environment == "development"
+        dump_database_schema(context_name, database_name) if !bypass_schema_dump && mod.environment == "development"
       rescue Sequel::Migrator::Error => e
         say_with_db context_name, database_name, "unable to migrate: #{e.message}", :red
       end
@@ -73,6 +73,17 @@ module EventFramework
           context_module(context_name).databases.each do |connection|
             create_database(context_name, connection.label.to_s)
             migrate_database(context_name, connection.label.to_s, bypass_schema_dump: true)
+          end
+        end
+      end
+
+      desc "reset_all", "Drops, creates and migrates the database for all databases for all known contexts"
+      def reset_all
+        EventFramework::Tasks.registered_contexts.each do |context_name|
+          context_module(context_name).databases.each do |connection|
+            drop_database(context_name, connection.label.to_s)
+            create_database(context_name, connection.label.to_s)
+            migrate_database(context_name, connection.label.to_s)
           end
         end
       end
