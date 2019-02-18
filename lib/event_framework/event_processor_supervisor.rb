@@ -46,6 +46,10 @@ module EventFramework
 
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
+          # Disconnect from the database to ensure the fork will create it's
+          # own connection
+          projection_database.disconnect
+
           logger = Logger.new(STDOUT)
           bookmark = bookmark_repository_class.new(
             name: processor_class.name,
