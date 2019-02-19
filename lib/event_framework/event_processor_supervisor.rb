@@ -52,15 +52,16 @@ module EventFramework
 
           logger = Logger.new(STDOUT)
 
-          bookmark = loop do
-            break bookmark_repository_class.new(
-              name: processor_class.name,
-              database: projection_database,
-            ).checkout
-          rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
-            logger.info(processor_class_name: processor_class.name, msg: e.message)
-            sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
-          end
+          bookmark = begin
+                       bookmark_repository_class.new(
+                         name: processor_class.name,
+                         database: projection_database,
+                       ).checkout
+                     rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
+                       logger.info(processor_class_name: processor_class.name, msg: e.message)
+                       sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
+                       retry
+                     end
 
           event_processor = processor_class.new
 
