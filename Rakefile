@@ -72,7 +72,8 @@ namespace :event_store do
       db_name = File.basename(database_uri.path)
 
       Sequel.connect(root_database_uri.to_s) do |db|
-        db.execute "CREATE DATABASE #{db_name}"
+        result = db.execute "SELECT datname FROM pg_catalog.pg_database WHERE datname='#{db_name}'"
+        db.execute "CREATE DATABASE #{db_name}" if result == 0
       end
     end
 
