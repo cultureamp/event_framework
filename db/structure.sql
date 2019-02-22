@@ -179,6 +179,15 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: section_codes_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_codes_command_projection (
+    code text NOT NULL
+);
+
+
+--
 -- Name: section_command_projection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -350,6 +359,14 @@ ALTER TABLE ONLY public.question_command_projection_b_surveys
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
+
+
+--
+-- Name: section_codes_command_projection section_codes_command_projection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_codes_command_projection
+    ADD CONSTRAINT section_codes_command_projection_pkey PRIMARY KEY (code);
 
 
 --
