@@ -140,6 +140,15 @@ CREATE TABLE public.events_sequence_stats (
 
 
 --
+-- Name: question_codes_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_codes_command_projection (
+    code text NOT NULL
+);
+
+
+--
 -- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -309,6 +318,14 @@ ALTER TABLE ONLY public.events
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_pkey PRIMARY KEY (sequence);
+
+
+--
+-- Name: question_codes_command_projection question_codes_command_projection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_codes_command_projection
+    ADD CONSTRAINT question_codes_command_projection_pkey PRIMARY KEY (code);
 
 
 --
