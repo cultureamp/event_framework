@@ -7,17 +7,9 @@ module EventFramework
   # Encapsulates the configuration and interface required to establish a
   # connection to a PostgreSQL database.
   #
-  # You'll notice that this inherits from a Delegate; we do this to solve
-  # two problems:
-  #
-  #   1. It gives us a slightly more encapsulated API; we only need to pass
-  #      references to the DatabaseConnection object around, not its
-  #      internal connection
-  #
-  #   2. It solves the need to manually force a re-connect to the database
-  #      whenever we fork a projector. Because we defer connection until the
-  #      last possible momment, we can rely on Ruby's copy-on-write forking
-  #      mechanism to ensure that each fork opens its own connection.
+  # You'll notice that this inherits from a Delegate; primarily, this is done
+  # to further encapsulate the API and avoid having references to `.connection`
+  # throughout the codebase.
   class DatabaseConnection < DelegateClass(Sequel::Postgres::Database)
     MissingConnectionURLError = Class.new(Error)
 
