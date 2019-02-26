@@ -29,7 +29,6 @@ module EventFramework
           event_source: event_source,
         }
       end
-
       subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments) }
 
       before do
@@ -90,6 +89,16 @@ module EventFramework
             last_processed_event_sequence: 2,
             last_processed_event_id: events.last.id,
           )
+
+          event_processor_worker.call
+        end
+      end
+
+      context 'when the event processor responds to logger=' do
+        let(:event_processor) { Struct.new(:logger).new }
+
+        it 'sets the logger' do
+          expect(event_processor).to receive(:logger=).with(logger)
 
           event_processor_worker.call
         end

@@ -1,46 +1,40 @@
 module EventFramework
   RSpec.describe EventProcessorSupervisor do
     describe '.call' do
-      let(:logger) { instance_spy(Logger) }
-      let(:on_forked_error) { instance_spy(described_class::OnForkedError) }
-
-      let(:event_processor_class_name) { 'FooProjector' }
-      let(:event_processor_class) { class_spy(EventProcessor, name: event_processor_class_name) }
-      let(:event_processor) { instance_spy(event_processor_class) }
-
-      let(:process_manager) { instance_spy(Forked::ProcessManager) }
-
-      let(:bookmark_repository) { instance_spy(BookmarkRepository) }
-      let(:bookmark) { instance_spy(Bookmark) }
-
-      let(:event_processor_worker) { class_spy(EventProcessorWorker) }
-
-      before do
-        allow(described_class::OnForkedError).to receive(:new).with(event_processor_class_name).and_return(on_forked_error)
-        allow(process_manager).to receive(:fork).and_yield
-        allow(Logger).to receive(:new).with(STDOUT).and_return(logger)
-        allow(bookmark_repository).to receive(:checkout).with(event_processor_class_name).and_return(bookmark)
-        allow(event_processor_class).to receive(:new).and_return(event_processor)
-
-        stub_const('EventFramework::EventProcessorWorker', event_processor_worker)
-      end
+      let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
+      let(:process_manager) { instance_double(Forked::ProcessManager) }
+      let(:bookmark_repository_class) { class_double(BookmarkRepository) }
+      let(:bookmark_repository) { instance_double(BookmarkRepository) }
+      let(:bookmark) { instance_double(Bookmark) }
+      let(:event_processor) { instance_double(event_processor_class) }
+      let(:logger) { instance_double(Logger) }
+      let(:event_processor_error_reporter) { double(:event_processor_error_reporter) }
+      let(:on_forked_error) { instance_double(described_class::OnForkedError) }
+      let(:event_source) { instance_double(EventFramework::EventStore::Source) }
 
       it 'forks each event processor' do
-        described_class.call(
-          processor_classes: [event_processor_class],
-          process_manager: process_manager,
-          bookmark_repository: bookmark_repository,
-        )
-
-        expect(process_manager).to have_received(:fork).with(event_processor_class_name, on_error: on_forked_error)
-
-        expect(event_processor_worker).to have_received(:call).with(
+        expect(described_class::OnForkedError).to receive(:new).with('FooProjector').and_return(on_forked_error)
+        expect(process_manager).to receive(:fork).with('FooProjector', on_error: on_forked_error).and_yield
+        expect(Logger).to receive(:new).with(STDOUT).at_least(1).and_return(logger)
+        expect(event_processor_class).to receive(:new).and_return(event_processor)
+        expect(bookmark_repository_class).to receive(:new)
+          .with(name: 'FooProjector', database: EventFramework::EventStore.database).and_return(bookmark_repository)
+        expect(bookmark_repository).to receive(:checkout)
+          .and_return(bookmark)
+        expect(process_manager).to receive(:wait_for_shutdown)
+        expect(EventFramework::EventProcessorWorker).to receive(:call).with(
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
+          event_source: event_source,
         )
 
-        expect(process_manager).to have_received(:wait_for_shutdown)
+        described_class.call(
+          processor_classes: [event_processor_class],
+          process_manager: process_manager,
+          bookmark_repository_class: bookmark_repository_class,
+          event_source: event_source,
+        )
       end
     end
   end

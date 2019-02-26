@@ -22,19 +22,23 @@ module EventFramework
     end
 
     class << self
-      def call(processor_classes)
-        new(processor_classes).call
+      def call(processor_classes:, event_source:)
+        new(processor_classes: processor_classes, event_source: event_source).call
       end
     end
 
     def initialize(
       processor_classes:,
       process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)),
-      bookmark_repository:
+      bookmark_repository_class: BookmarkRepository,
+      projection_database: EventFramework::EventStore.database,
+      event_source:
     )
       @processor_classes = processor_classes
       @process_manager = process_manager
-      @bookmark_repository = bookmark_repository
+      @bookmark_repository_class = bookmark_repository_class
+      @projection_database = projection_database
+      @event_source = event_source
     end
 
     def call
@@ -42,11 +46,23 @@ module EventFramework
 
       processor_classes.each do |processor_class|
         process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
+          # Disconnect from the database to ensure the fork will create it's
+          # own connection
+          projection_database.disconnect
+
           logger = Logger.new(STDOUT)
-          bookmark = bookmark_repository.checkout(processor_class.name)
+          bookmark = bookmark_repository_class.new(
+            name: processor_class.name,
+            database: projection_database,
+          ).checkout
           event_processor = processor_class.new
 
-          EventProcessorWorker.call(event_processor: event_processor, logger: logger, bookmark: bookmark)
+          EventProcessorWorker.call(
+            event_processor: event_processor,
+            logger: logger,
+            bookmark: bookmark,
+            event_source: event_source,
+          )
         rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
           logger.info(processor_class_name: processor_class.name, msg: e.message)
           sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
@@ -58,7 +74,8 @@ module EventFramework
 
     private
 
-    attr_reader :processor_classes, :process_manager, :bookmark_repository
+    attr_reader :processor_classes, :process_manager, :bookmark_repository_class,
+                :projection_database, :event_source
 
     def set_process_name
       Process.setproctitle "event_processor [#{self.class.name}]"
