@@ -1,16 +1,13 @@
 module EventFramework
-  class Bookmark
+  class BookmarkReadonly
     def initialize(name:, bookmarks_table: EventStore.database[:bookmarks])
       @name = name
       @bookmarks_table = bookmarks_table
     end
 
     def sequence
-      bookmarks_table.select(:sequence).first(name: name)[:sequence]
-    end
-
-    def sequence=(value)
-      bookmarks_table.where(name: name).update(sequence: value)
+      row = bookmarks_table.select(:sequence).first(name: name)
+      row.nil? ? 0 : row[:sequence]
     end
 
     private

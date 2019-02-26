@@ -12,6 +12,7 @@ module EventFramework
 
   autoload :Aggregate, 'event_framework/aggregate'
   autoload :Bookmark, 'event_framework/bookmark'
+  autoload :BookmarkReadonly, 'event_framework/bookmark_readonly'
   autoload :BookmarkRepository, 'event_framework/bookmark_repository'
   autoload :BoundedContext, 'event_framework/bounded_context'
   autoload :Command, 'event_framework/command'

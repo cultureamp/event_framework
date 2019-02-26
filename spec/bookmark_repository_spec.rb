@@ -1,74 +1,52 @@
 module EventFramework
   RSpec.describe BookmarkRepository do
-    let(:database) { EventFramework.test_database }
-    let(:bookmark_name) { "BookmarkName" }
-
-    subject(:bookmark_repository) do
-      described_class.new(database: database)
-    end
-
-    shared_examples 'bookmark creation and loading' do
+    describe '#checkout' do
       context 'when the bookmark does not exist' do
-        before do
-          database[:bookmarks].where(name: bookmark_name).delete
+        it 'returns a bookmark starting a 0' do
+          bookmark = described_class.new(name: 'foo').checkout
+
+          expect(bookmark.sequence).to eq 0
         end
 
-        it 'returns a bookmark starting a 0' do
-          expect(bookmark.sequence).to eq 0
-          expect(database[:bookmarks].all).to match [a_hash_including(name: bookmark_name, sequence: 0)]
+        it 'inserts a new record into the database' do
+          described_class.new(name: 'foo').checkout
+
+          expect(EventStore.database[:bookmarks].all).to match [a_hash_including(name: 'foo', sequence: 0)]
         end
       end
 
       context 'when the bookmark exists' do
         before do
-          database[:bookmarks].insert(name: bookmark_name, sequence: 42)
+          EventStore.database[:bookmarks].insert(name: 'foo', sequence: 42)
         end
 
-        it 'returns a bookmark for the given name' do
+        it 'returns the bookmark' do
+          bookmark = described_class.new(name: 'foo').checkout
+
           expect(bookmark.sequence).to eq 42
         end
-      end
-    end
 
-    describe '#query' do
-      def bookmark
-        bookmark_repository.query(bookmark_name)
-      end
+        context 'when a lock is already taken' do
+          before do
+            described_class.new(name: 'foo').checkout
+          end
 
-      it 'returns an immutable bookmark' do
-        expect(bookmark).to be_immutable
-      end
+          it 'raises an error' do
+            lock_key = EventStore.database[:bookmarks].first[:lock_key]
 
-      include_examples 'bookmark creation and loading'
-    end
+            # NOTE: Get a separate database connection
+            other_database_connection = Sequel.connect(EventFramework.config.database_url)
+            repository = described_class.new(name: 'foo', database: other_database_connection)
 
-    describe '#checkout' do
-      def bookmark
-        bookmark_repository.checkout(bookmark_name)
-      end
-
-      it 'returns a mutable bookmark' do
-        expect(bookmark).not_to be_immutable
-      end
-
-      include_examples 'bookmark creation and loading'
-
-      context 'when a lock is already taken' do
-        before do
-          bookmark_repository.checkout(bookmark_name)
-        end
-
-        it 'raises an error' do
-          lock_key = database[:bookmarks].first[:lock_key]
-
-          # NOTE: Get a separate database connection
-          other_database_connection = Sequel.connect(RSpec.configuration.database_url)
-
-          other_repository = described_class.new(database: other_database_connection)
-
-          expect { other_repository.checkout(bookmark_name) }
-            .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
-                            "Unable to checkout #{bookmark_name} (#{lock_key}); another process is already using this bookmark"
+            expect { repository.checkout }
+              .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
+                              "Unable to checkout foo (#{lock_key}); another process is already using this bookmark"
+          ensure
+            # NOTE: Clean up the separate databse connection so
+            # DatabaseCleaner doesn't try to clean it.
+            other_database_connection.disconnect
+            Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
+          end
         end
       end
     end

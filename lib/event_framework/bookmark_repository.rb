@@ -2,35 +2,27 @@ module EventFramework
   class BookmarkRepository
     UnableToCheckoutBookmarkError = Class.new(Error)
 
-    def initialize(database:)
+    def initialize(name:, database: EventStore.database)
+      @name = name
       @database = database
-      @bookmarks = {}
     end
 
-    def query(name)
-      get_bookmark_record(name) || initialize_bookmark_record(name)
+    def checkout
+      acquire_lock
 
-      Bookmark.new(name: name, database: database)
-    end
-
-    def checkout(name)
-      @bookmarks[name] ||= begin
-        acquire_lock(name)
-
-        Bookmark.new(name: name, database: database, immutable: false)
-      end
+      Bookmark.new(name: name, bookmarks_table: database[:bookmarks])
     end
 
     private
 
     attr_reader :database, :name
 
-    def acquire_lock(name)
-      bookmark_record = get_bookmark_record(name) || initialize_bookmark_record(name)
-      lock_result = try_lock(bookmark_record[:lock_key])
+    def acquire_lock
+      bookmark = find_bookmark || construct_new_bookmark
+      lock_result = try_lock(bookmark[:lock_key])
 
       unless locked?(lock_result)
-        raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{bookmark_record[:lock_key]}); " \
+        raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{bookmark[:lock_key]}); " \
           "another process is already using this bookmark"
       end
     end
@@ -43,11 +35,11 @@ module EventFramework
       lock_result[:pg_try_advisory_lock]
     end
 
-    def get_bookmark_record(name)
+    def find_bookmark
       database[:bookmarks].select(:lock_key).first(name: name)
     end
 
-    def initialize_bookmark_record(name)
+    def construct_new_bookmark
       database[:bookmarks].returning.insert(name: name, sequence: 0).first
     end
   end
