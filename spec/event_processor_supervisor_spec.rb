@@ -29,12 +29,12 @@ module EventFramework
           event_source: event_source,
         )
 
-        described_class.call(
+        described_class.new(
           processor_classes: [event_processor_class],
           process_manager: process_manager,
           bookmark_repository_class: bookmark_repository_class,
           event_source: event_source,
-        )
+        ).call
       end
     end
   end

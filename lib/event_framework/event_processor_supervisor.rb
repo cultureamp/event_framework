@@ -21,12 +21,6 @@ module EventFramework
       attr_reader :processor_name
     end
 
-    class << self
-      def call(processor_classes:, event_source:)
-        new(processor_classes: processor_classes, event_source: event_source).call
-      end
-    end
-
     def initialize(
       processor_classes:,
       process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)),
