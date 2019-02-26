@@ -1,7 +1,7 @@
 module EventFramework
   class EventHandlerRegistry
     def initialize
-      @event_handlers ||= Hash.new { |h, k| h[k] = [] }
+      @event_handlers = Hash.new { |h, k| h[k] = [] }
     end
 
     def add(event_class, block)

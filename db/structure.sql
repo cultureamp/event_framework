@@ -140,6 +140,15 @@ CREATE TABLE public.events_sequence_stats (
 
 
 --
+-- Name: question_codes_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_codes_command_projection (
+    code text NOT NULL
+);
+
+
+--
 -- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -166,6 +175,15 @@ CREATE TABLE public.question_command_projection_b_surveys (
 
 CREATE TABLE public.schema_migrations (
     filename text NOT NULL
+);
+
+
+--
+-- Name: section_codes_command_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_codes_command_projection (
+    code text NOT NULL
 );
 
 
@@ -312,6 +330,14 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: question_codes_command_projection question_codes_command_projection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_codes_command_projection
+    ADD CONSTRAINT question_codes_command_projection_pkey PRIMARY KEY (code);
+
+
+--
 -- Name: question_command_projection_b question_command_projection_b_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -333,6 +359,14 @@ ALTER TABLE ONLY public.question_command_projection_b_surveys
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (filename);
+
+
+--
+-- Name: section_codes_command_projection section_codes_command_projection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_codes_command_projection
+    ADD CONSTRAINT section_codes_command_projection_pkey PRIMARY KEY (code);
 
 
 --
