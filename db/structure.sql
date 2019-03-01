@@ -155,7 +155,7 @@ CREATE TABLE public.question_codes_command_projection (
 CREATE TABLE public.question_command_projection_a (
     question_id uuid NOT NULL,
     survey_id uuid NOT NULL,
-    account_id uuid
+    account_id uuid NOT NULL
 );
 
 

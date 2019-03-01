@@ -8,7 +8,7 @@ Sequel.migration do
     create_table :question_command_projection_a do
       column :question_id, :uuid, unique: true, null: false
       column :survey_id, :uuid, null: false
-      column :account_id, :uuid
+      column :account_id, :uuid, null: false
     end
   end
 end
