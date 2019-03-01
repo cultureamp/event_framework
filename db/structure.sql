@@ -149,6 +149,27 @@ CREATE TABLE public.question_codes_command_projection (
 
 
 --
+-- Name: question_command_projection_a; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_command_projection_a (
+    question_id uuid NOT NULL,
+    survey_id uuid NOT NULL,
+    account_id uuid
+);
+
+
+--
+-- Name: question_command_projection_a_surveys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.question_command_projection_a_surveys (
+    survey_id uuid NOT NULL,
+    account_id uuid
+);
+
+
+--
 -- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -335,6 +356,22 @@ ALTER TABLE ONLY public.events
 
 ALTER TABLE ONLY public.question_codes_command_projection
     ADD CONSTRAINT question_codes_command_projection_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: question_command_projection_a question_command_projection_a_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_command_projection_a
+    ADD CONSTRAINT question_command_projection_a_question_id_key UNIQUE (question_id);
+
+
+--
+-- Name: question_command_projection_a_surveys question_command_projection_a_surveys_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.question_command_projection_a_surveys
+    ADD CONSTRAINT question_command_projection_a_surveys_survey_id_key UNIQUE (survey_id);
 
 
 --
