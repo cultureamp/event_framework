@@ -359,19 +359,19 @@ ALTER TABLE ONLY public.question_codes_command_projection
 
 
 --
--- Name: question_command_projection_a question_command_projection_a_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: question_command_projection_a question_command_projection_a_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.question_command_projection_a
-    ADD CONSTRAINT question_command_projection_a_question_id_key UNIQUE (question_id);
+    ADD CONSTRAINT question_command_projection_a_pkey PRIMARY KEY (question_id);
 
 
 --
--- Name: question_command_projection_a_surveys question_command_projection_a_surveys_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: question_command_projection_a_surveys question_command_projection_a_surveys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.question_command_projection_a_surveys
-    ADD CONSTRAINT question_command_projection_a_surveys_survey_id_key UNIQUE (survey_id);
+    ADD CONSTRAINT question_command_projection_a_surveys_pkey PRIMARY KEY (survey_id);
 
 
 --
