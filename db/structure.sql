@@ -170,27 +170,6 @@ CREATE TABLE public.question_command_projection_a_surveys (
 
 
 --
--- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.question_command_projection_b (
-    question_id uuid NOT NULL,
-    survey_id uuid NOT NULL,
-    account_id uuid
-);
-
-
---
--- Name: question_command_projection_b_surveys; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.question_command_projection_b_surveys (
-    survey_id uuid NOT NULL,
-    account_id uuid
-);
-
-
---
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -372,22 +351,6 @@ ALTER TABLE ONLY public.question_command_projection_a
 
 ALTER TABLE ONLY public.question_command_projection_a_surveys
     ADD CONSTRAINT question_command_projection_a_surveys_pkey PRIMARY KEY (survey_id);
-
-
---
--- Name: question_command_projection_b question_command_projection_b_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.question_command_projection_b
-    ADD CONSTRAINT question_command_projection_b_question_id_key UNIQUE (question_id);
-
-
---
--- Name: question_command_projection_b_surveys question_command_projection_b_surveys_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.question_command_projection_b_surveys
-    ADD CONSTRAINT question_command_projection_b_surveys_survey_id_key UNIQUE (survey_id);
 
 
 --
