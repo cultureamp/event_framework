@@ -27,7 +27,7 @@ module EventFramework
 
     def ssm_client
       @_ssm_client ||= Aws::SSM::Client.new(
-        region: 'us-west-2',
+        region: ENV.fetch('AWS_REGION', 'us-west-2'),
       )
     end
 
