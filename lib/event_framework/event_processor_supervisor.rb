@@ -45,10 +45,18 @@ module EventFramework
           projection_database.disconnect
 
           logger = Logger.new(STDOUT)
-          bookmark = bookmark_repository_class.new(
-            name: processor_class.name,
-            database: projection_database,
-          ).checkout
+
+          bookmark = begin
+                       bookmark_repository_class.new(
+                         name: processor_class.name,
+                         database: projection_database,
+                       ).checkout
+                     rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
+                       logger.info(processor_class_name: processor_class.name, msg: e.message)
+                       sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
+                       retry
+                     end
+
           event_processor = processor_class.new
 
           EventProcessorWorker.call(
@@ -57,9 +65,6 @@ module EventFramework
             bookmark: bookmark,
             event_source: event_source,
           )
-        rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
-          logger.info(processor_class_name: processor_class.name, msg: e.message)
-          sleep UNABLE_TO_LOCK_SLEEP_INTERVAL
         end
       end
 

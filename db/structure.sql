@@ -149,21 +149,21 @@ CREATE TABLE public.question_codes_command_projection (
 
 
 --
--- Name: question_command_projection_b; Type: TABLE; Schema: public; Owner: -
+-- Name: question_command_projection_a; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.question_command_projection_b (
+CREATE TABLE public.question_command_projection_a (
     question_id uuid NOT NULL,
     survey_id uuid NOT NULL,
-    account_id uuid
+    account_id uuid NOT NULL
 );
 
 
 --
--- Name: question_command_projection_b_surveys; Type: TABLE; Schema: public; Owner: -
+-- Name: question_command_projection_a_surveys; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.question_command_projection_b_surveys (
+CREATE TABLE public.question_command_projection_a_surveys (
     survey_id uuid NOT NULL,
     account_id uuid
 );
@@ -338,19 +338,19 @@ ALTER TABLE ONLY public.question_codes_command_projection
 
 
 --
--- Name: question_command_projection_b question_command_projection_b_question_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: question_command_projection_a question_command_projection_a_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.question_command_projection_b
-    ADD CONSTRAINT question_command_projection_b_question_id_key UNIQUE (question_id);
+ALTER TABLE ONLY public.question_command_projection_a
+    ADD CONSTRAINT question_command_projection_a_pkey PRIMARY KEY (question_id);
 
 
 --
--- Name: question_command_projection_b_surveys question_command_projection_b_surveys_survey_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: question_command_projection_a_surveys question_command_projection_a_surveys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.question_command_projection_b_surveys
-    ADD CONSTRAINT question_command_projection_b_surveys_survey_id_key UNIQUE (survey_id);
+ALTER TABLE ONLY public.question_command_projection_a_surveys
+    ADD CONSTRAINT question_command_projection_a_surveys_pkey PRIMARY KEY (survey_id);
 
 
 --
