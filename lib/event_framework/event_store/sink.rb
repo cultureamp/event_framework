@@ -27,7 +27,7 @@ module EventFramework
             raise e
           end
           logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries, correlation_id: metadata.correlation_id)
-          sleep 0.01
+          sleep 0.1
           retry
         end
 
