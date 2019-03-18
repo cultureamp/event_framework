@@ -35,7 +35,7 @@ module EventFramework
         if events.empty?
           sleep SLEEP_INTERVAL
         else
-          log('handle_events.start', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+          log('new_events', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
 
           events.each do |event|
             event_processor.handle_event(event)
