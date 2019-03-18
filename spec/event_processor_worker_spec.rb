@@ -94,6 +94,18 @@ module EventFramework
           event_processor_worker.call
         end
 
+        it 'logs a summary of the new events' do
+          expect(logger).to receive(:info).with(
+            event_processor_class_name: 'FooProjector',
+            msg: 'event_processor.worker.new_events',
+            first_event_sequence: 1,
+            event_id: event_1.id,
+            count: 2,
+          )
+
+          event_processor_worker.call
+        end
+
         it 'logs the last processed sequence' do
           expect(logger).to receive(:info).with(
             event_processor_class_name: 'FooProjector',
