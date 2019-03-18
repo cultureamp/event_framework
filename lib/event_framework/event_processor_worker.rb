@@ -35,16 +35,11 @@ module EventFramework
         if events.empty?
           sleep SLEEP_INTERVAL
         else
-          log('new_events', event_ids: events.map(&:id))
+          log('handle_events.start', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
 
           events.each do |event|
-            log('handle_event.start', event_sequence: event.sequence, event_id: event.id)
             event_processor.handle_event(event)
-            log('handle_event.finish', event_sequence: event.sequence, event_id: event.id)
-
-            log('bookmark_update.start', event_sequence: event.sequence, event_id: event.id)
             bookmark.sequence = event.sequence
-            log('bookmark_update.finish', event_sequence: event.sequence, event_id: event.id)
           end
 
           log('processed_up_to', last_processed_event_sequence: bookmark.sequence, last_processed_event_id: events.last.id)
