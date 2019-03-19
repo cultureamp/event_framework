@@ -171,7 +171,7 @@ module EventFramework
         #
         # Givent the way we've implemented locking, it's reasonable to assume
         # that given a series of connections (c1, c2... cn), the number of
-        # times each connection has to call `pg_try_advisory_lock` will be
+        # times each connection has to call `pg_try_advisory_xact_lock` will be
         # greater than that of the connection that preceded it.
         #
         # We can measure this by injecting an object that delegates all
@@ -187,14 +187,16 @@ module EventFramework
 
           def select(pg_function)
             @__try_lock_count ||= 0
-            @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_lock
+            @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_xact_lock
 
             __getobj__.select(pg_function)
           end
 
-          def transaction(&block)
-            __getobj__.transaction(&block)
-            sleep 0.2
+          def transaction
+            __getobj__.transaction do
+              yield
+              sleep 0.2
+            end
           end
         end
       end
