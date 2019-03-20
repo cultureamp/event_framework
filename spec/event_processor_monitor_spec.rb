@@ -1,15 +1,14 @@
 module EventFramework
   RSpec.describe EventProcessorMonitor do
     describe '.call' do
-      let(:logger) { instance_double(Logger) }
       let(:sequence_stats) { EventStore::SequenceStats }
       let(:bookmark_readonly_class) { class_double(Bookmark) }
-      let(:bookmark) { instance_double(Bookmark) }
+      let(:bookmark_1) { instance_double(Bookmark) }
+      let(:bookmark_2) { instance_double(Bookmark) }
       let(:metrics) { double(:metrics) }
 
       subject(:event_processor_monitor) do
         described_class.new(
-          logger: logger,
           sequence_stats: sequence_stats,
           bookmark_readonly_class: bookmark_readonly_class,
           metrics: metrics,
@@ -20,19 +19,28 @@ module EventFramework
       let(:handled_event_class) { double(:handled_event_class) }
       let(:event_processors) do
         [
-          class_double(
-            EventProcessor,
-            event_handlers: instance_double(EventHandlerRegistry, handled_event_classes: [handled_event_class]),
-            name: 'event_processor_class_1',
-          ),
+          event_processor_class_double('event_processor_class_1'),
+          event_processor_class_double('event_processor_class_2'),
         ]
       end
 
+      def event_processor_class_double(name)
+        class_double(
+          EventProcessor,
+          event_handlers: instance_double(EventHandlerRegistry, handled_event_classes: [handled_event_class]),
+          name: name,
+        )
+      end
+
       before do
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1').and_return(bookmark)
+        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1').and_return(bookmark_1)
+        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_2').and_return(bookmark_2)
 
         # Simulate the event processor catching up
-        allow(bookmark).to receive(:sequence).and_return(0, 1, 3)
+        allow(bookmark_1).to receive(:sequence).and_return(0, 1, 3)
+
+        # Simulate the event processor being stuck
+        allow(bookmark_2).to receive(:sequence).and_return(1, 1, 1)
 
         # Loop 3 times
         allow(event_processor_monitor).to receive(:loop).and_yield.and_yield.and_yield
@@ -40,7 +48,6 @@ module EventFramework
         # There are 3 events in the source
         allow(sequence_stats).to receive(:max_sequence).and_return(3)
 
-        allow(logger).to receive(:info)
         allow(metrics).to receive(:call)
       end
 
@@ -48,18 +55,25 @@ module EventFramework
         event_processor_monitor.call(processor_classes: event_processors)
       end
 
-      it 'logs the processor lag' do
-        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '3')
-        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '2')
-        expect(logger).to receive(:info).with(processor_class_name: 'event_processor_class_1', processor_lag: '0')
-
-        monitor
-      end
-
-      it 'sends processor lag metrics' do
-        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 3)
-        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 2)
-        allow(metrics).to receive(:call).with(processor_class_name: 'event_processor_class_1', processor_lag: 0)
+      it 'calls metrics with processor lag metrics' do
+        expect(metrics).to receive(:call).with(
+          [
+            { processor_class_name: 'event_processor_class_1', processor_lag: 3 },
+            { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+          ],
+        )
+        expect(metrics).to receive(:call).with(
+          [
+            { processor_class_name: 'event_processor_class_1', processor_lag: 2 },
+            { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+          ],
+        )
+        expect(metrics).to receive(:call).with(
+          [
+            { processor_class_name: 'event_processor_class_1', processor_lag: 0 },
+            { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+          ],
+        )
 
         monitor
       end
