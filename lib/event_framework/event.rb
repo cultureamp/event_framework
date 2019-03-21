@@ -13,6 +13,8 @@ module EventFramework
       attribute :user_id, Types::UUID
       attribute :correlation_id, Types::UUID.meta(omittable: true)
       attribute :causation_id, Types::UUID.meta(omittable: true)
+      # The "bypass_mongo_projection" field is being replaced with "migrated".
+      attribute :migrated, Types::Bool.default(false).meta(omittable: true)
       attribute :bypass_mongo_projection, Types::Bool.default(false).meta(omittable: true)
     end
 
