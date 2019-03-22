@@ -20,23 +20,6 @@ module EventFramework
       def sink(staged_events)
         return if staged_events.empty?
 
-        tries = 0
-        begin
-          lock_result = try_lock(database)
-          raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
-        rescue ConcurrencyError => e
-          metadata = staged_events.first.metadata
-
-          tries += 1
-          if tries > MAX_RETRIES
-            logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries, correlation_id: metadata.correlation_id)
-            raise e
-          end
-          logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries, correlation_id: metadata.correlation_id)
-          sleep 0.1
-          retry
-        end
-
         new_event_rows = sink_staged_events(staged_events, database)
 
         # NOTE: This is the "ugly" part of the framework that is only here to
@@ -47,8 +30,6 @@ module EventFramework
         EventFramework.config.after_sink_hook.call(new_events)
 
         nil
-      ensure
-        unlock(database) if locked?(lock_result)
       end
 
       private
@@ -59,6 +40,8 @@ module EventFramework
         new_event_rows = []
 
         database.transaction do
+          get_lock_with_retry(correlation_id: staged_events.first.metadata.correlation_id)
+
           staged_events.each do |staged_event|
             serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
 
@@ -79,16 +62,29 @@ module EventFramework
         new_event_rows
       end
 
-      def try_lock(database)
-        database.select(Sequel.function(:pg_try_advisory_lock, -1)).first
+      def get_lock_with_retry(correlation_id:)
+        tries = 0
+        begin
+          lock_result = try_lock(database)
+          raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
+        rescue ConcurrencyError => e
+          tries += 1
+          if tries > MAX_RETRIES
+            logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries, correlation_id: correlation_id)
+            raise e
+          end
+          logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries, correlation_id: correlation_id)
+          sleep 0.1
+          retry
+        end
       end
 
-      def unlock(database)
-        database.select(Sequel.function(:pg_advisory_unlock, -1)).first[:pg_advisory_unlock]
+      def try_lock(database)
+        database.select(Sequel.function(:pg_try_advisory_xact_lock, -1)).first
       end
 
       def locked?(lock_result)
-        lock_result && lock_result[:pg_try_advisory_lock]
+        lock_result && lock_result[:pg_try_advisory_xact_lock]
       end
     end
   end
