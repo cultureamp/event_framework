@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module EventFramework
   class Reactor < EventProcessor
     CONCURRENCY_RETRY_THRESHOLD = 3
