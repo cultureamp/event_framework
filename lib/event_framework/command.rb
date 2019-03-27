@@ -16,7 +16,14 @@ module EventFramework
         end
 
         def utc?(value)
-          value.zone == '+00:00'
+          case value
+          when Time
+            value.utc?
+          when DateTime
+            value.zone == '+00:00'
+          else
+            false
+          end
         end
       end
 
