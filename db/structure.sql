@@ -292,6 +292,18 @@ CREATE TABLE public.survey_detail_surveys (
 
 
 --
+-- Name: survey_names_projection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.survey_names_projection (
+    survey_id uuid NOT NULL,
+    account_id uuid NOT NULL,
+    name text NOT NULL,
+    locale text NOT NULL
+);
+
+
+--
 -- Name: bookmarks lock_key; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -497,6 +509,13 @@ CREATE INDEX survey_detail_questions_section_id_index ON public.survey_detail_qu
 --
 
 CREATE INDEX survey_detail_select_options_question_id_index ON public.survey_detail_select_options USING btree (question_id);
+
+
+--
+-- Name: survey_names_projection_survey_id_locale_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX survey_names_projection_survey_id_locale_index ON public.survey_names_projection USING btree (survey_id, locale);
 
 
 --
