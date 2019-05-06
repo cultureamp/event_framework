@@ -29,7 +29,7 @@ module EventFramework
     end
 
     def connection
-      raise MissingConnectionURLError if connection_url.nil?
+      __raise__ MissingConnectionURLError if connection_url.nil?
 
       @_connection ||= Sequel.connect(connection_url).tap do |database|
         database.extension :pg_json
@@ -41,5 +41,11 @@ module EventFramework
 
       URI.parse(connection_url)
     end
+
+    def inspect
+      "#<EventFramework::DatabaseConnection label=#{label.inspect} connection_url=#{connection_url.inspect}>"
+    end
+
+    alias_method :to_s, :inspect
   end
 end
