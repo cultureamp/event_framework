@@ -22,8 +22,8 @@ module EventFramework
         Sequel.connect(root_database_uri.to_s) do |db|
           db.execute "CREATE DATABASE #{db_name}"
         end
-      rescue Sequel::DatabaseError => error
-        if error.cause.is_a?(PG::DuplicateDatabase)
+      rescue Sequel::DatabaseError => e
+        if e.cause.is_a?(PG::DuplicateDatabase)
           raise DatabaseAlreadyExistsError
         else
           raise
