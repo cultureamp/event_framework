@@ -1,17 +1,22 @@
 module EventFramework
   RSpec.describe EventProcessorMonitor do
     describe '.call' do
-      let(:sequence_stats) { EventStore::SequenceStats }
-      let(:bookmark_readonly_class) { class_double(Bookmark) }
+      let(:sequence_stats_class) { class_double(EventStore::SequenceStats) }
+      let(:bookmark_readonly_class) { class_double(BookmarkReadonly) }
+      let(:sequence_stats) { instance_double(EventStore::SequenceStats) }
       let(:bookmark_1) { instance_double(Bookmark) }
       let(:bookmark_2) { instance_double(Bookmark) }
       let(:metrics) { double(:metrics) }
+      let(:bookmark_database) { instance_spy(EventFramework::DatabaseConnection) }
+      let(:sequence_stats_database) { instance_spy(EventFramework::DatabaseConnection) }
 
       subject(:event_processor_monitor) do
         described_class.new(
-          sequence_stats: sequence_stats,
+          sequence_stats_class: sequence_stats_class,
           bookmark_readonly_class: bookmark_readonly_class,
           metrics: metrics,
+          bookmark_database: bookmark_database,
+          sequence_stats_database: sequence_stats_database,
           sleep_interval: 0,
         )
       end
@@ -33,8 +38,10 @@ module EventFramework
       end
 
       before do
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1').and_return(bookmark_1)
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_2').and_return(bookmark_2)
+        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1', database: bookmark_database).and_return(bookmark_1)
+        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_2', database: bookmark_database).and_return(bookmark_2)
+
+        allow(sequence_stats_class).to receive(:new).with(database: sequence_stats_database).and_return(sequence_stats)
 
         # Simulate the event processor catching up
         allow(bookmark_1).to receive(:sequence).and_return(0, 1, 3)

@@ -4,16 +4,20 @@ module EventFramework
 
     def initialize(
       bookmark_readonly_class: BookmarkReadonly,
-      sequence_stats: EventStore::SequenceStats,
+      sequence_stats_class: EventStore::SequenceStats,
       metrics:,
-      database:,
+      bookmark_database:,
+      sequence_stats_database:,
       sleep_interval: SLEEP_INTERVAL
     )
       @bookmark_readonly_class = bookmark_readonly_class
-      @sequence_stats = sequence_stats
+      @sequence_stats_class = sequence_stats_class
       @metrics = metrics
-      @database = database
+      @bookmark_database = bookmark_database
+      @sequence_stats_database = sequence_stats_database
       @sleep_interval = sleep_interval
+
+      @sequence_stats = sequence_stats_class.new(database: sequence_stats_database)
     end
 
     def call(processor_classes:)
@@ -37,10 +41,10 @@ module EventFramework
 
     private
 
-    attr_reader :bookmark_readonly_class, :sequence_stats, :metrics, :database, :sleep_interval
+    attr_reader :bookmark_readonly_class, :sequence_stats_class, :sequence_stats, :metrics, :bookmark_database, :sequence_stats_database, :sleep_interval
 
     def last_processed_event_sequence(processor_class)
-      bookmark_readonly_class.new(name: processor_class.name).sequence
+      bookmark_readonly_class.new(name: processor_class.name, database: bookmark_database).sequence
     end
 
     def last_event_sequence
