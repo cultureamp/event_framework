@@ -2,7 +2,7 @@
 #   module EventStore
 #     RSpec.describe SequenceStats do
 #       def insert_event(sequence:, aggregate_type:, event_type:)
-#         EventStore.database[:events].overriding_system_value.insert(
+#         EventFramework.test_database[:events].overriding_system_value.insert(
 #           sequence: sequence,
 #           aggregate_id: SecureRandom.uuid,
 #           aggregate_sequence: 1,
