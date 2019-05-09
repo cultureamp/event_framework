@@ -43,7 +43,7 @@ module EventFramework
     end
 
     def inspect
-      "#<EventFramework::DatabaseConnection label=#{label.inspect} connection_url=#{connection_url.inspect}>"
+      "#<EventFramework::DatabaseConnection label=#{label.inspect}>"
     end
 
     alias_method :to_s, :inspect
