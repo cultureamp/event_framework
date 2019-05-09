@@ -25,7 +25,7 @@ module EventFramework
       processor_classes:,
       process_manager: Forked::ProcessManager.new(logger: Logger.new(STDOUT)),
       bookmark_repository_class: BookmarkRepository,
-      projection_database: EventFramework::EventStore.database,
+      projection_database:,
       event_source:
     )
       @processor_classes = processor_classes
