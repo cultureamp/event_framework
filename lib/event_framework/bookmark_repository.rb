@@ -2,7 +2,7 @@ module EventFramework
   class BookmarkRepository
     UnableToCheckoutBookmarkError = Class.new(Error)
 
-    def initialize(name:, database: EventStore.database)
+    def initialize(name:, database:)
       @name = name
       @database = database
     end
