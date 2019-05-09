@@ -1,8 +1,8 @@
 module EventFramework
   class Bookmark
-    def initialize(name:, bookmarks_table:)
+    def initialize(name:, database:)
       @name = name
-      @bookmarks_table = bookmarks_table
+      @bookmarks_table = database[:bookmarks]
     end
 
     def sequence

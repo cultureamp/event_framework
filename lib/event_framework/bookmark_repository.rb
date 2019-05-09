@@ -10,7 +10,7 @@ module EventFramework
     def checkout
       acquire_lock
 
-      Bookmark.new(name: name, bookmarks_table: database[:bookmarks])
+      Bookmark.new(name: name, database: database)
     end
 
     private
