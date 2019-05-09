@@ -6,7 +6,7 @@ module EventFramework
       bookmark_readonly_class: BookmarkReadonly,
       sequence_stats: EventStore::SequenceStats,
       metrics:,
-      database: EventStore.database,
+      database:,
       sleep_interval: SLEEP_INTERVAL
     )
       @bookmark_readonly_class = bookmark_readonly_class
