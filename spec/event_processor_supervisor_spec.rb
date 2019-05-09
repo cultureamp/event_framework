@@ -11,6 +11,7 @@ module EventFramework
       let(:event_processor_error_reporter) { double(:event_processor_error_reporter) }
       let(:on_forked_error) { instance_double(described_class::OnForkedError) }
       let(:event_source) { instance_double(EventFramework::EventStore::Source) }
+      let(:projection_database) { instance_spy(EventFramework::DatabaseConnection) }
 
       it 'forks each event processor' do
         expect(described_class::OnForkedError).to receive(:new).with('FooProjector').and_return(on_forked_error)
@@ -18,7 +19,7 @@ module EventFramework
         expect(Logger).to receive(:new).with(STDOUT).at_least(1).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
-          .with(name: 'FooProjector', database: EventFramework::EventStore.database).and_return(bookmark_repository)
+          .with(name: 'FooProjector', database: projection_database).and_return(bookmark_repository)
         expect(bookmark_repository).to receive(:checkout)
           .and_return(bookmark)
         expect(process_manager).to receive(:wait_for_shutdown)
@@ -33,6 +34,7 @@ module EventFramework
           processor_classes: [event_processor_class],
           process_manager: process_manager,
           bookmark_repository_class: bookmark_repository_class,
+          projection_database: projection_database,
           event_source: event_source,
         ).call
       end
