@@ -28,16 +28,18 @@ module EventFramework
     end
 
     class Paths
+      attr_reader :root
+
       def initialize(root)
         @root = root
       end
 
       def config
-        @root.join('config')
+        root.join('config')
       end
 
       def db(database_name)
-        @root.join('db', database_name)
+        root.join('db', database_name)
       end
     end
 
