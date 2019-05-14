@@ -14,7 +14,7 @@ module EventFramework
 
       desc "create_database CONTEXT DATABASE_NAME", "Creates the PostgreSQL database for the indicated context/database"
       def create_database(context_name, database_name)
-        ensure_database_is_managed!(context_name, database_name)
+        return unless database_managed?(context_name, database_name)
 
         connection = context_module(context_name).database(database_name.to_sym)
 
@@ -29,7 +29,7 @@ module EventFramework
 
       desc "drop_database CONTEXT DATABASE_NAME", "Drops the PostgreSQL database for the indicated context/database"
       def drop_database(context_name, database_name)
-        ensure_database_is_managed!(context_name, database_name)
+        return unless database_managed?(context_name, database_name)
 
         connection = context_module(context_name).database(database_name.to_sym)
 
@@ -39,7 +39,7 @@ module EventFramework
       desc "migrate_database CONTEXT DATABASE_NAME", "Runs the migrations for the indicated context/database"
       method_option :version, type: :numeric
       def migrate_database(context_name, database_name, bypass_schema_dump: false)
-        ensure_database_is_managed!(context_name, database_name)
+        return unless database_managed?(context_name, database_name)
 
         mod = context_module(context_name)
         connection = mod.database(database_name.to_sym)
@@ -58,7 +58,7 @@ module EventFramework
 
       desc "dump_database_schema CONTEXT DATABASE_NAME", "Dumps the curent SQL schema, for the indicated context/database"
       def dump_database_schema(context_name, database_name)
-        ensure_database_is_managed!(context_name, database_name)
+        return unless database_managed?(context_name, database_name)
 
         mod = context_module(context_name)
         connection = mod.database(database_name.to_sym)
@@ -99,15 +99,17 @@ module EventFramework
       private
 
       # We can configure references to databases that are managed through other
-      # means (e.g. our pre-migration legacy database). Before trying to do
+      # means (e.g. our pre-migration legacy database). Before trying to
       # run any tasks involving those databases, make sure we 'own' it by
       # ensuring that a db/database_name path exists for the context.
-      def ensure_database_is_managed!(context_name, database_name)
+      def database_managed?(context_name, database_name)
         database_configuration_path = context_module(context_name).paths.db(database_name)
 
-        unless Dir.exist? database_configuration_path
-          say_with_db context_name, database_name, "'#{database_configuration_path}' doesn't exist, so we're assuming `#{database_name}` is managed elsewhere. Exiting.", :yellow
-          exit
+        if Dir.exist? database_configuration_path
+          true
+        else
+          say_with_db context_name, database_name, "'#{database_configuration_path}' doesn't exist, so we're assuming `#{database_name}` is managed elsewhere. Skipping.", :yellow
+          false
         end
       end
 
