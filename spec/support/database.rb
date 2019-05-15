@@ -24,9 +24,6 @@ RSpec.configure do |config|
     database_manager.create
     database_manager.migrate migrations_path: Pathname.new(__dir__).join('db'), target_version: nil
 
-    # TODO: Remove this once re-factor of event-processor system is complete
-    DatabaseCleaner.add_cleaner(:sequel, connection: EventFramework::EventStore.database)
-
     # set up database cleaner
     DatabaseCleaner.add_cleaner(:sequel, connection: EventFramework.test_database)
     DatabaseCleaner.strategy = :truncation

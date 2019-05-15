@@ -1,11 +1,10 @@
 module EventFramework
   RSpec.describe Bookmark do
-    let(:bookmark) do
-      Bookmark.new(name: 'foo')
-    end
+    let(:database) { EventFramework.test_database }
+    let(:bookmark) { described_class.new(name: 'foo', database: database) }
 
     before do
-      EventStore.database[:bookmarks].insert(name: 'foo', sequence: 42)
+      database[:bookmarks].insert(name: 'foo', sequence: 42)
     end
 
     describe '#sequence' do

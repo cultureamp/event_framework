@@ -1,10 +1,10 @@
 module EventFramework
   RSpec.describe BookmarkReadonly do
-    let(:bookmarks_table) { EventStore.database[:bookmarks] }
-    let(:bookmark) { Bookmark.new(name: 'foo', bookmarks_table: bookmarks_table) }
+    let(:database) { EventFramework.test_database }
+    let(:bookmark) { described_class.new(name: 'foo', database: database) }
 
     before do
-      bookmarks_table.insert(name: 'foo', sequence: 42)
+      database[:bookmarks].insert(name: 'foo', sequence: 42)
     end
 
     describe '#sequence' do
