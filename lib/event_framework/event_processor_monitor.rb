@@ -1,6 +1,12 @@
 module EventFramework
   class EventProcessorMonitor
-    SLEEP_INTERVAL = 1
+    # We store metric points at the 1 second resolution, but we'd prefer if you
+    # only submitted points every 15 seconds. Any metrics with fractions of a
+    # second timestamps gets rounded to the nearest second, and if any points
+    # have the same timestamp, the latest point overwrites the previous ones.
+    #
+    # https://docs.datadoghq.com/api/?lang=ruby#metrics
+    SLEEP_INTERVAL = 15
 
     def initialize(
       bookmark_readonly_class: BookmarkReadonly,
