@@ -25,6 +25,8 @@ module EventFramework
         say_with_db context_name, database_name, "unknown database; has it been registered?", :red
       rescue DatabaseManager::DatabaseAlreadyExistsError
         say_with_db context_name, database_name, "already exists, skipping", :yellow
+      rescue EventFramework::DatabaseConnection::MissingConnectionURLError
+        say_with_db context_name, database_name, "no URL configured; skipping", :yellow
       end
 
       desc "drop_database CONTEXT DATABASE_NAME", "Drops the PostgreSQL database for the indicated context/database"
@@ -34,6 +36,8 @@ module EventFramework
         connection = context_module(context_name).database(database_name.to_sym)
 
         DatabaseManager.new(connection).drop
+      rescue EventFramework::DatabaseConnection::MissingConnectionURLError
+        say_with_db context_name, database_name, "no URL configured; skipping", :yellow
       end
 
       desc "migrate_database CONTEXT DATABASE_NAME", "Runs the migrations for the indicated context/database"
@@ -54,6 +58,8 @@ module EventFramework
         dump_database_schema(context_name, database_name) if !bypass_schema_dump && mod.environment == "development"
       rescue Sequel::Migrator::Error => e
         say_with_db context_name, database_name, "unable to migrate: #{e.message}", :red
+      rescue EventFramework::DatabaseConnection::MissingConnectionURLError
+        say_with_db context_name, database_name, "no URL configured; skipping", :yellow
       end
 
       desc "dump_database_schema CONTEXT DATABASE_NAME", "Dumps the curent SQL schema, for the indicated context/database"
