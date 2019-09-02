@@ -4,8 +4,8 @@ module EventFramework
       let(:sequence_stats_class) { class_double(EventStore::SequenceStats) }
       let(:bookmark_readonly_class) { class_double(BookmarkReadonly) }
       let(:sequence_stats) { instance_double(EventStore::SequenceStats) }
-      let(:bookmark_1) { instance_double(Bookmark) }
-      let(:bookmark_2) { instance_double(Bookmark) }
+      let(:bookmark_1) { instance_double(BookmarkReadonly) }
+      let(:bookmark_2) { instance_double(BookmarkReadonly) }
       let(:metrics) { double(:metrics) }
       let(:bookmark_database) { instance_spy(EventFramework::DatabaseConnection) }
       let(:sequence_stats_database) { instance_spy(EventFramework::DatabaseConnection) }
