@@ -8,7 +8,7 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Sink do
-    let(:database) { EventFramework.test_database }
+    let(:database) { TestDomain.database(:event_store) }
     let(:event_type_resolver) { instance_spy EventStore::EventTypeResolver }
 
     before do
@@ -214,7 +214,7 @@ module EventFramework
       end
 
       let(:other_database_connection) do
-        Sequel.connect(RSpec.configuration.database_url).tap do |db|
+        Sequel.connect(database.connection_url).tap do |db|
           db.extension :pg_json
         end
       end

@@ -1,6 +1,6 @@
 module EventFramework
   RSpec.describe BookmarkRepository do
-    let(:database) { EventFramework.test_database }
+    let(:database) { TestDomain.database(:projections) }
 
     subject(:bookmark_repository) { described_class.new(name: 'foo', database: database) }
 
@@ -39,17 +39,12 @@ module EventFramework
             lock_key = database[:bookmarks].first[:lock_key]
 
             # NOTE: Get a separate database connection
-            other_database_connection = Sequel.connect(RSpec.configuration.database_url)
+            other_database_connection = Sequel.connect(database.connection_url)
             repository = described_class.new(name: 'foo', database: other_database_connection)
 
             expect { repository.checkout }
               .to raise_error BookmarkRepository::UnableToCheckoutBookmarkError,
                               "Unable to checkout foo (#{lock_key}); another process is already using this bookmark"
-          ensure
-            # NOTE: Clean up the separate databse connection so
-            # DatabaseCleaner doesn't try to clean it.
-            other_database_connection.disconnect
-            Sequel.synchronize { ::Sequel::DATABASES.delete(other_database_connection) }
           end
         end
       end

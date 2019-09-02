@@ -2,9 +2,11 @@ ENV['RAILS_ENV'] = 'test'
 
 require 'pry-byebug'
 require 'securerandom'
+require 'event_framework'
 
 require 'dry/configurable/test_interface'
 
+require_relative 'support/test_domain'
 require_relative 'support/database'
 
 RSpec.configure do |config|
@@ -23,10 +25,4 @@ RSpec.configure do |config|
   config.order = :random
 
   Kernel.srand config.seed
-end
-
-TestDomain = Module.new
-
-EventFramework.configure do |config|
-  config.event_namespace_class = TestDomain
 end

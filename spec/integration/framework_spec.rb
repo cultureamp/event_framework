@@ -79,11 +79,8 @@ RSpec.describe 'integration' do
     )
   end
 
-  let(:event_type_resolver) { EventFramework::EventStore::EventTypeResolver.new(event_context_module: TestDomain) }
-
-  let(:sink) { EventFramework::EventStore::Sink.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
-  let(:source) { EventFramework::EventStore::Source.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
-
+  let(:sink) { TestDomain.container.resolve('event_store.sink') }
+  let(:source) { TestDomain.container.resolve('event_store.source') }
   let(:repository) { EventFramework::Repository.new(sink: sink, source: source) }
 
   let(:events) { source.get_for_aggregate(aggregate_id) }

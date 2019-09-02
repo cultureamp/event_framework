@@ -1,8 +1,10 @@
 module EventFramework
   module EventStore
     RSpec.describe SequenceStats do
+      let(:database) { TestDomain.database(:event_store) }
+
       def insert_event(sequence:, aggregate_type:, event_type:)
-        EventFramework.test_database[:events].overriding_system_value.insert(
+        database[:events].overriding_system_value.insert(
           sequence: sequence,
           aggregate_id: SecureRandom.uuid,
           aggregate_sequence: 1,
@@ -22,7 +24,7 @@ module EventFramework
         insert_event sequence: 6, aggregate_type: 'B', event_type: 'C'
       end
 
-      subject(:sequence_stats) { described_class.new(database: EventFramework.test_database) }
+      subject(:sequence_stats) { described_class.new(database: database) }
 
       describe "#max_sequence" do
         it 'returns the max sequence for all events in the database' do

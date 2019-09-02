@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+$LOAD_PATH.unshift Pathname.new(__dir__).join("..", "lib")
+
+require "event_framework"
+require_relative "../spec/support/test_domain.rb"
+
+EventFramework::Tasks.root_module = Object
+EventFramework::Tasks.registered_contexts = [:test_domain]
+
+EventFramework::Tasks::Runner.start

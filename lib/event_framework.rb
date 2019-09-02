@@ -1,4 +1,5 @@
 require 'dry/configurable'
+require 'logger'
 
 module EventFramework
   extend Dry::Configurable
@@ -37,23 +38,10 @@ module EventFramework
   autoload :Tasks, 'event_framework/tasks'
   autoload :Types, 'event_framework/types'
 
-  # See https://github.com/rails/rails/blob/20c91119903f70eb19aed33fe78417789dbf070f/railties/lib/rails.rb#L72
-  # TODO: Delete everything below after configuration re-factor is complete
-  def self.environment
-    ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
-  end
-
   # The root path of the EventFramework files
   def self.root
     Pathname.new(__dir__).join('..')
   end
-
-  # The Module from which Event definitions are sourced; defaults to Object
-  setting :event_namespace_class, Object
-
-  # The full URL used to connect to the database
-  # e.g. postgres://localhost/database_name
-  setting :database_url
 
   # An Object that responds to `.call` that is called with an array of new
   # Events any time an event or list of events is saved.
@@ -62,10 +50,4 @@ module EventFramework
   # An Object that responds to `.call` that is called with an error and an
   # event any time an error is raised in an event processor.
   setting :event_processor_error_reporter, -> (error, event) {}
-
-  # The default directory for database files
-  setting :database_directory, File.expand_path('../db', __dir__)
 end
-
-# TODO: Delete after configuration re-factor is complete
-require_relative "../config/environments/#{EventFramework.environment}"

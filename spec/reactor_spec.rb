@@ -14,10 +14,8 @@ module EventFramework
       end
     end
 
-    let(:event_type_resolver) { EventStore::EventTypeResolver.new(event_context_module: TestDomain) }
-
-    let(:sink) { EventStore::Sink.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
-    let(:source) { EventStore::Source.new(database: EventFramework.test_database, event_type_resolver: event_type_resolver) }
+    let(:sink) { TestDomain.container.resolve('event_store.sink') }
+    let(:source) { TestDomain.container.resolve('event_store.source') }
 
     before do
       stub_const('TestDomain::ReactorTest::TestEvent1', test_event_1)

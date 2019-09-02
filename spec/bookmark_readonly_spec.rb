@@ -1,6 +1,6 @@
 module EventFramework
   RSpec.describe BookmarkReadonly do
-    let(:database) { EventFramework.test_database }
+    let(:database) { TestDomain.database(:projections) }
     let(:bookmark) { described_class.new(name: 'foo', database: database) }
 
     before do

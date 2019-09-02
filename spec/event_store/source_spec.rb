@@ -12,7 +12,7 @@ end
 
 module EventFramework
   RSpec.describe EventStore::Source do
-    let(:database) { EventFramework.test_database }
+    let(:database) { TestDomain.database(:event_store) }
     let(:event_type_resolver) { instance_double(EventStore::EventTypeResolver) }
 
     before do

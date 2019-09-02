@@ -9,13 +9,5 @@ module EventFramework
     autoload :SequenceStats, 'event_framework/event_store/sequence_stats'
     autoload :Sink, 'event_framework/event_store/sink'
     autoload :Source, 'event_framework/event_store/source'
-
-    def self.database
-      raise NotImplementedError if EventFramework.config.database_url.nil?
-
-      @database ||= Sequel.connect(EventFramework.config.database_url).tap do |database|
-        database.extension :pg_json
-      end
-    end
   end
 end
