@@ -37,7 +37,8 @@ SET default_with_oids = false;
 CREATE TABLE public.bookmarks (
     lock_key bigint NOT NULL,
     name text NOT NULL,
-    sequence bigint NOT NULL
+    sequence bigint NOT NULL,
+    disabled boolean DEFAULT true NOT NULL
 );
 
 
