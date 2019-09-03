@@ -18,7 +18,7 @@ module EventFramework
       end
       let(:logger) { instance_double(Logger) }
       let(:events) { [] }
-      let(:bookmark) { instance_double(Bookmark, sequence: 0) }
+      let(:bookmark) { instance_double(Bookmark, next: [0, false]) }
       let(:event_source) { instance_double(EventStore::Source) }
 
       let(:event_processor_worker_arguments) do
@@ -33,7 +33,6 @@ module EventFramework
 
       before do
         allow(logger).to receive(:info)
-        allow(event_processor_worker).to receive(:sleep)
         allow(event_source).to receive(:get_after).with(0).and_return(events)
 
         # NOTE: Shut down after the first loop.
@@ -64,7 +63,7 @@ module EventFramework
 
         before do
           allow(event_processor).to receive(:handle_event)
-          allow(bookmark).to receive(:sequence).and_return(0, 2)
+          allow(bookmark).to receive(:next).and_return([0, false], [2, false])
           allow(bookmark).to receive(:sequence=)
         end
 
@@ -101,6 +100,34 @@ module EventFramework
             last_processed_event_sequence: 2,
             last_processed_event_id: events.last.id,
           )
+
+          event_processor_worker.call
+        end
+      end
+
+      context 'when the processor is disabled an then enabled again' do
+        let(:event_1) { instance_double(Event, sequence: 1, id: SecureRandom.uuid) }
+        let(:event_2) { instance_double(Event, sequence: 2, id: SecureRandom.uuid) }
+
+        before do
+          allow(bookmark).to receive(:next).and_return([0, false], [1, true], [1, false])
+          allow(bookmark).to receive(:sequence=)
+          allow(event_source).to receive(:get_after).with(0).and_return([event_1])
+          allow(event_source).to receive(:get_after).with(1).and_return([event_2])
+
+          # NOTE: Shut down after the third loop.
+          allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, false, false, true)
+        end
+
+        it 'sleeps for DISABLED_SLEEP_INTERVAL' do
+          # Enabled
+          expect(event_processor).to receive(:handle_event).with(event_1)
+
+          # Disabled, sleep
+          expect(event_processor_worker).to receive(:sleep).with(described_class::DISABLED_SLEEP_INTERVAL)
+
+          # Enabled again
+          expect(event_processor).to receive(:handle_event).with(event_2)
 
           event_processor_worker.call
         end

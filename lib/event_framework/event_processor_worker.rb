@@ -6,6 +6,7 @@ module EventFramework
   # the event processor. It then updates the bookmark sequence.
   class EventProcessorWorker
     SLEEP_INTERVAL = 0.1
+    DISABLED_SLEEP_INTERVAL = 10
 
     class << self
       def call(*args)
@@ -30,19 +31,27 @@ module EventFramework
       loop do
         break if shutdown_requested
 
-        events = event_source.get_after(bookmark.sequence)
+        sequence, disabled = bookmark.next
 
-        if events.empty?
-          sleep SLEEP_INTERVAL
+        if disabled
+          sleep DISABLED_SLEEP_INTERVAL
         else
-          log('new_events', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+          events = event_source.get_after(sequence)
 
-          events.each do |event|
-            event_processor.handle_event(event)
-            bookmark.sequence = event.sequence
+          if events.empty?
+            sleep SLEEP_INTERVAL
+          else
+            log('new_events', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+
+            last_sequence = nil
+            events.each do |event|
+              event_processor.handle_event(event)
+              last_sequence = event.sequence
+              bookmark.sequence = event.sequence
+            end
+
+            log('processed_up_to', last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
           end
-
-          log('processed_up_to', last_processed_event_sequence: bookmark.sequence, last_processed_event_id: events.last.id)
         end
       end
     end

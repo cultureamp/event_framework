@@ -5,8 +5,8 @@ module EventFramework
       @bookmarks_table = database[:bookmarks]
     end
 
-    def sequence
-      bookmarks_table.select(:sequence).first(name: name)[:sequence]
+    def next
+      bookmarks_table.select(:sequence, :disabled).first(name: name).values
     end
 
     def sequence=(value)
