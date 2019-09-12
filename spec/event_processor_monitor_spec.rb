@@ -2,10 +2,11 @@ module EventFramework
   RSpec.describe EventProcessorMonitor do
     describe '.call' do
       let(:sequence_stats_class) { class_double(EventStore::SequenceStats) }
-      let(:bookmark_readonly_class) { class_double(BookmarkReadonly) }
       let(:sequence_stats) { instance_double(EventStore::SequenceStats) }
       let(:bookmark_1) { instance_double(BookmarkReadonly) }
       let(:bookmark_2) { instance_double(BookmarkReadonly) }
+      let(:bookmark_repository_1) { instance_double(BookmarkRepository, readonly_bookmark: bookmark_1) }
+      let(:bookmark_repository_2) { instance_double(BookmarkRepository, readonly_bookmark: bookmark_2) }
       let(:metrics) { double(:metrics) }
       let(:bookmark_database) { instance_spy(EventFramework::DatabaseConnection) }
       let(:sequence_stats_database) { instance_spy(EventFramework::DatabaseConnection) }
@@ -13,7 +14,6 @@ module EventFramework
       subject(:event_processor_monitor) do
         described_class.new(
           sequence_stats_class: sequence_stats_class,
-          bookmark_readonly_class: bookmark_readonly_class,
           metrics: metrics,
           bookmark_database: bookmark_database,
           sequence_stats_database: sequence_stats_database,
@@ -38,8 +38,12 @@ module EventFramework
       end
 
       before do
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_1', database: bookmark_database).and_return(bookmark_1)
-        allow(bookmark_readonly_class).to receive(:new).with(name: 'event_processor_class_2', database: bookmark_database).and_return(bookmark_2)
+        allow(BookmarkRepository).to receive(:new)
+          .with(name: 'event_processor_class_1', database: bookmark_database)
+          .and_return(bookmark_repository_1)
+        allow(BookmarkRepository).to receive(:new)
+          .with(name: 'event_processor_class_2', database: bookmark_database)
+          .and_return(bookmark_repository_2)
 
         allow(sequence_stats_class).to receive(:new).with(database: sequence_stats_database).and_return(sequence_stats)
 

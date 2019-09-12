@@ -8,9 +8,15 @@ module EventFramework
     end
 
     def checkout
-      acquire_lock
+      lock_key = acquire_lock
 
-      Bookmark.new(name: name, database: database)
+      Bookmark.new(lock_key: lock_key, database: database)
+    end
+
+    def readonly_bookmark
+      bookmark = find_bookmark
+
+      BookmarkReadonly.new(lock_key: bookmark[:lock_key], database: database)
     end
 
     private
@@ -25,6 +31,8 @@ module EventFramework
         raise UnableToCheckoutBookmarkError, "Unable to checkout #{name} (#{bookmark[:lock_key]}); " \
           "another process is already using this bookmark"
       end
+
+      bookmark[:lock_key]
     end
 
     def try_lock(lock_key)
@@ -36,7 +44,8 @@ module EventFramework
     end
 
     def find_bookmark
-      database[:bookmarks].select(:lock_key).first(name: name)
+      name_final_part = name.split("::").last
+      database[:bookmarks].select(:lock_key).first(Sequel.like(:name, "%::#{name_final_part}"))
     end
 
     def construct_new_bookmark
