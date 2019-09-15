@@ -1,10 +1,10 @@
 module EventFramework
   RSpec.describe Bookmark do
     let(:database) { TestDomain.database(:projections) }
-    let(:bookmark) { described_class.new(name: 'foo', database: database) }
+    let(:bookmark) { described_class.new(lock_key: 1, database: database) }
 
     before do
-      database[:bookmarks].insert(name: 'foo', sequence: 42)
+      database[:bookmarks].insert(name: 'foo', lock_key: 1, sequence: 42)
     end
 
     describe '#next' do
