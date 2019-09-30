@@ -5,7 +5,12 @@ module EventFramework
   RSpec.describe EventProcessor do
     let(:event_processor_subclass) do
       Class.new(EventProcessor) do
-        attr_reader :foo_test_event
+        attr_reader :foo_test_event, :all_events
+
+        process_all do |aggregate_id, domain_event, metadata|
+          @all_events ||= []
+          @all_events << [aggregate_id, domain_event, metadata]
+        end
 
         process FooTestEvent do |aggregate_id, domain_event, metadata|
           @foo_test_event = [aggregate_id, domain_event, metadata]
@@ -44,6 +49,16 @@ module EventFramework
         event_processor.handle_event(event)
 
         expect(event_processor.foo_test_event).to eq [aggregate_id, domain_event, metadata]
+      end
+
+      it 'calls the all handler' do
+        event_processor.handle_event(event)
+        event_processor.handle_event(event)
+
+        expect(event_processor.all_events).to eq [
+          [aggregate_id, domain_event, metadata],
+          [aggregate_id, domain_event, metadata],
+        ]
       end
 
       context 'when an error occurs' do

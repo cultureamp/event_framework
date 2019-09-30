@@ -8,6 +8,10 @@ module EventFramework
         end
       end
 
+      def process_all(&block)
+        event_handlers.add_all_handler(block)
+      end
+
       def event_handlers
         @event_handlers ||= EventHandlerRegistry.new
       end
