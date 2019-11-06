@@ -1,5 +1,3 @@
-require 'forked'
-
 module EventFramework
   # The EventProcessorRunner is responsible initializing a single event
   # processor and checking out a bookmark for it then starting a worker.
