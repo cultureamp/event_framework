@@ -39,7 +39,7 @@ module EventFramework
       set_process_name
 
       processor_classes.each do |processor_class|
-        process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do
+        process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do |ready_to_stop|
           # Disconnect from the database to ensure the fork will create it's
           # own connection
           projection_database.disconnect
@@ -64,6 +64,7 @@ module EventFramework
             logger: logger,
             bookmark: bookmark,
             event_source: event_source,
+            &ready_to_stop
           )
         end
       end

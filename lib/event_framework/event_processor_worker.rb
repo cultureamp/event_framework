@@ -9,27 +9,27 @@ module EventFramework
     DISABLED_SLEEP_INTERVAL = 10
 
     class << self
-      def call(*args)
-        new(*args).call
+      def call(*args, &ready_to_stop)
+        new(*args, &ready_to_stop).call
       end
     end
 
-    def initialize(event_processor:, logger:, event_source:, bookmark:)
+    def initialize(event_processor:, logger:, event_source:, bookmark:, &ready_to_stop)
       @event_processor = event_processor
       @logger = logger
       @event_source = event_source
       @bookmark = bookmark
-      @shutdown_requested = false
+      @ready_to_stop = ready_to_stop
     end
 
     def call
       set_process_name
       log('forked')
-      listen_for_term_signal
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
       loop do
-        break if shutdown_requested
+        # We're in a safe place to stop if we need to.
+        ready_to_stop.call
 
         sequence, disabled = bookmark.next
 
@@ -58,15 +58,7 @@ module EventFramework
 
     private
 
-    attr_reader :event_processor, :logger, :event_source, :bookmark, :shutdown_requested
-
-    def listen_for_term_signal
-      Signal.trap(:TERM) { request_shutdown }
-    end
-
-    def request_shutdown
-      @shutdown_requested = true
-    end
+    attr_reader :event_processor, :logger, :event_source, :bookmark, :ready_to_stop
 
     def set_process_name
       Process.setproctitle "event_processor [#{event_processor.class.name}]"

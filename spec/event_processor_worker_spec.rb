@@ -20,6 +20,17 @@ module EventFramework
       let(:events) { [] }
       let(:bookmark) { instance_double(Bookmark, next: [0, false]) }
       let(:event_source) { instance_double(EventStore::Source) }
+      # NOTE: Shut down after the first loop.
+      let(:ready_to_stop_after) { 1 }
+      let(:ready_to_stop) do
+        lambda do
+          @ready_to_stop ||= 0
+          if @ready_to_stop == ready_to_stop_after
+            throw :done
+          end
+          @ready_to_stop += 1
+        end
+      end
 
       let(:event_processor_worker_arguments) do
         {
@@ -29,14 +40,17 @@ module EventFramework
           event_source: event_source,
         }
       end
-      subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments) }
+      subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments, &ready_to_stop) }
 
       before do
         allow(logger).to receive(:info)
         allow(event_source).to receive(:get_after).with(0).and_return(events)
+      end
 
-        # NOTE: Shut down after the first loop.
-        allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, true)
+      def run_event_processor_worker
+        catch :done do
+          event_processor_worker.call
+        end
       end
 
       it 'logs that the process has forked' do
@@ -45,14 +59,14 @@ module EventFramework
           msg: 'event_processor.worker.forked',
         )
 
-        event_processor_worker.call
+        run_event_processor_worker
       end
 
       context 'with no events' do
         it 'sleeps' do
           expect(event_processor_worker).to receive(:sleep)
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
       end
 
@@ -71,14 +85,14 @@ module EventFramework
           expect(event_processor).to receive(:handle_event).with(event_1)
           expect(event_processor).to receive(:handle_event).with(event_2)
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
 
         it 'updates the bookmark sequence' do
           expect(bookmark).to receive(:sequence=).with(1)
           expect(bookmark).to receive(:sequence=).with(2)
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
 
         it 'logs a summary of the new events' do
@@ -90,7 +104,7 @@ module EventFramework
             count: 2,
           )
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
 
         it 'logs the last processed sequence' do
@@ -101,7 +115,7 @@ module EventFramework
             last_processed_event_id: events.last.id,
           )
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
       end
 
@@ -109,14 +123,14 @@ module EventFramework
         let(:event_1) { instance_double(Event, sequence: 1, id: SecureRandom.uuid) }
         let(:event_2) { instance_double(Event, sequence: 2, id: SecureRandom.uuid) }
 
+        # NOTE: Shut down after the third loop.
+        let(:ready_to_stop_after) { 3 }
+
         before do
           allow(bookmark).to receive(:next).and_return([0, false], [1, true], [1, false])
           allow(bookmark).to receive(:sequence=)
           allow(event_source).to receive(:get_after).with(0).and_return([event_1])
           allow(event_source).to receive(:get_after).with(1).and_return([event_2])
-
-          # NOTE: Shut down after the third loop.
-          allow(event_processor_worker).to receive(:shutdown_requested).and_return(false, false, false, true)
         end
 
         it 'sleeps for DISABLED_SLEEP_INTERVAL' do
@@ -129,7 +143,7 @@ module EventFramework
           # Enabled again
           expect(event_processor).to receive(:handle_event).with(event_2)
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
       end
 
@@ -139,7 +153,7 @@ module EventFramework
         it 'sets the logger' do
           expect(event_processor).to receive(:logger=).with(logger)
 
-          event_processor_worker.call
+          run_event_processor_worker
         end
       end
     end
