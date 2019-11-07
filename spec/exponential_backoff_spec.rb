@@ -65,6 +65,7 @@ module EventFramework
         tries
       end
       expect(exponential_backoff).to receive(:sleep).with(1).exactly(14).times
+      # 2 seconds first error, 4 seconds second error, 8 times third error, which is 14 total
       exponential_backoff.run(-> {}) { raise_twice_block.call }
     end
   end
