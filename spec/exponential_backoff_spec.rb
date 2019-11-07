@@ -68,5 +68,22 @@ module EventFramework
       # 2 seconds first error, 4 seconds second error, 8 times third error, which is 14 total
       exponential_backoff.run(-> {}) { raise_twice_block.call }
     end
+
+    it "sleeps with exponential backoff with a cap" do
+      tries = 0
+      raise_9_times_block = proc do
+        if tries < 10
+          tries += 1
+          raise TestError
+        end
+        tries += 1
+        tries
+      end
+      exponential_backoff.run(-> {}) { raise_9_times_block.call }
+
+      # We'll sleep for 2, 4, 8, ..., 128, 256, 300, 300
+      expect(logger).to have_received(:info).with(/sleeping for 256 seconds/)
+      expect(logger).to have_received(:info).with(/sleeping for 300 seconds/).twice
+    end
   end
 end

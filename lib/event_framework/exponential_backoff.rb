@@ -2,6 +2,7 @@ module EventFramework
   # https://github.com/envato/forked/blob/967afd253e1235c49c033992cc9e7f5fae583733/lib/forked/retry_strategies/exponential_backoff.rb
   class ExponentialBackoff
     BACKOFF_FACTOR = 2
+    MAX_SLEEP = 5 * 60 # 5 minutes
 
     def initialize(logger:, on_error:)
       @logger = logger
@@ -14,7 +15,7 @@ module EventFramework
         yield
       rescue StandardError => e
         tries += 1
-        sleep_seconds = BACKOFF_FACTOR**tries
+        sleep_seconds = [BACKOFF_FACTOR**tries, MAX_SLEEP].min
         @logger.error("#{e.class} #{e.message}")
         @logger.info("#{e.class} sleeping for #{sleep_seconds} seconds")
         @on_error.call(e, tries)
