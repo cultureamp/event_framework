@@ -1,3 +1,4 @@
+require "event_framework/exponential_backoff"
 require "event_framework/with_graceful_shutdown"
 
 module EventFramework
@@ -5,6 +6,16 @@ module EventFramework
   # processor and checking out a bookmark for it then starting a worker.
   class EventProcessorRunner
     UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
+
+    class OnError
+      def initialize(logger)
+        @logger = logger
+      end
+
+      def call(error, tries)
+        @logger.error(msg: error.message, error: error.class.name, tries: tries)
+      end
+    end
 
     def initialize(processor_class:, domain_context:)
       @processor_class = processor_class
@@ -20,13 +31,15 @@ module EventFramework
       event_source = domain_context.container.resolve("event_store.source")
 
       WithGracefulShutdown.run(logger: logger) do |ready_to_stop|
-        EventProcessorWorker.call(
-          event_processor: event_processor,
-          logger: logger,
-          bookmark: bookmark,
-          event_source: event_source,
-          &ready_to_stop
-        )
+        ExponentialBackoff.new(logger: logger, on_error: OnError.new(logger)).run(ready_to_stop) do
+          EventProcessorWorker.call(
+            event_processor: event_processor,
+            logger: logger,
+            bookmark: bookmark,
+            event_source: event_source,
+            &ready_to_stop
+          )
+        end
       end
     end
 
