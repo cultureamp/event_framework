@@ -1,3 +1,5 @@
+require "event_framework/with_graceful_shutdown"
+
 module EventFramework
   # The EventProcessorRunner is responsible initializing a single event
   # processor and checking out a bookmark for it then starting a worker.
@@ -17,12 +19,15 @@ module EventFramework
       bookmark = checkout_bookmark
       event_source = domain_context.container.resolve("event_store.source")
 
-      EventProcessorWorker.call(
-        event_processor: event_processor,
-        logger: logger,
-        bookmark: bookmark,
-        event_source: event_source,
-      )
+      WithGracefulShutdown.run(logger: logger) do |ready_to_stop|
+        EventProcessorWorker.call(
+          event_processor: event_processor,
+          logger: logger,
+          bookmark: bookmark,
+          event_source: event_source,
+          &ready_to_stop
+        )
+      end
     end
 
     private
