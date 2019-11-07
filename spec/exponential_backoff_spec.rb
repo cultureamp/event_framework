@@ -5,7 +5,7 @@ module EventFramework
     TestError = Class.new(StandardError)
 
     let(:ready_to_stop) { -> {} }
-    let(:logger) { instance_double(Logger, error: nil) }
+    let(:logger) { instance_double(Logger, error: nil, info: nil) }
     let(:on_error) { instance_double(Proc, call: nil) }
     let(:raise_on_first_block) do
       tries = 0
@@ -45,6 +45,7 @@ module EventFramework
         TestError
       end
       expect(logger).to have_received(:error)
+      expect(logger).to have_received(:info)
     end
 
     it "calls ready to stop each second interval" do

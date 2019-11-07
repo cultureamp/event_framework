@@ -15,6 +15,7 @@ module EventFramework
         tries += 1
         sleep_seconds = @backoff_factor**tries
         @logger.error("#{e.class} #{e.message}")
+        @logger.info("#{e.class} sleeping for #{sleep_seconds} seconds")
         @on_error.call(e, tries)
         sleep_seconds.times do
           ready_to_stop.call
