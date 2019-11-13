@@ -2,8 +2,8 @@ require "event_framework/exponential_backoff"
 require "event_framework/with_graceful_shutdown"
 
 module EventFramework
-  # The EventProcessorRunner is responsible initializing a single event
-  # processor and checking out a bookmark for it then starting a worker.
+  # The EventProcessorRunner is responsible for initializing a single event
+  # processor, checking out a bookmark for it then starting a worker.
   class EventProcessorRunner
     UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
 
