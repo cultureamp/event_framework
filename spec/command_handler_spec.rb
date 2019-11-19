@@ -84,6 +84,41 @@ module EventFramework
       end
     end
 
+    describe '#with_new_or_existing_aggregate' do
+      let(:aggregate) { double :aggregate }
+      let(:repository) { instance_spy "Repository", new_or_existing_aggregate: aggregate }
+      let(:thing_class) { class_double "Thing" }
+
+      let(:instance) do
+        described_class.new(repository: repository)
+      end
+
+      let(:empty_block) { -> (aggregate) {} }
+
+      it 'is private' do
+        expect { instance.with_new_or_existing_aggregate(thing_class, aggregate_id, &empty_block) }
+          .to raise_error(NoMethodError, /private method(.*)with_new_or_existing_aggregate/)
+      end
+
+      it 'loads an aggregate from the repository' do
+        instance.send(:with_new_or_existing_aggregate, thing_class, aggregate_id, &empty_block)
+
+        expect(repository).to have_received(:new_or_existing_aggregate).with(thing_class, aggregate_id)
+      end
+
+      it 'yields the aggregate to a block' do
+        expect { |b| instance.send(:with_new_or_existing_aggregate, thing_class, aggregate_id, &b) }
+          .to yield_with_args(aggregate)
+      end
+
+      it 'saves the aggregate' do
+        instance.instance_variable_set(:@metadata, metadata)
+        instance.send(:with_new_or_existing_aggregate, thing_class, aggregate_id, &empty_block)
+
+        expect(repository).to have_received(:save_aggregate).with(aggregate, metadata: metadata)
+      end
+    end
+
     describe '#call' do
       after do
         described_class.instance_variable_set(:@handler_proc, nil)

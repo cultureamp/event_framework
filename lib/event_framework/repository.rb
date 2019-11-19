@@ -26,6 +26,14 @@ module EventFramework
       end
     end
 
+    def new_or_existing_aggregate(aggregate_class, aggregate_id)
+      events = source.get_for_aggregate(aggregate_id)
+
+      aggregate_class.build(aggregate_id).tap do |aggregate|
+        aggregate.load_events(events)
+      end
+    end
+
     def save_aggregate(aggregate, metadata:, ensure_new_aggregate: false)
       events = aggregate.staged_events.each_with_index.map do |staged_event, i|
         staged_event = staged_event.new(mutable_metadata: metadata)

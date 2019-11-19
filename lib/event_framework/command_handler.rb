@@ -169,5 +169,25 @@ module EventFramework
 
       repository.save_aggregate(aggregate, metadata: metadata, ensure_new_aggregate: true)
     end
+
+    # Internal: Hydrates an instance of the given aggregate class by fetching a sequence
+    # of events from the Event Source, or initializes an empty instance of the given aggregate
+    # class when no events exist, via a Repository.
+    #
+    # It then yields to the the handler, and persists any newly-generate events
+    # into the Event Sink (again, via the Repository)
+    #
+    # aggregate_class - the Class<Aggregate> to hydrate
+    # aggregate_id    - a String containing the UUID of the instance of
+    #                   aggregate_class to hydrate
+    #
+    # Yields an instance of the Class passed in via AggregateClass
+    def with_new_or_existing_aggregate(aggregate_class, aggregate_id)
+      aggregate = repository.new_or_existing_aggregate(aggregate_class, aggregate_id)
+
+      yield aggregate
+
+      repository.save_aggregate(aggregate, metadata: metadata)
+    end
   end
 end
