@@ -10,7 +10,7 @@ module EventFramework
 
     attribute :metadata, DomainStruct do
       attribute :account_id, Types::UUID
-      attribute :user_id, Types::UUID
+      attribute :user_id, Types::UUID.meta(omittable: true)
       attribute :correlation_id, Types::UUID.meta(omittable: true)
       attribute :causation_id, Types::UUID.meta(omittable: true)
       attribute :migrated, Types::Bool.meta(omittable: true)
