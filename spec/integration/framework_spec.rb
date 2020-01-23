@@ -36,6 +36,14 @@ module TestDomain
       end
     end
 
+    class NewOrExistingImplementThingHandler < EventFramework::CommandHandler
+      handle ImplementThing do |command, _metadata, _executor|
+        with_new_or_existing_aggregate(ThingAggregate, command.aggregate_id) do |thing|
+          thing.implement(foo: command.foo, bar: command.bar)
+        end
+      end
+    end
+
     class ImplementThingsHandler < EventFramework::CommandHandler
       handle ImplementThings do |command, _metadata, _executor|
         with_new_aggregate(ThingAggregate, command.aggregate_id) do |thing|
@@ -153,6 +161,36 @@ RSpec.describe 'integration' do
           an_object_having_attributes(aggregate_sequence: 1, domain_event: an_object_having_attributes(foo: 'Foo existing', bar: 'Bar existing')),
           an_object_having_attributes(aggregate_sequence: 2, domain_event: an_object_having_attributes(foo: 'Foo', bar: 'Bar')),
         ]
+      end
+    end
+
+    context 'for an aggregate that may or may not already exist' do
+      let(:handler) do
+        TestDomain::Thing::NewOrExistingImplementThingHandler.new(repository: repository)
+      end
+
+      it 'persists a single event' do
+        expect(events.length).to eql 1
+      end
+
+      context 'with an existing event' do
+        let(:existing_events) do
+          [
+            EventFramework::StagedEvent.new(
+              aggregate_id: aggregate_id,
+              aggregate_sequence: 1,
+              domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
+              mutable_metadata: metadata,
+            ),
+          ]
+        end
+
+        it 'persists the event with an incremented aggregate_sequence' do
+          expect(events).to match [
+            an_object_having_attributes(aggregate_sequence: 1, domain_event: an_object_having_attributes(foo: 'Foo existing', bar: 'Bar existing')),
+            an_object_having_attributes(aggregate_sequence: 2, domain_event: an_object_having_attributes(foo: 'Foo', bar: 'Bar')),
+          ]
+        end
       end
     end
   end
