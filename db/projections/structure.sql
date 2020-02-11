@@ -38,7 +38,7 @@ CREATE TABLE public.bookmarks (
     lock_key bigint NOT NULL,
     name text NOT NULL,
     sequence bigint NOT NULL,
-    disabled boolean DEFAULT true NOT NULL
+    disabled boolean DEFAULT false NOT NULL
 );
 
 

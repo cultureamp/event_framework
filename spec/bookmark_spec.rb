@@ -11,7 +11,7 @@ module EventFramework
       it 'returns the sequence and disabled state' do
         sequence, disabled = bookmark.next
         expect(sequence).to eq 42
-        expect(disabled).to be true
+        expect(disabled).to be false
       end
     end
 

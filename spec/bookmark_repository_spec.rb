@@ -6,12 +6,12 @@ module EventFramework
 
     describe '#checkout' do
       context 'when the bookmark does not exist' do
-        it 'returns a bookmark starting a 0 and disabled' do
+        it 'returns a bookmark starting a 0 and enabled' do
           bookmark = bookmark_repository.checkout
           sequence, disabled = bookmark.next
 
           expect(sequence).to eq 0
-          expect(disabled).to be true
+          expect(disabled).to be false
         end
 
         it 'inserts a new record into the database' do
