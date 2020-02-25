@@ -165,7 +165,7 @@ module EventFramework
         it 'does not persist the event' do
           begin
             subject.sink(staged_events)
-          rescue described_class::ConcurrencyError # rubocop:disable Lint/HandleExceptions
+          rescue described_class::ConcurrencyError # rubocop:disable Lint/SuppressedException
           end
 
           expect(persisted_tuples_for_aggregate(staged_events.first.aggregate_id).length).to eql 1
