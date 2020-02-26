@@ -28,12 +28,12 @@ module EventFramework
         aggregate_sequence: aggregate_sequence,
         aggregate_type: 'Thing',
         event_type: 'EventHappened',
-        mutable_metadata: metadata,
+        metadata: metadata,
       )
     end
 
     let(:metadata) do
-      Metadata.new(
+      Event::Metadata.new(
         account_id: SecureRandom.uuid,
         user_id: SecureRandom.uuid,
         correlation_id: SecureRandom.uuid,
@@ -276,7 +276,7 @@ module EventFramework
     end
 
     context 'with missing metadata attributes' do
-      let(:metadata) { Metadata.new }
+      let(:metadata) { Event::Metadata.new }
 
       it 'raises an error' do
         expect { subject.sink [build_staged_event] }

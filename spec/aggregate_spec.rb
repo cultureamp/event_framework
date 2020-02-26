@@ -59,7 +59,7 @@ module EventFramework
     let(:aggregate) { TestDomain::Thing::ThingAggregate.build(aggregate_id) }
 
     let(:metadata) do
-      Metadata.new(
+      Event::Metadata.new(
         correlation_id: '802ed3ee-cd97-43f7-8ec1-bd58412b0eea',
         user_id: '7f86bd0e-793e-437e-9398-b9213ed482ef',
         account_id: '760ca62f-f0ba-4ad4-9471-ed4c25345cc1',
@@ -114,13 +114,13 @@ module EventFramework
             aggregate_id: aggregate_id,
             aggregate_sequence: 5,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            mutable_metadata: nil,
+            metadata: nil,
           ),
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 6,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            mutable_metadata: nil,
+            metadata: nil,
           ),
         ]
 

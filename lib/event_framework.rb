@@ -30,7 +30,6 @@ module EventFramework
   autoload :EventProcessorMonitor, 'event_framework/event_processor_monitor'
   autoload :EventProcessorRunner, 'event_framework/event_processor_runner'
   autoload :EventStore, 'event_framework/event_store'
-  autoload :Metadata, 'event_framework/metadata'
   autoload :ParameterStoreDatabaseConfiguration, 'event_framework/parameter_store_database_configuration'
   autoload :Projector, 'event_framework/projector'
   autoload :Reactor, 'event_framework/reactor'
@@ -38,6 +37,9 @@ module EventFramework
   autoload :StagedEvent, 'event_framework/staged_event'
   autoload :Tasks, 'event_framework/tasks'
   autoload :Types, 'event_framework/types'
+
+  # TODO: Remove this alias
+  Metadata = Event::Metadata
 
   # The root path of the EventFramework files
   def self.root

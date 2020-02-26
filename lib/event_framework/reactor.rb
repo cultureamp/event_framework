@@ -54,7 +54,7 @@ module EventFramework
 
       yield aggregate
 
-      metadata.causation_id ||= _current_event.id
+      metadata = metadata.new(causation_id: metadata.causation_id || _current_event.id)
 
       repository.save_aggregate(aggregate, metadata: metadata)
     rescue EventStore::Sink::ConcurrencyError
@@ -71,7 +71,7 @@ module EventFramework
 
       yield aggregate
 
-      metadata.causation_id ||= _current_event.id
+      metadata = metadata.new(causation_id: metadata.causation_id || _current_event.id)
 
       repository.save_aggregate(aggregate, metadata: metadata, ensure_new_aggregate: true)
     end

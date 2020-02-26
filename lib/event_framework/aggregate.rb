@@ -50,7 +50,7 @@ module EventFramework
         aggregate_id: id,
         aggregate_sequence: aggregate_sequence.next,
         domain_event: domain_event,
-        mutable_metadata: nil,
+        metadata: nil,
       )
     end
 

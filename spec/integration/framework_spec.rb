@@ -80,7 +80,7 @@ RSpec.describe 'integration' do
   let(:aggregate_id)       { "ed3f5377-b063-4c53-8827-91123ca2aec6" }
 
   let(:metadata) do
-    EventFramework::Metadata.new(
+    EventFramework::Event::Metadata.new(
       user_id: current_user_id,
       account_id: current_account_id,
       correlation_id: request_id,
@@ -147,7 +147,7 @@ RSpec.describe 'integration' do
             aggregate_id: aggregate_id,
             aggregate_sequence: 1,
             domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
-            mutable_metadata: metadata,
+            metadata: metadata,
           ),
         ]
       end
@@ -180,7 +180,7 @@ RSpec.describe 'integration' do
               aggregate_id: aggregate_id,
               aggregate_sequence: 1,
               domain_event: TestDomain::Thing::ThingImplemented.new(foo: 'Foo existing', bar: 'Bar existing'),
-              mutable_metadata: metadata,
+              metadata: metadata,
             ),
           ]
         end
