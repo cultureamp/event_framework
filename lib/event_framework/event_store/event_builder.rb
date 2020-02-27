@@ -11,7 +11,7 @@ module EventFramework
         domain_event_class = event_type_resolver.deserialize(row[:aggregate_type], row[:event_type])
 
         row[:body] = row[:body].to_h
-        row[:metadata] = row[:metadata].to_h
+        row[:metadata] = upcast_metadata(row[:metadata].to_h)
         row = Transformations[:deep_symbolize_keys].call(row)
         row = domain_event_class.upcast_row(row)
 
@@ -21,7 +21,7 @@ module EventFramework
           aggregate_id: row[:aggregate_id],
           aggregate_sequence: row[:aggregate_sequence],
           created_at: row[:created_at],
-          metadata: Event::Metadata.new(row[:metadata]),
+          metadata: build_metadata(row[:metadata]),
           domain_event: domain_event_class.new(row[:body]),
         )
       end
@@ -29,6 +29,22 @@ module EventFramework
       private
 
       attr_reader :event_type_resolver
+
+      def upcast_metadata(metadata)
+        metadata[:metadata_type] ||= :attributed
+        metadata
+      end
+
+      def build_metadata(metadata)
+        case metadata[:metadata_type]
+        when :attributed
+          Event::Metadata.new(metadata)
+        when :unattributed
+          Event::UnattributedMetadata.new(metadata)
+        else
+          raise "unknown metadata_type: #{metadata[:metadata_type].inspect}"
+        end
+      end
     end
   end
 end
