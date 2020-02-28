@@ -10,7 +10,12 @@ module EventFramework
       def call(row)
         domain_event_class = event_type_resolver.deserialize(row[:aggregate_type], row[:event_type])
 
+        # The body and metadata fields are returned from the database as
+        # Sequel::Postgres::JSONBHash so we want to turn them into standard
+        # Ruby hashes.
         row[:body] = row[:body].to_h
+        row[:metadata] = row[:metadata].to_h
+
         row[:metadata] = upcast_metadata(row[:metadata].to_h)
         row = Transformations[:deep_symbolize_keys].call(row)
         row = domain_event_class.upcast_row(row)
