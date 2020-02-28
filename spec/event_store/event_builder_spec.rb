@@ -49,7 +49,7 @@ module EventFramework
           metadata: {
             account_id: account_id,
             user_id: user_id,
-            metadata_type: :attributed,
+            metadata_type: 'attributed',
           },
         }
       end
@@ -75,7 +75,7 @@ module EventFramework
         expect(event.metadata).to be_a Event::Metadata
         expect(event.metadata.account_id).to eq account_id
         expect(event.metadata.user_id).to eq user_id
-        expect(event.metadata.metadata_type).to eq :attributed
+        expect(event.metadata.metadata_type).to eq 'attributed'
       end
 
       describe 'metadata upcasting' do
@@ -84,21 +84,21 @@ module EventFramework
           event_builder.call(row)
         end
 
-        it 'defaults metadata_type to :attributed' do
-          expect(event.metadata.metadata_type).to eq :attributed
+        it 'defaults metadata_type to "attributed"' do
+          expect(event.metadata.metadata_type).to eq 'attributed'
         end
       end
 
       describe 'unattributed metadata' do
         let(:event) do
-          row[:metadata][:metadata_type] = :unattributed
+          row[:metadata][:metadata_type] = 'unattributed'
           row[:metadata].delete(:user_id)
           event_builder.call(row)
         end
 
         it 'has is an UnattributedMetadata' do
           expect(event.metadata).to be_an Event::UnattributedMetadata
-          expect(event.metadata.metadata_type).to eq :unattributed
+          expect(event.metadata.metadata_type).to eq 'unattributed'
         end
       end
 

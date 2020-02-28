@@ -11,11 +11,11 @@ module EventFramework
 
     class Metadata < BaseMetadata
       attribute :user_id, Types::UUID
-      attribute :metadata_type, Types.Constant(:attributed).default(:attributed)
+      attribute :metadata_type, Types.Value("attributed").default("attributed")
     end
 
     class UnattributedMetadata < BaseMetadata
-      attribute :metadata_type, Types.Constant(:unattributed).default(:unattributed)
+      attribute :metadata_type, Types.Value("unattributed").default("unattributed")
     end
 
     attribute :id, Types::UUID

@@ -31,15 +31,15 @@ module EventFramework
       attr_reader :event_type_resolver
 
       def upcast_metadata(metadata)
-        metadata[:metadata_type] ||= :attributed
+        metadata[:metadata_type] ||= "attributed"
         metadata
       end
 
       def build_metadata(metadata)
         case metadata[:metadata_type]
-        when :attributed
+        when "attributed"
           Event::Metadata.new(metadata)
-        when :unattributed
+        when "unattributed"
           Event::UnattributedMetadata.new(metadata)
         else
           raise "unknown metadata_type: #{metadata[:metadata_type].inspect}"
