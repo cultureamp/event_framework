@@ -2,10 +2,12 @@ module EventFramework
   RSpec.describe Event do
     describe "Metadata" do
       it "requires a user_id" do
-        Event::Metadata.new(
-          account_id: SecureRandom.uuid,
-          user_id: SecureRandom.uuid,
-        )
+        expect do
+          Event::Metadata.new(
+            account_id: SecureRandom.uuid,
+            user_id: SecureRandom.uuid,
+          )
+        end.to_not raise_error
 
         expect do
           Event::Metadata.new(
@@ -32,9 +34,11 @@ module EventFramework
 
     describe "UnattributedMetadata" do
       it "does not allow a user_id" do
-        Event::UnattributedMetadata.new(
-          account_id: SecureRandom.uuid,
-        )
+        expect do
+          Event::UnattributedMetadata.new(
+            account_id: SecureRandom.uuid,
+          )
+        end.to_not raise_error
 
         expect do
           Event::UnattributedMetadata.new(
