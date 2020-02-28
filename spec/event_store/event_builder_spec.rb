@@ -47,9 +47,9 @@ module EventFramework
             test: 'Testing!',
           },
           metadata: {
-            account_id: account_id,
-            user_id: user_id,
-            metadata_type: 'attributed',
+            'account_id' => account_id,
+            'user_id' => user_id,
+            'metadata_type' => 'attributed',
           },
         }
       end
@@ -80,7 +80,7 @@ module EventFramework
 
       describe 'metadata upcasting' do
         let(:event) do
-          row[:metadata].delete(:metadata_type)
+          row[:metadata].delete('metadata_type')
           event_builder.call(row)
         end
 
@@ -91,8 +91,8 @@ module EventFramework
 
       describe 'unattributed metadata' do
         let(:event) do
-          row[:metadata][:metadata_type] = 'unattributed'
-          row[:metadata].delete(:user_id)
+          row[:metadata]['metadata_type'] = 'unattributed'
+          row[:metadata].delete('user_id')
           event_builder.call(row)
         end
 

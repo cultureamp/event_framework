@@ -16,8 +16,11 @@ module EventFramework
         row[:body] = row[:body].to_h
         row[:metadata] = row[:metadata].to_h
 
-        row[:metadata] = upcast_metadata(row[:metadata].to_h)
+        # Now that we have Ruby hashes we can symbolize all the keys for
+        # consistency.
         row = Transformations[:deep_symbolize_keys].call(row)
+
+        row[:metadata] = upcast_metadata(row[:metadata].to_h)
         row = domain_event_class.upcast_row(row)
 
         Event.new(
