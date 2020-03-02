@@ -38,9 +38,6 @@ module EventFramework
   autoload :Tasks, 'event_framework/tasks'
   autoload :Types, 'event_framework/types'
 
-  # TODO: Remove this alias
-  Metadata = Event::Metadata
-
   # The root path of the EventFramework files
   def self.root
     Pathname.new(__dir__).join('..')
