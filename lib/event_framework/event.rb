@@ -7,6 +7,10 @@ module EventFramework
       attribute :correlation_id, Types::UUID.meta(omittable: true)
       attribute :causation_id, Types::UUID.meta(omittable: true)
       attribute :migrated, Types::Bool.meta(omittable: true)
+
+      def unattributed?
+        metadata_type == "unattributed"
+      end
     end
 
     class Metadata < BaseMetadata
