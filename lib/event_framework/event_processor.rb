@@ -27,7 +27,7 @@ module EventFramework
 
     def handle_event(event)
       self.class.event_handlers.for(event.domain_event.type).each do |handler|
-        instance_exec(event.aggregate_id, event.domain_event, event.metadata, event.id, &handler)
+        instance_exec(event.aggregate_id, event.domain_event, event.metadata, event.id, event.created_at, &handler)
       end
     rescue StandardError => e
       error_reporter.call(e, event)

@@ -42,6 +42,7 @@ module EventFramework
           domain_event: domain_event,
           aggregate_id: aggregate_id,
           metadata: metadata,
+          created_at: Time.now.utc,
         )
       end
 
