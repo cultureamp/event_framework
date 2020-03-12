@@ -195,6 +195,7 @@ module EventFramework
         Event,
         domain_event: domain_event,
         aggregate_id: aggregate_id,
+        created_at: Time.now,
         metadata: metadata,
         id: SecureRandom.uuid,
       )
