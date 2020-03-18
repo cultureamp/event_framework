@@ -84,8 +84,6 @@ module EventFramework
     # command  - A Command, containing the data to be used during invocation.
     #            Must be an instance of the class defined on the singleton class
     #            via `CommandHander::handle`
-    # executor - An instance of Executor, representing the user invoking this
-    #            command.
     # metadata - The Metadata pertaining to this specific command invocation.
     #
     # Returns nothing.
@@ -95,7 +93,7 @@ module EventFramework
     # Raises NotImplementedError if no handler has been defined.
     # Raises RetryFailureThresholdExceededException if the number of automatic
     # retries exceeds the designated threshold.
-    def call(command:, executor:, metadata:)
+    def call(command:, metadata:)
       raise NotImplementedError if command_class.nil? || handler_proc.nil?
       raise MismatchedCommandError, "Received command of type #{command.class}; expected #{command_class}" unless command.is_a?(command_class)
 
@@ -105,7 +103,7 @@ module EventFramework
 
       begin
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
-        instance_exec(command, executor, metadata, &handler_proc)
+        instance_exec(command, metadata, &handler_proc)
       rescue RetriableException
         if (execution_attempts -= 1).zero?
           raise RetryFailureThresholdExceededException
