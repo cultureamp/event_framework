@@ -44,7 +44,8 @@ module EventFramework
 
       before do
         allow(logger).to receive(:info)
-        allow(event_source).to receive(:get_after).with(0).and_return(events)
+        allow(event_source).to receive(:get_after)
+          .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return(events)
       end
 
       def run_event_processor_worker
@@ -129,8 +130,10 @@ module EventFramework
         before do
           allow(bookmark).to receive(:next).and_return([0, false], [1, true], [1, false])
           allow(bookmark).to receive(:sequence=)
-          allow(event_source).to receive(:get_after).with(0).and_return([event_1])
-          allow(event_source).to receive(:get_after).with(1).and_return([event_2])
+          allow(event_source).to receive(:get_after)
+            .with(0, event_classes: [TestDomain::Thing::QuxAdded]).and_return([event_1])
+          allow(event_source).to receive(:get_after)
+            .with(1, event_classes: [TestDomain::Thing::QuxAdded]).and_return([event_2])
         end
 
         it 'sleeps for DISABLED_SLEEP_INTERVAL' do
@@ -148,7 +151,7 @@ module EventFramework
       end
 
       context 'when the event processor responds to logger=' do
-        let(:event_processor) { Struct.new(:logger).new }
+        let(:event_processor) { Struct.new(:handled_event_classes, :logger).new([TestDomain::Thing::QuxAdded]) }
 
         it 'sets the logger' do
           expect(event_processor).to receive(:logger=).with(logger)

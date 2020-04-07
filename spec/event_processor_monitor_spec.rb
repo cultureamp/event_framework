@@ -10,6 +10,7 @@ module EventFramework
       let(:metrics) { double(:metrics) }
       let(:bookmark_database) { instance_spy(EventFramework::DatabaseConnection) }
       let(:sequence_stats_database) { instance_spy(EventFramework::DatabaseConnection) }
+      let(:event_type_resolver) { instance_double(EventStore::EventTypeResolver) }
 
       subject(:event_processor_monitor) do
         described_class.new(
@@ -17,6 +18,7 @@ module EventFramework
           metrics: metrics,
           bookmark_database: bookmark_database,
           sequence_stats_database: sequence_stats_database,
+          event_type_resolver: event_type_resolver,
           sleep_interval: 0,
         )
       end
@@ -45,7 +47,9 @@ module EventFramework
           .with(name: 'event_processor_class_2', database: bookmark_database)
           .and_return(bookmark_repository_2)
 
-        allow(sequence_stats_class).to receive(:new).with(database: sequence_stats_database).and_return(sequence_stats)
+        allow(sequence_stats_class).to receive(:new)
+          .with(database: sequence_stats_database, event_type_resolver: event_type_resolver)
+          .and_return(sequence_stats)
 
         # Simulate the event processor catching up
         allow(bookmark_1).to receive(:sequence).and_return(0, 1, 3)
@@ -57,7 +61,7 @@ module EventFramework
         allow(event_processor_monitor).to receive(:loop).and_yield.and_yield.and_yield
 
         # There are 3 events in the source
-        allow(sequence_stats).to receive(:max_sequence).and_return(3)
+        allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
 
         allow(metrics).to receive(:call)
       end

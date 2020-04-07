@@ -36,7 +36,10 @@ module EventFramework
         if disabled
           sleep DISABLED_SLEEP_INTERVAL
         else
-          events = event_source.get_after(sequence)
+          events = event_source.get_after(
+            sequence,
+            event_classes: event_processor.handled_event_classes,
+          )
 
           if events.empty?
             sleep SLEEP_INTERVAL
