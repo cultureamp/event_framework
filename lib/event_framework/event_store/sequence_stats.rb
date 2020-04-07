@@ -11,12 +11,12 @@ module EventFramework
       def max_sequence(event_classes:)
         event_type_descriptions = event_classes.map { |event_type| event_type_resolver.serialize(event_type) }
 
-        scope = database[:events_sequence_stats]
-        scope = scope.where(
-          aggregate_type: event_type_descriptions.map(&:aggregate_type),
-          event_type: event_type_descriptions.map(&:event_type),
-        )
-        scope.max(:max_sequence).to_i
+        database[:events_sequence_stats]
+          .where(
+            aggregate_type: event_type_descriptions.map(&:aggregate_type),
+            event_type: event_type_descriptions.map(&:event_type),
+          )
+          .max(:max_sequence).to_i
       end
     end
   end
