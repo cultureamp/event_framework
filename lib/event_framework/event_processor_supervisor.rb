@@ -1,4 +1,5 @@
 require 'forked'
+require 'event_framework/event_processor_supervisor/on_forked_error'
 
 module EventFramework
   # The EventProcessorSupervisor is responsible initializing each event
@@ -6,25 +7,6 @@ module EventFramework
   # Worker and forks.
   class EventProcessorSupervisor
     UNABLE_TO_LOCK_SLEEP_INTERVAL = 1
-
-    class OnForkedError
-      def initialize(processor_name)
-        @processor_name = processor_name
-      end
-
-      def call(error, tries)
-        Logger.new(STDOUT).error(
-          msg: error.message,
-          event_processor: processor_name,
-          error: error.class.name,
-          tries: tries,
-        )
-      end
-
-      private
-
-      attr_reader :processor_name
-    end
 
     def initialize(
       processor_classes:,
