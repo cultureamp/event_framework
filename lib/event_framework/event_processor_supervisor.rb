@@ -13,7 +13,12 @@ module EventFramework
       end
 
       def call(error, tries)
-        Logger.new(STDOUT).error(msg: error.message, error: error.class.name, tries: tries)
+        Logger.new(STDOUT).error(
+          msg: error.message,
+          event_processor: processor_name,
+          error: error.class.name,
+          tries: tries,
+        )
       end
 
       private
