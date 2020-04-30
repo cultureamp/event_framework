@@ -50,6 +50,12 @@ module EventFramework
             expect(sequence_stats.max_sequence(event_classes: event_classes)).to eq 0
           end
         end
+
+        context 'when no event classes are supplied' do
+          it 'returns the max sequence' do
+            expect(sequence_stats.max_sequence).to eq 6
+          end
+        end
       end
     end
   end
