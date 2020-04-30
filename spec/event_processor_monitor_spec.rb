@@ -5,8 +5,10 @@ module EventFramework
       let(:sequence_stats) { instance_double(EventStore::SequenceStats) }
       let(:bookmark_1) { instance_double(BookmarkReadonly) }
       let(:bookmark_2) { instance_double(BookmarkReadonly) }
+      let(:bookmark_3) { instance_double(BookmarkReadonly) }
       let(:bookmark_repository_1) { instance_double(BookmarkRepository, readonly_bookmark: bookmark_1) }
       let(:bookmark_repository_2) { instance_double(BookmarkRepository, readonly_bookmark: bookmark_2) }
+      let(:bookmark_repository_3) { instance_double(BookmarkRepository, readonly_bookmark: bookmark_3) }
       let(:metrics) { double(:metrics) }
       let(:bookmark_database) { instance_spy(EventFramework::DatabaseConnection) }
       let(:sequence_stats_database) { instance_spy(EventFramework::DatabaseConnection) }
@@ -26,15 +28,25 @@ module EventFramework
       let(:handled_event_class) { double(:handled_event_class) }
       let(:event_processors) do
         [
-          event_processor_class_double('event_processor_class_1'),
-          event_processor_class_double('event_processor_class_2'),
+          event_processor_class_double(
+            'event_processor_class_1',
+            instance_double(EventHandlerRegistry, handled_event_classes: [handled_event_class], all_handler?: false),
+          ),
+          event_processor_class_double(
+            'event_processor_class_2',
+            instance_double(EventHandlerRegistry, handled_event_classes: [handled_event_class], all_handler?: false),
+          ),
+          event_processor_class_double(
+            'event_processor_class_3',
+            instance_double(EventHandlerRegistry, handled_event_classes: [], all_handler?: true),
+          ),
         ]
       end
 
-      def event_processor_class_double(name)
+      def event_processor_class_double(name, event_handlers)
         class_double(
           EventProcessor,
-          event_handlers: instance_double(EventHandlerRegistry, handled_event_classes: [handled_event_class]),
+          event_handlers: event_handlers,
           name: name,
         )
       end
@@ -46,6 +58,9 @@ module EventFramework
         allow(BookmarkRepository).to receive(:new)
           .with(name: 'event_processor_class_2', database: bookmark_database)
           .and_return(bookmark_repository_2)
+        allow(BookmarkRepository).to receive(:new)
+          .with(name: 'event_processor_class_3', database: bookmark_database)
+          .and_return(bookmark_repository_3)
 
         allow(sequence_stats_class).to receive(:new)
           .with(database: sequence_stats_database, event_type_resolver: event_type_resolver)
@@ -57,11 +72,19 @@ module EventFramework
         # Simulate the event processor being stuck
         allow(bookmark_2).to receive(:sequence).and_return(1, 1, 1)
 
+        # Simulate the event processor catching up
+        allow(bookmark_3).to receive(:sequence).and_return(1, 2, 3)
+
         # Loop 3 times
-        allow(event_processor_monitor).to receive(:loop).and_yield.and_yield.and_yield
+        allow(event_processor_monitor).to receive(:loop)
+          .and_yield
+          .and_yield
+          .and_yield
 
         # There are 3 events in the source
         allow(sequence_stats).to receive(:max_sequence).with(event_classes: [handled_event_class]).and_return(3)
+
+        allow(sequence_stats).to receive(:max_sequence).with(no_args).and_return(3)
 
         allow(metrics).to receive(:call)
       end
@@ -75,18 +98,21 @@ module EventFramework
           [
             { processor_class_name: 'event_processor_class_1', processor_lag: 3 },
             { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+            { processor_class_name: 'event_processor_class_3', processor_lag: 2 },
           ],
         )
         expect(metrics).to receive(:call).with(
           [
             { processor_class_name: 'event_processor_class_1', processor_lag: 2 },
             { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+            { processor_class_name: 'event_processor_class_3', processor_lag: 1 },
           ],
         )
         expect(metrics).to receive(:call).with(
           [
             { processor_class_name: 'event_processor_class_1', processor_lag: 0 },
             { processor_class_name: 'event_processor_class_2', processor_lag: 2 },
+            { processor_class_name: 'event_processor_class_3', processor_lag: 0 },
           ],
         )
 

@@ -20,6 +20,10 @@ module EventFramework
       event_handlers.keys
     end
 
+    def all_handler?
+      !all_handler.empty?
+    end
+
     private
 
     attr_reader :event_handlers

@@ -51,7 +51,11 @@ module EventFramework
     end
 
     def last_event_sequence(processor_class)
-      sequence_stats.max_sequence(event_classes: processor_class.event_handlers.handled_event_classes)
+      if processor_class.event_handlers.all_handler?
+        sequence_stats.max_sequence
+      else
+        sequence_stats.max_sequence(event_classes: processor_class.event_handlers.handled_event_classes)
+      end
     end
 
     def readonly_bookmark(processor_class_name)
