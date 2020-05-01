@@ -36,10 +36,7 @@ module EventFramework
         if disabled
           sleep DISABLED_SLEEP_INTERVAL
         else
-          events = event_source.get_after(
-            sequence,
-            event_classes: event_processor.handled_event_classes,
-          )
+          events = fetch_events(sequence)
 
           if events.empty?
             sleep SLEEP_INTERVAL
@@ -62,6 +59,16 @@ module EventFramework
     private
 
     attr_reader :event_processor, :logger, :event_source, :bookmark, :ready_to_stop
+
+    def fetch_events(sequence)
+      if event_processor.all_handler?
+        # If the event processor handles all events we want to get
+        # all (unscoped) events.
+        event_source.get_after(sequence)
+      else
+        event_source.get_after(sequence, event_classes: event_processor.handled_event_classes)
+      end
+    end
 
     def set_process_name
       Process.setproctitle "event_processor [#{event_processor.class.name}]"

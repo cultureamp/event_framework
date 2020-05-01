@@ -17,7 +17,11 @@ module EventFramework
     end
 
     def handled_event_classes
-      event_handlers.keys
+      if all_handler?
+        raise "handled_event_classes should not be used when event processor handles all events"
+      else
+        event_handlers.keys
+      end
     end
 
     def all_handler?

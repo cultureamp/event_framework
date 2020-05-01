@@ -25,6 +25,10 @@ module EventFramework
       self.class.event_handlers.handled_event_classes
     end
 
+    def all_handler?
+      self.class.event_handlers.all_handler?
+    end
+
     def handle_event(event)
       self.class.event_handlers.for(event.domain_event.type).each do |handler|
         instance_exec(event.aggregate_id, event.domain_event, event.metadata, event.id, event.created_at, &handler)

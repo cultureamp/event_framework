@@ -7,11 +7,6 @@ module EventFramework
       Class.new(EventProcessor) do
         attr_reader :foo_test_event, :all_events
 
-        process_all do |aggregate_id, domain_event, metadata|
-          @all_events ||= []
-          @all_events << [aggregate_id, domain_event, metadata]
-        end
-
         process FooTestEvent do |aggregate_id, domain_event, metadata|
           @foo_test_event = [aggregate_id, domain_event, metadata]
         end
@@ -21,12 +16,30 @@ module EventFramework
         end
       end
     end
+    let(:event_processor_all_subclass) do
+      Class.new(EventProcessor) do
+        attr_reader :foo_test_event, :all_events
+
+        process_all do |aggregate_id, domain_event, metadata|
+          @all_events ||= []
+          @all_events << [aggregate_id, domain_event, metadata]
+        end
+      end
+    end
     let(:error_reporter) { double(:error_reporter) }
     subject(:event_processor) { event_processor_subclass.new(error_reporter: error_reporter) }
 
     describe '#handled_event_classes' do
       it 'returns the handled event classes' do
         expect(event_processor.handled_event_classes).to eq [FooTestEvent, FooTestErrorEvent]
+      end
+
+      context 'with an all handler' do
+        subject(:event_processor) { event_processor_all_subclass.new(error_reporter: error_reporter) }
+
+        it 'raises an error' do
+          expect { event_processor.handled_event_classes }.to raise_error(/all events/)
+        end
       end
     end
 
@@ -52,14 +65,18 @@ module EventFramework
         expect(event_processor.foo_test_event).to eq [aggregate_id, domain_event, metadata]
       end
 
-      it 'calls the all handler' do
-        event_processor.handle_event(event)
-        event_processor.handle_event(event)
+      context 'with an all handler' do
+        subject(:event_processor) { event_processor_all_subclass.new(error_reporter: error_reporter) }
 
-        expect(event_processor.all_events).to eq [
-          [aggregate_id, domain_event, metadata],
-          [aggregate_id, domain_event, metadata],
-        ]
+        it 'calls the all handler' do
+          event_processor.handle_event(event)
+          event_processor.handle_event(event)
+
+          expect(event_processor.all_events).to eq [
+            [aggregate_id, domain_event, metadata],
+            [aggregate_id, domain_event, metadata],
+          ]
+        end
       end
 
       context 'when an error occurs' do

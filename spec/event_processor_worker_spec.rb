@@ -14,6 +14,7 @@ module EventFramework
           EventProcessor,
           class: event_processor_class,
           handled_event_classes: [TestDomain::Thing::QuxAdded],
+          all_handler?: false,
         )
       end
       let(:logger) { instance_double(Logger) }
@@ -151,7 +152,7 @@ module EventFramework
       end
 
       context 'when the event processor responds to logger=' do
-        let(:event_processor) { Struct.new(:handled_event_classes, :logger).new([TestDomain::Thing::QuxAdded]) }
+        let(:event_processor) { Struct.new(:handled_event_classes, :logger, :all_handler?).new([TestDomain::Thing::QuxAdded]) }
 
         it 'sets the logger' do
           expect(event_processor).to receive(:logger=).with(logger)
