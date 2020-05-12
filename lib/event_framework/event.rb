@@ -22,13 +22,17 @@ module EventFramework
       attribute :metadata_type, Types.Value("unattributed").default("unattributed")
     end
 
+    class SystemMetadata < BaseMetadata
+      attribute :metadata_type, Types.Value("system").default("system")
+    end
+
     attribute :id, Types::UUID
     attribute :sequence, Types::Strict::Integer
     attribute :aggregate_id, Types::UUID
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :created_at, Types::JSON::Time
 
-    attribute :metadata, Metadata | UnattributedMetadata
+    attribute :metadata, Metadata | UnattributedMetadata | SystemMetadata
 
     attribute :domain_event, DomainEvent
 
