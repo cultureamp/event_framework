@@ -16,6 +16,14 @@ module EventFramework
     class Metadata < BaseMetadata
       attribute :user_id, Types::UUID
       attribute :metadata_type, Types.Value("attributed").default("attributed")
+
+      def self.new_with_fallback(fallback_class:, **args)
+        new(args)
+      rescue Dry::Struct::Error
+        extra_attributes = attribute_names - fallback_class.attribute_names
+        args = args.reject { |k, _v| extra_attributes.include?(k) }
+        fallback_class.new(args)
+      end
     end
 
     class UnattributedMetadata < BaseMetadata

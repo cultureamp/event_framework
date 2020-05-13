@@ -30,6 +30,45 @@ module EventFramework
           )
         end.to raise_error(include("invalid type for :user"))
       end
+
+      describe ".new_with_fallback" do
+        context "with valid Metadata args" do
+          it "returns a Metadata object" do
+            expect(
+              Event::Metadata.new_with_fallback(
+                fallback_class: Event::SystemMetadata,
+                account_id: SecureRandom.uuid,
+                user_id: SecureRandom.uuid,
+              ),
+            ).to be_a(Event::Metadata)
+          end
+        end
+
+        context "with invalid Metadata args" do
+          it "returns a SystemMetadata object" do
+            expect(
+              Event::Metadata.new_with_fallback(
+                fallback_class: Event::SystemMetadata,
+                account_id: SecureRandom.uuid,
+                user_id: "invalid",
+              ),
+            ).to be_a(Event::SystemMetadata)
+          end
+        end
+
+        context "with invalid Metadata and fallback_class args" do
+          it "raises an exception" do
+            expect do
+              Event::Metadata.new_with_fallback(
+                fallback_class: Event::SystemMetadata,
+                account_id: SecureRandom.uuid,
+                user_id: "invalid",
+                also: "invalid",
+              )
+            end.to raise_error(include("unexpected keys [:also] in Hash input"))
+          end
+        end
+      end
     end
 
     describe "UnattributedMetadata" do
