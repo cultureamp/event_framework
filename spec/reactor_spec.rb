@@ -32,7 +32,7 @@ module EventFramework
               user_id: metadata.user_id,
             )
 
-            with_new_aggregate TestDomain::ReactorTest::TestAggregate, domain_event.new_aggregate_id, metadata: metadata do |aggregate| # rubocop:disable Style/SymbolProc
+            with_new_aggregate TestDomain::ReactorTest::TestAggregate, domain_event.new_aggregate_id, metadata: metadata do |aggregate|
               aggregate.do_a_thing
             end
           end
@@ -127,7 +127,7 @@ module EventFramework
       subject(:reactor) do
         Class.new(described_class) do
           process TestDomain::ReactorTest::TestEvent1 do |_aggregate_id, _domain_event, metadata|
-            with_new_aggregate TestDomain::ReactorTest::TestAggregate, SecureRandom.uuid, metadata: metadata do |aggregate| # rubocop:disable Style/SymbolProc
+            with_new_aggregate TestDomain::ReactorTest::TestAggregate, SecureRandom.uuid, metadata: metadata do |aggregate|
               aggregate.do_a_thing
             end
           end
