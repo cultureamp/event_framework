@@ -2,33 +2,33 @@ module EventFramework
   RSpec.describe Event do
     describe "Metadata" do
       it "requires a user_id" do
-        expect do
+        expect {
+          Event::Metadata.new(
+            account_id: SecureRandom.uuid,
+            user_id: SecureRandom.uuid
+          )
+        }.to_not raise_error
+
+        expect {
           Event::Metadata.new(
             account_id: SecureRandom.uuid,
             user_id: SecureRandom.uuid,
+            metadata_type: :unattributed
           )
-        end.to_not raise_error
+        }.to raise_error(include("invalid type for :metadata_type"))
 
-        expect do
+        expect {
+          Event::Metadata.new(
+            account_id: SecureRandom.uuid
+          )
+        }.to raise_error(include(":user_id is missing in"))
+
+        expect {
           Event::Metadata.new(
             account_id: SecureRandom.uuid,
-            user_id: SecureRandom.uuid,
-            metadata_type: :unattributed,
+            user_id: nil
           )
-        end.to raise_error(include("invalid type for :metadata_type"))
-
-        expect do
-          Event::Metadata.new(
-            account_id: SecureRandom.uuid,
-          )
-        end.to raise_error(include(":user_id is missing in"))
-
-        expect do
-          Event::Metadata.new(
-            account_id: SecureRandom.uuid,
-            user_id: nil,
-          )
-        end.to raise_error(include("invalid type for :user"))
+        }.to raise_error(include("invalid type for :user"))
       end
 
       describe ".new_with_fallback" do
@@ -38,8 +38,8 @@ module EventFramework
               Event::Metadata.new_with_fallback(
                 fallback_class: Event::SystemMetadata,
                 account_id: SecureRandom.uuid,
-                user_id: SecureRandom.uuid,
-              ),
+                user_id: SecureRandom.uuid
+              )
             ).to be_a(Event::Metadata)
           end
         end
@@ -50,22 +50,22 @@ module EventFramework
               Event::Metadata.new_with_fallback(
                 fallback_class: Event::SystemMetadata,
                 account_id: SecureRandom.uuid,
-                user_id: "invalid",
-              ),
+                user_id: "invalid"
+              )
             ).to be_a(Event::SystemMetadata)
           end
         end
 
         context "with invalid Metadata and fallback_class args" do
           it "raises an exception" do
-            expect do
+            expect {
               Event::Metadata.new_with_fallback(
                 fallback_class: Event::SystemMetadata,
                 account_id: SecureRandom.uuid,
                 user_id: "invalid",
-                also: "invalid",
+                also: "invalid"
               )
-            end.to raise_error(include("unexpected keys [:also] in Hash input"))
+            }.to raise_error(include("unexpected keys [:also] in Hash input"))
           end
         end
       end
@@ -73,25 +73,25 @@ module EventFramework
 
     describe "UnattributedMetadata" do
       it "does not allow a user_id" do
-        expect do
+        expect {
           Event::UnattributedMetadata.new(
-            account_id: SecureRandom.uuid,
+            account_id: SecureRandom.uuid
           )
-        end.to_not raise_error
+        }.to_not raise_error
 
-        expect do
+        expect {
           Event::UnattributedMetadata.new(
             account_id: SecureRandom.uuid,
-            metadata_type: :attributed,
+            metadata_type: :attributed
           )
-        end.to raise_error(include("invalid type for :metadata_type"))
+        }.to raise_error(include("invalid type for :metadata_type"))
 
-        expect do
+        expect {
           Event::UnattributedMetadata.new(
             account_id: SecureRandom.uuid,
-            user_id: SecureRandom.uuid,
+            user_id: SecureRandom.uuid
           )
-        end.to raise_error(include("unexpected keys [:user_id]"))
+        }.to raise_error(include("unexpected keys [:user_id]"))
       end
     end
   end
