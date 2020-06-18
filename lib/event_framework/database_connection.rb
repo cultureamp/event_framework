@@ -31,7 +31,11 @@ module EventFramework
     def connection
       __raise__ MissingConnectionURLError if connection_url.nil?
 
-      @_connection ||= Sequel.connect(connection_url).tap do |database|
+      # Max connections should match the number of threads being used by our
+      # server. We're currently (2020-06-32) using Unicorn which uses separate
+      # processes for workers--not threads (unlike Puma). This means we should
+      # only need a single connection.
+      @_connection ||= Sequel.connect(connection_url, max_connections: 1).tap do |database|
         database.extension :pg_json
       end
     end
