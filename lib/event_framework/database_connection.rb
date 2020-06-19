@@ -1,5 +1,5 @@
-require 'uri'
-require 'sequel'
+require "uri"
+require "sequel"
 
 Sequel::Database.load_adapter :postgres
 
@@ -46,6 +46,6 @@ module EventFramework
       "#<EventFramework::DatabaseConnection label=#{label.inspect}>"
     end
 
-    alias_method :to_s, :inspect
+    alias to_s inspect
   end
 end
