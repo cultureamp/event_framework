@@ -1,7 +1,7 @@
 module EventFramework
   RSpec.describe EventProcessorSupervisor do
-    describe '.call' do
-      let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
+    describe ".call" do
+      let(:event_processor_class) { class_double(EventProcessor, name: "FooProjector") }
       let(:process_manager) { instance_double(Forked::ProcessManager) }
       let(:bookmark_repository_class) { class_double(BookmarkRepository) }
       let(:bookmark_repository) { instance_double(BookmarkRepository) }
@@ -15,13 +15,13 @@ module EventFramework
       let(:ready_to_stop) { -> {} }
       let(:ready_to_stop_wrapper) { double(to_proc: ready_to_stop) }
 
-      it 'forks each event processor' do
-        expect(described_class::OnForkedError).to receive(:new).with('FooProjector').and_return(on_forked_error)
-        expect(process_manager).to receive(:fork).with('FooProjector', on_error: on_forked_error).and_yield(ready_to_stop_wrapper)
+      it "forks each event processor" do
+        expect(described_class::OnForkedError).to receive(:new).with("FooProjector").and_return(on_forked_error)
+        expect(process_manager).to receive(:fork).with("FooProjector", on_error: on_forked_error).and_yield(ready_to_stop_wrapper)
         expect(Logger).to receive(:new).with(STDOUT).at_least(1).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
-          .with(name: 'FooProjector', database: projection_database).and_return(bookmark_repository)
+          .with(name: "FooProjector", database: projection_database).and_return(bookmark_repository)
         expect(bookmark_repository).to receive(:checkout)
           .and_return(bookmark)
         expect(process_manager).to receive(:wait_for_shutdown)
@@ -29,7 +29,7 @@ module EventFramework
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
-          event_source: event_source,
+          event_source: event_source
         ) do |&block|
           expect(block).to eq ready_to_stop
         end
@@ -39,7 +39,7 @@ module EventFramework
           process_manager: process_manager,
           bookmark_repository_class: bookmark_repository_class,
           projection_database: projection_database,
-          event_source: event_source,
+          event_source: event_source
         ).call
       end
     end

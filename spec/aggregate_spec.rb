@@ -37,7 +37,7 @@ module TestDomain
 
     class ThingChildAggregate < ThingAggregate
       apply Tweaked do |_event|
-        tweaks << 'Tweaked from child!'
+        tweaks << "Tweaked from child!"
       end
     end
   end
@@ -51,18 +51,18 @@ module EventFramework
         aggregate_sequence: aggregate_sequence,
         type: domain_event.class,
         domain_event: domain_event,
-        metadata: metadata,
+        metadata: metadata
       )
     end
 
-    let(:aggregate_id) { 'ce0507da-fc67-4300-ac23-7a11e12dbd40' }
+    let(:aggregate_id) { "ce0507da-fc67-4300-ac23-7a11e12dbd40" }
     let(:aggregate) { TestDomain::Thing::ThingAggregate.build(aggregate_id) }
 
     let(:metadata) do
       Event::Metadata.new(
-        correlation_id: '802ed3ee-cd97-43f7-8ec1-bd58412b0eea',
-        user_id: '7f86bd0e-793e-437e-9398-b9213ed482ef',
-        account_id: '760ca62f-f0ba-4ad4-9471-ed4c25345cc1',
+        correlation_id: "802ed3ee-cd97-43f7-8ec1-bd58412b0eea",
+        user_id: "7f86bd0e-793e-437e-9398-b9213ed482ef",
+        account_id: "760ca62f-f0ba-4ad4-9471-ed4c25345cc1"
       )
     end
 
@@ -71,41 +71,41 @@ module EventFramework
         event_double(aggregate_sequence: 1, domain_event: TestDomain::Thing::Initialized.new),
         event_double(aggregate_sequence: 2, domain_event: TestDomain::Thing::Tweaked.new(tweak: "Foo!")),
         event_double(aggregate_sequence: 3, domain_event: TestDomain::Thing::Bopped.new, metadata: metadata),
-        event_double(aggregate_sequence: 4, domain_event: TestDomain::Thing::IgnoredEvent.new),
+        event_double(aggregate_sequence: 4, domain_event: TestDomain::Thing::IgnoredEvent.new)
       ]
     end
 
-    describe '.new' do
-      it 'raises an error' do
+    describe ".new" do
+      it "raises an error" do
         expect { TestDomain::Thing::ThingAggregate.new }.to raise_error(NotImplementedError)
       end
     end
 
-    describe '#load_events' do
+    describe "#load_events" do
       before { aggregate.load_events(events) }
 
-      it 'builds state from the given events, using the registered event handlers' do
+      it "builds state from the given events, using the registered event handlers" do
         expect(aggregate.tweaks).to eql ["Foo!"]
         expect(aggregate.bops).to eql ["TestDomain::Thing::Bopped"]
       end
 
-      it 'populates the (private) internal sequence' do
+      it "populates the (private) internal sequence" do
         expect(aggregate.send(:aggregate_sequence)).to eql events.last.aggregate_sequence
       end
 
-      context 'when aggregate is a child class of another aggregate' do
+      context "when aggregate is a child class of another aggregate" do
         let(:aggregate) { TestDomain::Thing::ThingChildAggregate.build(aggregate_id) }
 
-        it 'handles events from both the child and parent classes' do
+        it "handles events from both the child and parent classes" do
           expect(aggregate.tweaks).to eql ["Tweaked from child!", "Foo!"]
         end
       end
     end
 
-    describe '#stage_event' do
+    describe "#stage_event" do
       before { aggregate.load_events(events) }
 
-      it 'builds a staged_event and stores it in staged_events' do
+      it "builds a staged_event and stores it in staged_events" do
         aggregate.stage_event TestDomain::Thing::Bopped.new
         aggregate.stage_event TestDomain::Thing::Bopped.new
 
@@ -114,14 +114,14 @@ module EventFramework
             aggregate_id: aggregate_id,
             aggregate_sequence: 5,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            metadata: nil,
+            metadata: nil
           ),
           an_object_having_attributes(
             aggregate_id: aggregate_id,
             aggregate_sequence: 6,
             domain_event: an_instance_of(TestDomain::Thing::Bopped),
-            metadata: nil,
-          ),
+            metadata: nil
+          )
         ]
 
         expect(aggregate.staged_events).to match event_matchers

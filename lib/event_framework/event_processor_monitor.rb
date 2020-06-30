@@ -27,14 +27,14 @@ module EventFramework
 
     def call(processor_classes:)
       loop do
-        data = processor_classes.map do |processor_class|
+        data = processor_classes.map { |processor_class|
           processor_lag = last_event_sequence(processor_class) - last_processed_event_sequence(processor_class)
 
           {
             processor_class_name: processor_class.name,
-            processor_lag: processor_lag,
+            processor_lag: processor_lag
           }
-        end
+        }
 
         metrics.call(data)
 

@@ -1,5 +1,5 @@
-require 'dry/inflector'
-require 'thor'
+require "dry/inflector"
+require "thor"
 
 module EventFramework
   module Tasks
@@ -49,8 +49,8 @@ module EventFramework
         connection = mod.database(database_name.to_sym)
 
         DatabaseManager.new(connection).migrate(
-          migrations_path: mod.paths.db(database_name).join('migrations'),
-          target_version: options[:version],
+          migrations_path: mod.paths.db(database_name).join("migrations"),
+          target_version: options[:version]
         )
 
         say_with_db context_name, database_name, "migrated"
@@ -68,7 +68,7 @@ module EventFramework
 
         mod = context_module(context_name)
         connection = mod.database(database_name.to_sym)
-        schema_path = mod.paths.db(database_name).join('structure.sql')
+        schema_path = mod.paths.db(database_name).join("structure.sql")
 
         DatabaseManager.new(connection).dump_schema(schema_path: schema_path)
         say_with_db context_name, database_name, "schema dumped to #{schema_path}"

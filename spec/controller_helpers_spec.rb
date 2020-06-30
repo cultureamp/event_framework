@@ -15,11 +15,14 @@ module EventFramework
       include ControllerHelpers::CommandHelper
 
       # these methods are stubbed out by partial doubles in our specs
-      def application_user_id; end
+      def application_user_id
+      end
 
-      def application_account_id; end
+      def application_account_id
+      end
 
-      def params; end
+      def params
+      end
     end
 
     # `enable_test_interface`and `reset_config` are methods added by
@@ -37,20 +40,20 @@ module EventFramework
 
     let(:controller_instance) { StubController.new }
 
-    describe 'MetadataHelper#build_metadata' do
-      let(:user_id)    { SecureRandom.uuid }
+    describe "MetadataHelper#build_metadata" do
+      let(:user_id) { SecureRandom.uuid }
       let(:account_id) { SecureRandom.uuid }
       let(:request_id) { SecureRandom.uuid }
 
       let(:metadata) { controller_instance.build_metadata }
 
-      context 'if no request_id is available in the controller' do
-        it 'raises an error' do
+      context "if no request_id is available in the controller" do
+        it "raises an error" do
           expect { metadata }.to raise_error(described_class::MetadataHelper::MissingRequestIdError)
         end
       end
 
-      context 'when all the required data is available' do
+      context "when all the required data is available" do
         before do
           described_class.configure do |c|
             c.user_id_resolver = -> { application_user_id }
@@ -63,24 +66,24 @@ module EventFramework
           allow(controller_instance).to receive(:params).and_return(request_id: request_id)
         end
 
-        it 'pre-seeds controller#user_id into the user_id attribute of a new metadata instance' do
+        it "pre-seeds controller#user_id into the user_id attribute of a new metadata instance" do
           expect(metadata).to have_attributes(user_id: user_id)
         end
 
-        it 'pre-seeds controller#account_id into the account_id attribute of a new metadata instance' do
+        it "pre-seeds controller#account_id into the account_id attribute of a new metadata instance" do
           expect(metadata).to have_attributes(account_id: account_id)
         end
 
-        it 'pre-seeds controller#request_id into the correlation_id attribute of a new metadata instance' do
+        it "pre-seeds controller#request_id into the correlation_id attribute of a new metadata instance" do
           expect(metadata).to have_attributes(correlation_id: request_id)
         end
       end
     end
 
-    describe 'CommandHelper#validate_params_for_command' do
+    describe "CommandHelper#validate_params_for_command" do
       let(:command) { class_double "Command" }
-      let(:result)  { instance_double "Dry::Validation::Result" }
-      let(:params)  { double :params }
+      let(:result) { instance_double "Dry::Validation::Result" }
+      let(:params) { double :params }
 
       def perform_validation
         controller_instance.validate_params_for_command(params, command)
@@ -90,20 +93,20 @@ module EventFramework
         allow(command).to receive(:validate).with(params).and_return(result)
       end
 
-      context 'and the params validate against the command schema' do
+      context "and the params validate against the command schema" do
         before { allow(result).to receive(:success?).and_return(true) }
 
-        it 'returns the result of the validation' do
+        it "returns the result of the validation" do
           perform_validation
 
           expect(result).to be_a_success
         end
       end
 
-      context 'and the params fail validation' do
+      context "and the params fail validation" do
         before { allow(result).to receive(:failure?).and_return(true) }
 
-        it 'returns the result of the validation' do
+        it "returns the result of the validation" do
           perform_validation
 
           expect(result).to be_a_failure

@@ -1,4 +1,4 @@
-require 'forwardable'
+require "forwardable"
 
 module EventFramework
   class Reactor < EventProcessor
@@ -16,7 +16,7 @@ module EventFramework
       #                  BoundedContext.build_command_dependency_chain!
       def [](context_module)
         Class.new(self).tap do |subclass|
-          context_repository = context_module.container.resolve('repository')
+          context_repository = context_module.container.resolve("repository")
           default_error_reporter = EventFramework.config.event_processor_error_reporter
 
           subclass.define_singleton_method(:new) do |repository: context_repository, error_reporter: default_error_reporter|

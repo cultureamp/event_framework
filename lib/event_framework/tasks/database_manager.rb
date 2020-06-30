@@ -1,5 +1,5 @@
-require 'sequel/core'
-require 'sequel/extensions/migration'
+require "sequel/core"
+require "sequel/extensions/migration"
 
 module EventFramework
   module Tasks
@@ -42,13 +42,13 @@ module EventFramework
 
       def dump_schema(schema_path:)
         retval = system(
-          'pg_dump',
-          '--schema-only',
-          '--no-owner',
-          '--no-privileges',
-          '--file',
+          "pg_dump",
+          "--schema-only",
+          "--no-owner",
+          "--no-privileges",
+          "--file",
           schema_path.to_s,
-          connection.uri.to_s,
+          connection.uri.to_s
         )
 
         return unless retval
@@ -58,9 +58,9 @@ module EventFramework
         # postgres on developer machines, so strip out this information to
         # avoid low-value noise when comitting the schema
         contents = File.read(schema_path)
-        contents.gsub!(STRIP_VERSION_COMMENTS_REGEX, '')
+        contents.gsub!(STRIP_VERSION_COMMENTS_REGEX, "")
 
-        File.open(schema_path, 'w') { |file| file.puts contents }
+        File.open(schema_path, "w") { |file| file.puts contents }
 
         schema_path
       end
@@ -68,7 +68,7 @@ module EventFramework
       private
 
       def root_database_uri
-        connection.uri.tap { |u| u.path = '/postgres' }
+        connection.uri.tap { |u| u.path = "/postgres" }
       end
 
       def db_name

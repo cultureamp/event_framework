@@ -51,7 +51,7 @@ module EventFramework
       projection_database = domain_context.database(:projections)
       BookmarkRepository.new(
         name: processor_class.name,
-        database: projection_database,
+        database: projection_database
       ).checkout
     rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
       logger.info(processor_class_name: processor_class.name, msg: e.message)

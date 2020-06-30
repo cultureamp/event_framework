@@ -1,10 +1,10 @@
-require 'sequel'
-require 'database_cleaner'
+require "sequel"
+require "database_cleaner"
 
 RSpec.configure do |config|
   config.before :suite do
     TestDomain.databases.each do |database|
-      DatabaseCleaner[:sequel, { connection: database.connection }]
+      DatabaseCleaner[:sequel, {connection: database.connection}]
     end
 
     DatabaseCleaner.strategy = :truncation

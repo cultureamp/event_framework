@@ -51,11 +51,11 @@ module EventFramework
               aggregate_type: serialized_event_type.aggregate_type,
               event_type: serialized_event_type.event_type,
               body: Sequel.pg_jsonb(staged_event.body),
-              metadata: Sequel.pg_jsonb(staged_event.metadata.to_h),
+              metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
             )
           rescue Sequel::UniqueConstraintViolation
             raise ConcurrencyError,
-                  "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
+              "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
           end
         end
 
@@ -66,14 +66,14 @@ module EventFramework
         tries = 0
         begin
           lock_result = try_lock(database)
-          raise ConcurrencyError, 'error obtaining lock' unless locked?(lock_result)
+          raise ConcurrencyError, "error obtaining lock" unless locked?(lock_result)
         rescue ConcurrencyError => e
           tries += 1
           if tries > MAX_RETRIES
-            logger.info(msg: 'event_framework.event_store.sink.max_retries_reached', tries: tries, correlation_id: correlation_id)
+            logger.info(msg: "event_framework.event_store.sink.max_retries_reached", tries: tries, correlation_id: correlation_id)
             raise e
           end
-          logger.info(msg: 'event_framework.event_store.sink.retry', tries: tries, correlation_id: correlation_id)
+          logger.info(msg: "event_framework.event_store.sink.retry", tries: tries, correlation_id: correlation_id)
           sleep 0.1
           retry
         end

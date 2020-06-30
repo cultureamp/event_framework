@@ -13,7 +13,7 @@ module EventFramework
       tries = 0
       begin
         yield
-      rescue StandardError => e
+      rescue => e
         tries += 1
         sleep_seconds = [BACKOFF_FACTOR**tries, MAX_SLEEP].min
         @logger.error("#{e.class} #{e.message}")

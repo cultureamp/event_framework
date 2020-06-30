@@ -1,4 +1,4 @@
-require 'dry/configurable'
+require "dry/configurable"
 
 module EventFramework
   module ControllerHelpers
@@ -18,7 +18,7 @@ module EventFramework
         metadata_args = {
           user_id: instance_exec(&config.user_id_resolver),
           account_id: instance_exec(&config.account_id_resolver),
-          correlation_id: instance_exec(&config.request_id_resolver),
+          correlation_id: instance_exec(&config.request_id_resolver)
         }
 
         config.metadata_class.new(**metadata_args).tap do |m|

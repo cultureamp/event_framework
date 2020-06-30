@@ -24,7 +24,7 @@ module EventFramework
 
     def call
       set_process_name
-      log('forked')
+      log("forked")
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
       loop do
@@ -41,7 +41,7 @@ module EventFramework
           if events.empty?
             sleep SLEEP_INTERVAL
           else
-            log('new_events', first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+            log("new_events", first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
 
             last_sequence = nil
             events.each do |event|
@@ -50,7 +50,7 @@ module EventFramework
               bookmark.sequence = event.sequence
             end
 
-            log('processed_up_to', last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
+            log("processed_up_to", last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
           end
         end
       end
@@ -78,8 +78,8 @@ module EventFramework
       logger.info(
         {
           event_processor_class_name: event_processor.class.name,
-          msg: "event_processor.worker.#{msg_suffix}",
-        }.merge(params),
+          msg: "event_processor.worker.#{msg_suffix}"
+        }.merge(params)
       )
     end
   end

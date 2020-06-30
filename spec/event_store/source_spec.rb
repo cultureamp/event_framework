@@ -16,8 +16,8 @@ module EventFramework
     let(:event_type_resolver) { instance_double(EventStore::EventTypeResolver) }
 
     before do
-      allow(event_type_resolver).to receive(:deserialize).with('Thing', 'FooAdded').and_return(TestDomain::Thing::FooAdded)
-      allow(event_type_resolver).to receive(:deserialize).with('Thing', 'BarAdded').and_return(TestDomain::Thing::BarAdded)
+      allow(event_type_resolver).to receive(:deserialize).with("Thing", "FooAdded").and_return(TestDomain::Thing::FooAdded)
+      allow(event_type_resolver).to receive(:deserialize).with("Thing", "BarAdded").and_return(TestDomain::Thing::BarAdded)
 
       allow(event_type_resolver).to receive(:serialize)
         .with(TestDomain::Thing::FooAdded)
@@ -27,7 +27,7 @@ module EventFramework
     def insert_event(sequence:, aggregate_id:, aggregate_sequence:, aggregate_type:, event_type:, body:)
       metadata = {
         account_id: SecureRandom.uuid,
-        user_id: SecureRandom.uuid,
+        user_id: SecureRandom.uuid
       }
 
       database[:events].overriding_system_value.insert(
@@ -37,7 +37,7 @@ module EventFramework
         aggregate_type: aggregate_type,
         event_type: event_type,
         body: Sequel.pg_jsonb(body),
-        metadata: Sequel.pg_jsonb(metadata),
+        metadata: Sequel.pg_jsonb(metadata)
       )
     end
 
@@ -46,56 +46,56 @@ module EventFramework
     subject { described_class.new(database: database, event_type_resolver: event_type_resolver) }
 
     before do
-      insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'foo' }
-      insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: 'Thing', event_type: 'FooAdded', body: { foo: 'bar' }
-      insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: 'Thing', event_type: 'BarAdded', body: { bar: 'qux' }
+      insert_event sequence: 14, aggregate_id: aggregate_id, aggregate_sequence: 1, aggregate_type: "Thing", event_type: "FooAdded", body: {foo: "foo"}
+      insert_event sequence: 15, aggregate_id: SecureRandom.uuid, aggregate_sequence: 1, aggregate_type: "Thing", event_type: "FooAdded", body: {foo: "bar"}
+      insert_event sequence: 16, aggregate_id: aggregate_id, aggregate_sequence: 2, aggregate_type: "Thing", event_type: "BarAdded", body: {bar: "qux"}
     end
 
-    describe '.get_after' do
+    describe ".get_after" do
       let(:events) { subject.get_after(14) }
 
-      it 'only returns events with a sequence value greater or equal to the given argument' do
+      it "only returns events with a sequence value greater or equal to the given argument" do
         expect(events).to all be_an(Event)
         expect(events).to match [
-          have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
-          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: 'qux')),
+          have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: "bar")),
+          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: "qux"))
         ]
       end
 
-      context 'when scoped to certain event types' do
+      context "when scoped to certain event types" do
         let(:events) { subject.get_after(14, event_classes: [TestDomain::Thing::FooAdded]) }
 
-        it 'only returns events of the specified type' do
+        it "only returns events of the specified type" do
           expect(events).to match [
-            have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: 'bar')),
+            have_attributes(sequence: 15, domain_event: TestDomain::Thing::FooAdded.new(foo: "bar"))
           ]
         end
       end
 
-      context 'when no events are found' do
+      context "when no events are found" do
         let(:events) { subject.get_after(16) }
 
-        it 'returns an empty array' do
+        it "returns an empty array" do
           expect(events).to be_empty
         end
       end
     end
 
-    describe '.get_for_aggregate' do
+    describe ".get_for_aggregate" do
       let(:events) { subject.get_for_aggregate(aggregate_id) }
 
-      it 'returns events scoped to the aggregate' do
+      it "returns events scoped to the aggregate" do
         expect(events).to all be_an(Event)
         expect(events).to match [
-          have_attributes(sequence: 14, domain_event: TestDomain::Thing::FooAdded.new(foo: 'foo')),
-          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: 'qux')),
+          have_attributes(sequence: 14, domain_event: TestDomain::Thing::FooAdded.new(foo: "foo")),
+          have_attributes(sequence: 16, domain_event: TestDomain::Thing::BarAdded.new(bar: "qux"))
         ]
       end
 
-      context 'when no events are found' do
+      context "when no events are found" do
         let(:events) { subject.get_for_aggregate(SecureRandom.uuid) }
 
-        it 'returns an empty array' do
+        it "returns an empty array" do
           expect(events).to be_empty
         end
       end

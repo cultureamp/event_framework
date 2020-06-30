@@ -1,4 +1,4 @@
-require 'forwardable'
+require "forwardable"
 
 module EventFramework
   # Public: Encapsulates the process of executing a command against an aggregate
@@ -36,7 +36,7 @@ module EventFramework
       #                  BoundedContext.build_command_dependency_chain!
       def [](context_module)
         Class.new(self).tap do |subclass|
-          context_repository = context_module.container.resolve('repository')
+          context_repository = context_module.container.resolve("repository")
 
           subclass.define_singleton_method(:new) do |repository: context_repository|
             allocate.tap do |instance|
@@ -117,7 +117,7 @@ module EventFramework
     private
 
     # Make `command_class` and `handler_proc` accessible as instance-level accessors
-    def_delegators 'self.class', :command_class, :handler_proc
+    def_delegators "self.class", :command_class, :handler_proc
 
     private :command_class, :handler_proc
 

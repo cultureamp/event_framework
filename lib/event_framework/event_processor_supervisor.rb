@@ -1,5 +1,5 @@
-require 'forked'
-require 'event_framework/event_processor_supervisor/on_forked_error'
+require "forked"
+require "event_framework/event_processor_supervisor/on_forked_error"
 
 module EventFramework
   # The EventProcessorSupervisor is responsible initializing each event
@@ -36,7 +36,7 @@ module EventFramework
           bookmark = begin
                        bookmark_repository_class.new(
                          name: processor_class.name,
-                         database: projection_database,
+                         database: projection_database
                        ).checkout
                      rescue BookmarkRepository::UnableToCheckoutBookmarkError => e
                        logger.info(processor_class_name: processor_class.name, msg: e.message)
@@ -62,7 +62,7 @@ module EventFramework
     private
 
     attr_reader :processor_classes, :process_manager, :bookmark_repository_class,
-                :projection_database, :event_source
+      :projection_database, :event_source
 
     def set_process_name
       Process.setproctitle "event_processor [#{self.class.name}]"

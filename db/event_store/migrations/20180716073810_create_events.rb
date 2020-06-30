@@ -5,7 +5,7 @@ Sequel.migration do
     create_table :events do
       column :sequence, :bigserial, primary_key: true
       column :aggregate_sequence, :bigint, null: false
-      column :id, :uuid, unique: true, null: false, default: Sequel.lit('uuid_generate_v4()')
+      column :id, :uuid, unique: true, null: false, default: Sequel.lit("uuid_generate_v4()")
       column :aggregate_id, :uuid, null: false
       column :aggregate_type, :varchar, null: false
       column :event_type, :varchar, null: false

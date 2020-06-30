@@ -33,12 +33,12 @@ module EventFramework
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
-          event_source: event_source,
+          event_source: event_source
         )
 
         EventProcessorRunner.new(
           processor_class: event_processor_class,
-          domain_context: TestDomain,
+          domain_context: TestDomain
         ).call
       end
     end

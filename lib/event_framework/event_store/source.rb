@@ -11,11 +11,11 @@ module EventFramework
       end
 
       def get_after(sequence, event_classes: nil)
-        scope = database[:events].where(Sequel.lit('sequence > ?', sequence))
+        scope = database[:events].where(Sequel.lit("sequence > ?", sequence))
         scope = scope_to_event_classes(scope, event_classes: event_classes) if event_classes
 
         scope
-          .where(Sequel.lit('sequence > ?', sequence))
+          .where(Sequel.lit("sequence > ?", sequence))
           .order(:sequence)
           .limit(LIMIT)
           .map { |row| event_builder.call(row) }
@@ -37,7 +37,7 @@ module EventFramework
 
         scope.where(
           aggregate_type: event_type_descriptions.map(&:aggregate_type),
-          event_type: event_type_descriptions.map(&:event_type),
+          event_type: event_type_descriptions.map(&:event_type)
         )
       end
     end

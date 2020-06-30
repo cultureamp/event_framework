@@ -7,21 +7,21 @@ class SchemaDump
 
   def self.call(database_url, filename:)
     retval = system(
-      'pg_dump',
-      '--schema-only',
-      '--no-owner',
-      '--no-privileges',
-      '--file',
+      "pg_dump",
+      "--schema-only",
+      "--no-owner",
+      "--no-privileges",
+      "--file",
       filename,
-      database_url,
+      database_url
     )
 
     return unless retval
 
     contents = File.read(filename)
-    contents.gsub!(VERSION_REGEX, '')
+    contents.gsub!(VERSION_REGEX, "")
 
-    File.open(filename, 'w') { |file| file.puts contents }
+    File.open(filename, "w") { |file| file.puts contents }
 
     filename
   end

@@ -1,4 +1,4 @@
-require 'transproc'
+require "transproc"
 
 module EventFramework
   module Transformations

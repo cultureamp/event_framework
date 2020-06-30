@@ -16,7 +16,7 @@ module EventFramework
 
           scope = scope.where(
             aggregate_type: event_type_descriptions.map(&:aggregate_type),
-            event_type: event_type_descriptions.map(&:event_type),
+            event_type: event_type_descriptions.map(&:event_type)
           )
         end
 

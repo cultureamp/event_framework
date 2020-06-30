@@ -10,7 +10,7 @@ module EventFramework
           msg: error.message,
           event_processor: processor_name,
           error: error.class.name,
-          tries: tries,
+          tries: tries
         )
       end
 

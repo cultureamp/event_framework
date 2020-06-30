@@ -10,7 +10,7 @@ module EventFramework
       end
 
       def serialize(event_class)
-        parts = event_class.name.split('::') - event_context_module.name.split('::')
+        parts = event_class.name.split("::") - event_context_module.name.split("::")
         EventTypeDescription.new(*parts.reverse)
       end
 
@@ -21,7 +21,7 @@ module EventFramework
           .const_get(aggregate_type, false)
           .const_get(event_type, false)
       rescue NameError
-        raise UnknownEventTypeError, [aggregate_type, event_type].join('::')
+        raise UnknownEventTypeError, [aggregate_type, event_type].join("::")
       end
 
       private

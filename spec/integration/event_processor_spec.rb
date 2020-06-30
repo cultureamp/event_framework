@@ -7,7 +7,7 @@ module TestDomain
 end
 
 module EventFramework
-  RSpec.describe 'EventProcessor integration' do
+  RSpec.describe "EventProcessor integration" do
     let(:aggregate_id) { SecureRandom.uuid }
     let(:account_id) { SecureRandom.uuid }
     let(:processor_class) do
@@ -16,7 +16,7 @@ module EventFramework
 
         class << self
           def name
-            'FooProjector'
+            "FooProjector"
           end
         end
 
@@ -25,30 +25,30 @@ module EventFramework
         end
 
         process TestDomain::Thing::ThingAdded do |aggregate_id, domain_event, metadata|
-          fake_database['thing_added'] << [aggregate_id, domain_event.foo, metadata.account_id]
+          fake_database["thing_added"] << [aggregate_id, domain_event.foo, metadata.account_id]
         end
       end
     end
 
-    it 'handles events' do
+    it "handles events" do
       event = Event.new(
         id: SecureRandom.uuid,
         sequence: 1,
         aggregate_sequence: 1,
         aggregate_id: aggregate_id,
-        domain_event: TestDomain::Thing::ThingAdded.new(foo: 'This is the foo'),
+        domain_event: TestDomain::Thing::ThingAdded.new(foo: "This is the foo"),
         created_at: Time.now,
         metadata: Event::Metadata.new(
           account_id: account_id,
-          user_id: SecureRandom.uuid,
-        ),
+          user_id: SecureRandom.uuid
+        )
       )
 
       event_processor = processor_class.new
       event_processor.handle_event(event)
 
-      expect(event_processor.fake_database['thing_added']).to eq [
-        [aggregate_id, 'This is the foo', account_id],
+      expect(event_processor.fake_database["thing_added"]).to eq [
+        [aggregate_id, "This is the foo", account_id]
       ]
     end
   end

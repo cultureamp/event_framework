@@ -13,7 +13,7 @@ module EventFramework
           msg: "the roof",
           event_processor: "EventProcessorName",
           error: "RuntimeError",
-          tries: 42,
+          tries: 42
         )
 
         on_forked_error.call(RuntimeError.new("the roof"), 42)

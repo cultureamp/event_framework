@@ -21,7 +21,8 @@ module EventFramework
     subject(:exponential_backoff) { described_class.new(logger: logger, on_error: on_error) }
 
     before do
-      def exponential_backoff.sleep(seconds); end
+      def exponential_backoff.sleep(seconds)
+      end
     end
 
     it "returns the result of the block" do
@@ -30,10 +31,10 @@ module EventFramework
     end
 
     it "calls on_error on error then returns" do
-      return_value = exponential_backoff.run(-> {}) do
+      return_value = exponential_backoff.run(-> {}) {
         raise_on_first_block.call
         42
-      end
+      }
       expect(on_error).to have_received(:call).with(an_instance_of(TestError), 1)
       expect(return_value).to eq 42
     end
@@ -41,7 +42,7 @@ module EventFramework
     it "logs the error" do
       begin
         exponential_backoff.run(-> {}) { raise_on_first_block.call }
-      rescue StandardError
+      rescue
         TestError
       end
       expect(logger).to have_received(:error)

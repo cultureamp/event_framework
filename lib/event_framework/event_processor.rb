@@ -33,7 +33,7 @@ module EventFramework
       self.class.event_handlers.for(event.domain_event.type).each do |handler|
         instance_exec(event.aggregate_id, event.domain_event, event.metadata, event.id, event.created_at, &handler)
       end
-    rescue StandardError => e
+    rescue => e
       error_reporter.call(e, event)
       raise e
     end

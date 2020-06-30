@@ -7,14 +7,14 @@ end
 
 module EventFramework
   RSpec.describe EventProcessorWorker do
-    describe '.call' do
-      let(:event_processor_class) { class_double(EventProcessor, name: 'FooProjector') }
+    describe ".call" do
+      let(:event_processor_class) { class_double(EventProcessor, name: "FooProjector") }
       let(:event_processor) do
         instance_double(
           EventProcessor,
           class: event_processor_class,
           handled_event_classes: [TestDomain::Thing::QuxAdded],
-          all_handler?: false,
+          all_handler?: false
         )
       end
       let(:logger) { instance_double(Logger) }
@@ -38,7 +38,7 @@ module EventFramework
           event_processor: event_processor,
           logger: logger,
           bookmark: bookmark,
-          event_source: event_source,
+          event_source: event_source
         }
       end
       subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments, &ready_to_stop) }
@@ -55,24 +55,24 @@ module EventFramework
         end
       end
 
-      it 'logs that the process has forked' do
+      it "logs that the process has forked" do
         expect(logger).to receive(:info).with(
-          event_processor_class_name: 'FooProjector',
-          msg: 'event_processor.worker.forked',
+          event_processor_class_name: "FooProjector",
+          msg: "event_processor.worker.forked"
         )
 
         run_event_processor_worker
       end
 
-      context 'with no events' do
-        it 'sleeps' do
+      context "with no events" do
+        it "sleeps" do
           expect(event_processor_worker).to receive(:sleep)
 
           run_event_processor_worker
         end
       end
 
-      context 'with some events' do
+      context "with some events" do
         let(:events) { [event_1, event_2] }
         let(:event_1) { instance_double(Event, sequence: 1, id: SecureRandom.uuid) }
         let(:event_2) { instance_double(Event, sequence: 2, id: SecureRandom.uuid) }
@@ -83,45 +83,45 @@ module EventFramework
           allow(bookmark).to receive(:sequence=)
         end
 
-        it 'passes the events to the event processor' do
+        it "passes the events to the event processor" do
           expect(event_processor).to receive(:handle_event).with(event_1)
           expect(event_processor).to receive(:handle_event).with(event_2)
 
           run_event_processor_worker
         end
 
-        it 'updates the bookmark sequence' do
+        it "updates the bookmark sequence" do
           expect(bookmark).to receive(:sequence=).with(1)
           expect(bookmark).to receive(:sequence=).with(2)
 
           run_event_processor_worker
         end
 
-        it 'logs a summary of the new events' do
+        it "logs a summary of the new events" do
           expect(logger).to receive(:info).with(
-            event_processor_class_name: 'FooProjector',
-            msg: 'event_processor.worker.new_events',
+            event_processor_class_name: "FooProjector",
+            msg: "event_processor.worker.new_events",
             first_event_sequence: 1,
             event_id: event_1.id,
-            count: 2,
+            count: 2
           )
 
           run_event_processor_worker
         end
 
-        it 'logs the last processed sequence' do
+        it "logs the last processed sequence" do
           expect(logger).to receive(:info).with(
-            event_processor_class_name: 'FooProjector',
-            msg: 'event_processor.worker.processed_up_to',
+            event_processor_class_name: "FooProjector",
+            msg: "event_processor.worker.processed_up_to",
             last_processed_event_sequence: 2,
-            last_processed_event_id: events.last.id,
+            last_processed_event_id: events.last.id
           )
 
           run_event_processor_worker
         end
       end
 
-      context 'when the processor is disabled an then enabled again' do
+      context "when the processor is disabled an then enabled again" do
         let(:event_1) { instance_double(Event, sequence: 1, id: SecureRandom.uuid) }
         let(:event_2) { instance_double(Event, sequence: 2, id: SecureRandom.uuid) }
 
@@ -137,7 +137,7 @@ module EventFramework
             .with(1, event_classes: [TestDomain::Thing::QuxAdded]).and_return([event_2])
         end
 
-        it 'sleeps for DISABLED_SLEEP_INTERVAL' do
+        it "sleeps for DISABLED_SLEEP_INTERVAL" do
           # Enabled
           expect(event_processor).to receive(:handle_event).with(event_1)
 
@@ -151,10 +151,10 @@ module EventFramework
         end
       end
 
-      context 'when the event processor responds to logger=' do
+      context "when the event processor responds to logger=" do
         let(:event_processor) { Struct.new(:handled_event_classes, :logger, :all_handler?).new([TestDomain::Thing::QuxAdded]) }
 
-        it 'sets the logger' do
+        it "sets the logger" do
           expect(event_processor).to receive(:logger=).with(logger)
 
           run_event_processor_worker

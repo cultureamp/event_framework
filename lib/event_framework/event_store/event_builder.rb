@@ -1,4 +1,4 @@
-require_relative '../transformations'
+require_relative "../transformations"
 
 module EventFramework
   module EventStore
@@ -30,7 +30,7 @@ module EventFramework
           aggregate_sequence: row[:aggregate_sequence],
           created_at: row[:created_at],
           metadata: build_metadata(row[:metadata]),
-          domain_event: domain_event_class.new(row[:body]),
+          domain_event: domain_event_class.new(row[:body])
         )
       end
 
