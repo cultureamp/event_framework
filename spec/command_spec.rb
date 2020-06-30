@@ -80,5 +80,64 @@ module EventFramework
         end
       end
     end
+
+    describe ".build" do
+      context "with no defined schema" do
+        let(:command_class) do
+          Class.new(Command) do
+            attribute :foo, Types::Strict::String
+            attribute :bar, Types::Strict::Integer
+          end
+        end
+
+        it "raises an error" do
+          expect { command_class.build({}) }.to raise_error(Command::ValidationNotImplementedError)
+        end
+      end
+
+      context "with a defined schema" do
+        let(:command_class) do
+          Class.new(Command) do
+            attribute :foo, Types::Strict::String
+            attribute :bar, Types::Strict::Integer
+
+            validation_schema do
+              required(:foo).filled(:str?)
+              required(:bar).filled(:int?)
+            end
+          end
+        end
+
+        context "when given valid input" do
+          let(:params) do
+            {:aggregate_id => SecureRandom.uuid, "foo" => "qux", :bar => 42}
+          end
+
+          it "returns a successful result object" do
+            expect(command_class.build(params)).to be_a_success
+          end
+        end
+
+        context "when given invalid input" do
+          let(:params) do
+            {:aggregate_id => SecureRandom.uuid, "foo" => Object.new, :bar => "fourty two"}
+          end
+
+          it "returns a failed result object" do
+            expect(command_class.build(params)).to be_a_failure
+          end
+
+          it "returns errors" do
+            expect(command_class.build(params).failure).to eq [
+              :validation_failed,
+              {
+                foo: ["must be a string"],
+                bar: ["must be an integer"]
+              }
+            ]
+          end
+        end
+      end
+    end
   end
 end

@@ -1,4 +1,5 @@
 require "dry/configurable"
+require "dry/monads"
 require "logger"
 
 module EventFramework

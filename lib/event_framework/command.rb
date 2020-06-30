@@ -33,6 +33,8 @@ module EventFramework
     end
 
     class << self
+      include Dry::Monads[:result]
+
       def validation_schema(&block)
         @validation_schema = Dry::Validation.Params(BaseSchema, &block)
       end
@@ -41,6 +43,16 @@ module EventFramework
         raise ValidationNotImplementedError if @validation_schema.nil?
 
         @validation_schema.call(params)
+      end
+
+      def build(params)
+        result = validate(params)
+        if result.success?
+          command = new(result.output)
+          Success(command)
+        else
+          Failure([:validation_failed, result.errors])
+        end
       end
     end
   end
