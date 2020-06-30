@@ -1,5 +1,5 @@
-require 'dry/struct'
-require 'dry/validation'
+require "dry/struct"
+require "dry/validation"
 
 module EventFramework
   class Command < DomainStruct
@@ -9,7 +9,7 @@ module EventFramework
 
     class BaseSchema < Dry::Validation::Schema
       configure do
-        config.messages_file = EventFramework.root.join('config', 'dry-validation_messages.yml')
+        config.messages_file = EventFramework.root.join("config", "dry-validation_messages.yml")
 
         def uuid?(value)
           !Types::UUID_REGEX.match(value.to_s).nil?
@@ -20,7 +20,7 @@ module EventFramework
           when Time
             value.utc?
           when DateTime
-            value.zone == '+00:00'
+            value.zone == "+00:00"
           else
             false
           end
