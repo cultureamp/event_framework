@@ -1,3 +1,4 @@
+require "event_framework/version"
 require "dry/configurable"
 require "dry/monads"
 require "logger"
