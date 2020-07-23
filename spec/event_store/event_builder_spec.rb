@@ -7,7 +7,7 @@ module TestDomain
     class EventBuilderUpcastingTested < EventFramework::DomainEvent
       attribute :test, EventFramework::Types::Strict::String
       attribute :downcased_test, EventFramework::Types::Strict::String
-      attribute :tested_at, EventFramework::Types::DateTime
+      attribute :tested_at, EventFramework::Types::JSON::DateTime
 
       upcast do |row|
         row[:body][:downcased_test] = row[:body][:test].downcase
@@ -108,7 +108,7 @@ module EventFramework
         it "upcasts the event" do
           expect(event.domain_event.test).to eq "Testing!"
           expect(event.domain_event.downcased_test).to eq "testing!"
-          expect(Date.parse(event.domain_event.tested_at).year).to eq Date.today.year
+          expect(event.domain_event.tested_at.year).to eq Date.today.year
         end
       end
     end

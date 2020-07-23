@@ -8,8 +8,8 @@ PATH
       dry-configurable
       dry-container
       dry-monads
-      dry-struct (~> 0.6.0)
-      dry-types (~> 0.14.0)
+      dry-struct
+      dry-types
       dry-validation
       forked
       pg
@@ -56,7 +56,7 @@ GEM
       dry-equalizer (~> 0.2)
       dry-types (~> 0.13)
       ice_nine (~> 0.11)
-    dry-types (0.14.1)
+    dry-types (0.14.0)
       concurrent-ruby (~> 1.0)
       dry-container (~> 0.3)
       dry-core (~> 0.4, >= 0.4.4)
@@ -73,7 +73,7 @@ GEM
     forked (0.1.2)
     ice_nine (0.11.2)
     method_source (1.0.0)
-    multi_json (1.14.1)
+    multi_json (1.15.0)
     parallel (1.19.2)
     parser (2.7.1.4)
       ast (~> 2.4.1)
@@ -110,7 +110,7 @@ GEM
       rubocop-ast (>= 0.0.3)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 2.0)
-    rubocop-ast (0.1.0)
+    rubocop-ast (0.2.0)
       parser (>= 2.7.0.1)
     rubocop-performance (1.6.1)
       rubocop (>= 0.71.0)
@@ -133,6 +133,9 @@ PLATFORMS
 
 DEPENDENCIES
   database_cleaner
+  dry-struct (= 0.6.0)
+  dry-types (= 0.14.0)
+  dry-validation (= 0.13.3)
   event_framework!
   pry-byebug
   rake (~> 12.0)

@@ -72,7 +72,7 @@ module EventFramework
           end
 
           it "returns errors" do
-            expect(command_class.validate(params).errors).to eq(
+            expect(command_class.validate(params).errors.to_h).to eq(
               foo: ["must be a string"],
               bar: ["must be an integer"]
             )
@@ -128,13 +128,13 @@ module EventFramework
           end
 
           it "returns errors" do
-            expect(command_class.build(params).failure).to eq [
-              :validation_failed,
-              {
-                foo: ["must be a string"],
-                bar: ["must be an integer"]
-              }
-            ]
+            error_code, result = command_class.build(params).failure
+
+            expect(error_code).to eq :validation_failed
+            expect(result.to_h).to eq(
+              foo: ["must be a string"],
+              bar: ["must be an integer"]
+            )
           end
         end
       end

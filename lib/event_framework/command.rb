@@ -1,5 +1,5 @@
 require "dry/struct"
-require "dry/validation"
+require "dry/validation/version"
 
 module EventFramework
   class Command < DomainStruct
@@ -7,28 +7,41 @@ module EventFramework
 
     attribute :aggregate_id, Types::UUID
 
-    class BaseSchema < Dry::Validation::Schema
-      configure do
-        config.messages_file = EventFramework.root.join("config", "dry-validation_messages.yml")
+    if Gem::Version.new(Dry::Validation::VERSION) > Gem::Version.new("1.0")
+      require "dry/validation/contract"
 
-        def uuid?(value)
-          !Types::UUID_REGEX.match(value.to_s).nil?
-        end
-
-        def utc?(value)
-          case value
-          when Time
-            value.utc?
-          when DateTime
-            value.zone == "+00:00"
-          else
-            false
-          end
+      class BaseSchema < Dry::Validation::Contract
+        json do
+          # FIXME: This we should remove the permissive UUID regexp and push it into the app
+          required(:aggregate_id).filled(Types::UUID)
         end
       end
+    else
+      require "dry/validation"
 
-      define! do
-        required(:aggregate_id) { uuid? }
+      class BaseSchema < Dry::Validation::Schema
+        configure do
+          config.messages_file = EventFramework.root.join("config", "dry-validation_messages.yml")
+
+          def uuid?(value)
+            !Types::UUID_REGEX.match(value.to_s).nil?
+          end
+
+          def utc?(value)
+            case value
+            when Time
+              value.utc?
+            when DateTime
+              value.zone == "+00:00"
+            else
+              false
+            end
+          end
+        end
+
+        define! do
+          required(:aggregate_id) { uuid? }
+        end
       end
     end
 
@@ -36,7 +49,14 @@ module EventFramework
       include Dry::Monads[:result]
 
       def validation_schema(&block)
-        @validation_schema = Dry::Validation.Params(BaseSchema, &block)
+        @validation_schema =
+          if Gem::Version.new(Dry::Validation::VERSION) > Gem::Version.new("1.0")
+            Class.new(BaseSchema) do
+              json(&block)
+            end.new
+          else
+            Dry::Validation.Params(BaseSchema, &block)
+          end
       end
 
       def validate(params)
@@ -48,7 +68,7 @@ module EventFramework
       def build(params)
         result = validate(params)
         if result.success?
-          command = new(result.output)
+          command = new(result.to_h)
           Success(command)
         else
           Failure([:validation_failed, result.errors])

@@ -15,8 +15,13 @@ module TestDomain
       attribute :bar, EventFramework::Types::Strict::String
 
       validation_schema do
-        required(:foo).filled(:str?)
-        required(:bar).filled(:str?)
+        if Gem::Version.new(Dry::Validation::VERSION) > Gem::Version.new("1.0")
+          required(:foo).filled(:string)
+          required(:bar).filled(:string)
+        else
+          required(:foo).filled(:str?)
+          required(:bar).filled(:str?)
+        end
       end
     end
 
@@ -239,7 +244,7 @@ RSpec.describe "integration" do
       end
 
       it "returns an output hash with symbolized keys" do
-        expect(result.output).to eq(
+        expect(result.to_h).to eq(
           aggregate_id: aggregate_id,
           foo: "Foo",
           bar: "Bar"
@@ -261,7 +266,7 @@ RSpec.describe "integration" do
       end
 
       it "returns errrors" do
-        expect(result.errors).to eq(
+        expect(result.errors.to_h).to eq(
           foo: ["must be a string"]
         )
       end
