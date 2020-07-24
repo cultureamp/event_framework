@@ -1,3 +1,5 @@
+require "logger"
+
 module EventFramework
   class EventProcessorSupervisor
     class OnForkedError

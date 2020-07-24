@@ -1,3 +1,5 @@
+require "logger"
+
 module EventFramework
   module EventStore
     class Sink

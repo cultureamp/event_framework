@@ -1,5 +1,6 @@
 require "event_framework/exponential_backoff"
 require "event_framework/with_graceful_shutdown"
+require "logger"
 
 module EventFramework
   # The EventProcessorRunner is responsible for initializing a single event

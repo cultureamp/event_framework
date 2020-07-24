@@ -1,5 +1,8 @@
+require "dry/monads"
 require "dry/struct"
 require "dry/validation"
+require "event_framework/domain_struct"
+require "event_framework/types"
 
 module EventFramework
   class Command < DomainStruct

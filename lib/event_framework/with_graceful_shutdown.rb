@@ -1,3 +1,5 @@
+require "logger"
+
 module EventFramework
   # Traps SIGTERM and SIGINT and shuts down only when the block
   # is called, allowing for graceful shutdown.

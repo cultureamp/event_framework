@@ -1,5 +1,6 @@
 require "forked"
 require "event_framework/event_processor_supervisor/on_forked_error"
+require "logger"
 
 module EventFramework
   # The EventProcessorSupervisor is responsible initializing each event

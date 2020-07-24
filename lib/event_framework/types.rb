@@ -1,4 +1,4 @@
-require "dry/struct"
+require "dry/types"
 
 module EventFramework
   module Types
