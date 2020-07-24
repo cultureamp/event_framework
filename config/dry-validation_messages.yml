@@ -1,4 +1,4 @@
 en:
- errors:
-  uuid?: "must be a UUID"
-  utc?: "must be in UTC"
+  errors:
+    uuid?: "must be a UUID"
+    utc?: "must be in UTC"
