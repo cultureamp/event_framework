@@ -15,7 +15,7 @@ module EventFramework
 
     class Metadata < BaseMetadata
       attribute :user_id, Types::UUID
-      attribute :metadata_type, Types.Value("attributed").default("attributed")
+      attribute :metadata_type, Types.Value("attributed").default("attributed".freeze)
 
       def self.new_with_fallback(fallback_class:, **args)
         new(args)
@@ -27,11 +27,11 @@ module EventFramework
     end
 
     class UnattributedMetadata < BaseMetadata
-      attribute :metadata_type, Types.Value("unattributed").default("unattributed")
+      attribute :metadata_type, Types.Value("unattributed").default("unattributed".freeze)
     end
 
     class SystemMetadata < BaseMetadata
-      attribute :metadata_type, Types.Value("system").default("system")
+      attribute :metadata_type, Types.Value("system").default("system".freeze)
     end
 
     attribute :id, Types::UUID
