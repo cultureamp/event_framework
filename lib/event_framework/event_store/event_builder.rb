@@ -44,14 +44,11 @@ module EventFramework
       end
 
       def build_metadata(metadata)
-        case metadata[:metadata_type]
-        when "attributed"
-          Event::Metadata.new(metadata)
-        when "unattributed"
-          Event::UnattributedMetadata.new(metadata)
-        else
+        metadata_class = Event::METADATA_TYPES.fetch(metadata[:metadata_type].to_sym) do
           raise "unknown metadata_type: #{metadata[:metadata_type].inspect}"
         end
+
+        metadata_class.new(metadata)
       end
     end
   end

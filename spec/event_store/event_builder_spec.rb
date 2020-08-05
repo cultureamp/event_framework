@@ -102,6 +102,19 @@ module EventFramework
         end
       end
 
+      describe "system metadata" do
+        let(:event) do
+          row[:metadata]["metadata_type"] = "system"
+          row[:metadata].delete("user_id")
+          event_builder.call(row)
+        end
+
+        it "has is an UnattributedMetadata" do
+          expect(event.metadata).to be_an Event::SystemMetadata
+          expect(event.metadata.metadata_type).to eq "system"
+        end
+      end
+
       describe "upcasting" do
         let(:event) { event_builder.call(row.merge(event_type: "EventBuilderUpcastingTested")) }
 

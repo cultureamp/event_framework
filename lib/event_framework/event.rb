@@ -34,6 +34,12 @@ module EventFramework
       attribute :metadata_type, Types.Value("system").default("system".freeze)
     end
 
+    METADATA_TYPES = {
+      attributed: Metadata,
+      unattributed: UnattributedMetadata,
+      system: SystemMetadata,
+    }
+
     attribute :id, Types::UUID
     attribute :sequence, Types::Strict::Integer
     attribute :aggregate_id, Types::UUID
