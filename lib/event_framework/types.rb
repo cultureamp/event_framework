@@ -3,11 +3,7 @@ require "dry/types/version"
 
 module EventFramework
   module Types
-    if Gem::Version.new(Dry::Types::VERSION) > Gem::Version.new("1.0")
-      include Dry.Types
-    else
-      include Dry::Types.module
-    end
+    include Dry.Types
 
     # Note; this is _not_ a RFC-compliant UUID; there's a lot of data in
     # Murmur (and other systems) that contain data that _looks_ like UUIDs,
