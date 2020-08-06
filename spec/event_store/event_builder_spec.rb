@@ -96,7 +96,7 @@ module EventFramework
           event_builder.call(row)
         end
 
-        it "has is an UnattributedMetadata" do
+        it "uses the UnattributedMetadata class" do
           expect(event.metadata).to be_an Event::UnattributedMetadata
           expect(event.metadata.metadata_type).to eq "unattributed"
         end
@@ -109,7 +109,7 @@ module EventFramework
           event_builder.call(row)
         end
 
-        it "has is an UnattributedMetadata" do
+        it "uses the SystemMetadata class" do
           expect(event.metadata).to be_an Event::SystemMetadata
           expect(event.metadata.metadata_type).to eq "system"
         end
