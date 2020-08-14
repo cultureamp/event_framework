@@ -15,13 +15,8 @@ module TestDomain
       attribute :bar, EventFramework::Types::Strict::String
 
       validation_schema do
-        if Gem::Version.new(Dry::Validation::VERSION) > Gem::Version.new("1.0")
-          required(:foo).filled(:string)
-          required(:bar).filled(:string)
-        else
-          required(:foo).filled(:str?)
-          required(:bar).filled(:str?)
-        end
+        required(:foo).filled(:string)
+        required(:bar).filled(:string)
       end
     end
 
