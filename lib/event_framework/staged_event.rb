@@ -9,7 +9,7 @@ module EventFramework
     attribute :aggregate_id, Types::UUID
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :domain_event, DomainEvent
-    attribute :metadata, (Event::Metadata | Event::UnattributedMetadata | Event::SystemMetadata).optional
+    attribute :metadata, Event::AnyMetadata.optional
 
     def body
       domain_event.to_h

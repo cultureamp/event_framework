@@ -39,6 +39,7 @@ module EventFramework
       unattributed: UnattributedMetadata,
       system: SystemMetadata,
     }
+    AnyMetadata = Metadata | UnattributedMetadata | SystemMetadata
 
     attribute :id, Types::UUID
     attribute :sequence, Types::Strict::Integer
@@ -46,7 +47,7 @@ module EventFramework
     attribute :aggregate_sequence, Types::Strict::Integer
     attribute :created_at, Types::JSON::Time
 
-    attribute :metadata, Metadata | UnattributedMetadata | SystemMetadata
+    attribute :metadata, AnyMetadata
 
     attribute :domain_event, DomainEvent
 
