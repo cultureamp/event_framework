@@ -6,11 +6,12 @@ module EventFramework
 
       MAX_RETRIES = 100
 
-      def initialize(database:, event_type_resolver:, logger: Logger.new(STDOUT))
+      def initialize(database:, event_type_resolver:, logger: Logger.new(STDOUT), max_lock_retries: MAX_RETRIES)
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
+        @max_lock_retries = max_lock_retries
       end
 
       def transaction
@@ -34,7 +35,7 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger, :event_builder
+      attr_reader :database, :event_type_resolver, :logger, :event_builder, :max_lock_retries
 
       def sink_staged_events(staged_events, database)
         new_event_rows = []
@@ -69,7 +70,7 @@ module EventFramework
           raise ConcurrencyError, "error obtaining lock" unless locked?(lock_result)
         rescue ConcurrencyError => e
           tries += 1
-          if tries > MAX_RETRIES
+          if tries > max_lock_retries
             logger.info(msg: "event_framework.event_store.sink.max_retries_reached", tries: tries, correlation_id: correlation_id)
             raise e
           end
