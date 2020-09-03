@@ -4,18 +4,18 @@ module EventFramework
       AggregateIdMismatchError = Class.new(Error)
       ConcurrencyError = Class.new(RetriableException)
 
-      MAX_RETRIES = 100
+      LOCK_RETRY_COUNT = 100
       LOCK_RETRY_SLEEP = 0.1
 
       def initialize(
         database:, event_type_resolver:, logger: Logger.new(STDOUT),
-        max_lock_retries: MAX_RETRIES, lock_retry_sleep: LOCK_RETRY_SLEEP
+        lock_retry_count: LOCK_RETRY_COUNT, lock_retry_sleep: LOCK_RETRY_SLEEP
       )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
-        @max_lock_retries = max_lock_retries
+        @lock_retry_count = lock_retry_count
         @lock_retry_sleep = lock_retry_sleep
       end
 
@@ -40,7 +40,7 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger, :event_builder, :max_lock_retries, :lock_retry_sleep
+      attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_retry_count, :lock_retry_sleep
 
       def sink_staged_events(staged_events, database)
         new_event_rows = []
@@ -75,7 +75,7 @@ module EventFramework
           raise ConcurrencyError, "error obtaining lock" unless locked?(lock_result)
         rescue ConcurrencyError => e
           tries += 1
-          if tries > max_lock_retries
+          if tries > lock_retry_count
             logger.info(msg: "event_framework.event_store.sink.max_retries_reached", tries: tries, correlation_id: correlation_id)
             raise e
           end
