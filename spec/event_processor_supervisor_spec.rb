@@ -11,6 +11,7 @@ module EventFramework
       let(:event_processor_error_reporter) { double(:event_processor_error_reporter) }
       let(:on_forked_error) { instance_double(described_class::OnForkedError) }
       let(:event_source) { instance_double(EventFramework::EventStore::Source) }
+      let(:tracer) { double(:tracer) }
       let(:projection_database) { instance_spy(EventFramework::DatabaseConnection) }
       let(:ready_to_stop) { -> {} }
       let(:ready_to_stop_wrapper) { double(to_proc: ready_to_stop) }
@@ -29,7 +30,8 @@ module EventFramework
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
-          event_source: event_source
+          event_source: event_source,
+          tracer: tracer
         ) do |&block|
           expect(block).to eq ready_to_stop
         end
@@ -39,7 +41,8 @@ module EventFramework
           process_manager: process_manager,
           bookmark_repository_class: bookmark_repository_class,
           projection_database: projection_database,
-          event_source: event_source
+          event_source: event_source,
+          tracer: tracer
         ).call
       end
     end

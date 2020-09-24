@@ -14,11 +14,12 @@ module EventFramework
       end
     end
 
-    def initialize(event_processor:, logger:, event_source:, bookmark:, &ready_to_stop)
+    def initialize(event_processor:, logger:, event_source:, bookmark:, tracer:, &ready_to_stop)
       @event_processor = event_processor
       @logger = logger
       @event_source = event_source
       @bookmark = bookmark
+      @tracer = tracer
       @ready_to_stop = ready_to_stop
     end
 
@@ -28,29 +29,37 @@ module EventFramework
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
       loop do
-        # We're in a safe place to stop if we need to.
-        ready_to_stop.call
+        tracer.trace("event.processor", resource: event_processor.class.name.to_s) do |span|
+          # We're in a safe place to stop if we need to.
+          ready_to_stop.call
 
-        sequence, disabled = bookmark.next
+          sequence, disabled = bookmark.next
 
-        if disabled
-          sleep DISABLED_SLEEP_INTERVAL
-        else
-          events = fetch_events(sequence)
-
-          if events.empty?
-            sleep SLEEP_INTERVAL
+          if disabled
+            sleep DISABLED_SLEEP_INTERVAL
           else
-            log("new_events", first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+            events = fetch_events(sequence)
 
-            last_sequence = nil
-            events.each do |event|
-              event_processor.handle_event(event)
-              last_sequence = event.sequence
-              bookmark.sequence = event.sequence
+            span.set_tag("events.count", events.count)
+
+            if events.empty?
+              sleep SLEEP_INTERVAL
+            else
+              log("new_events", first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
+
+              last_sequence = nil
+              events.each do |event|
+                tracer.trace("event.processor.handle_event", resource: event.domain_event.class.name) do |span|
+                  span.set_tag("event.id", event.id)
+
+                  event_processor.handle_event(event)
+                  last_sequence = event.sequence
+                  bookmark.sequence = event.sequence
+                end
+              end
+
+              log("processed_up_to", last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
             end
-
-            log("processed_up_to", last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
           end
         end
       end
@@ -58,7 +67,7 @@ module EventFramework
 
     private
 
-    attr_reader :event_processor, :logger, :event_source, :bookmark, :ready_to_stop
+    attr_reader :event_processor, :logger, :event_source, :bookmark, :tracer, :ready_to_stop
 
     def fetch_events(sequence)
       if event_processor.all_handler?
