@@ -3,8 +3,8 @@ require_relative "lib/event_framework/version"
 Gem::Specification.new do |spec|
   spec.name = "event_framework"
   spec.version = EventFramework::VERSION
-  spec.authors = ["Odin Dutton"]
-  spec.email = ["odin.dutton@cultureamp.com"]
+  spec.authors = ["Culture Amp Developers"]
+  spec.email = ["developers@cultureamp.com"]
 
   spec.summary = "An event framework"
   spec.description = spec.summary
