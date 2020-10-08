@@ -1,0 +1,195 @@
+#!/usr/bin/env ruby
+#
+# This script is based on the EventSourcery version[1]. Some of this
+# documentation is copied from there too.
+#
+# Demonstrates that sequence IDs may not be inserted linearly with concurrent
+# writers.
+#
+# This script writes events in parallel from a number of forked processes,
+# writing events in a continious loop until the program is interrupted. The
+# parent process detects gaps in sequence IDs by selecting the last 2 events
+# based on sequence ID. A gap is detected when the 2 IDs returned from that
+# query aren't sequential. The script will proceed to execute 2 subsequent
+# queries to see if they show up in the time it takes to complete those before
+# moving on.
+#
+# An easier way to demonstrate this is by using 2 psql consoles:
+#
+# - Simulate a transaction taking a long time to commit:
+#
+#     begin;
+#     insert into events (..) values (..);
+#
+# - Then, in another console:
+#
+#     insert into events (..) values (..);
+#     select * from events;
+#
+# The result is that event sequence ID 2 is visible, but only when the first
+# transaction commits is event sequence ID 1 visible.
+#
+# Why does this happen?
+#
+# Sequences in Postgres (and most other DBs) are not transactional, changes to
+# the sequence are visible to other transactions immediately. Also, inserts
+# from the forked writers may be executed in parallel by postgres.
+#
+# The process of inserting into a table that has a sequence or serial column is
+# to first get the next sequence ID (changing global state), then perform the
+# insert statement and later commit. In between these 2 steps the sequence ID
+# is taken but not visible in the table until the insert statement is
+# committed. Gaps in sequence IDs occur when a process takes a sequence ID and
+# commits it while another process is in between those 2 steps.
+#
+# This means another transaction could have taken the next sequence ID and
+# committed before that one commits, resulting in a gap in sequence ID's when
+# reading.
+#
+# Why is this a problem?
+#
+# Event stream processors use the sequence ID to keep track of where they're up
+# to in the events table. If a projector processes an event with sequence ID n,
+# it assumes that the next event it needs to process will have a sequence ID >
+# n. This approach isn't reliable when sequence IDs appear non-linearly, making
+# it possible for event stream processors to skip over events.
+#
+# How does this framework deal with this?
+#
+# Use we a transaction level advisory lock to synchronise inserts to the events
+# table within the Sink class.
+#
+# Alternatives:
+#
+# - Write events from 1 process only (serialize at the application level)
+# - Detect gaps when reading events and allow time for in-flight transactions
+#   (the gaps) to commit.
+# - Built in eventual consistency. Selects would be restricted to events older
+#   than 500ms-1s or the transaction timeout to give enough time for in-flight
+#   transactions to commit.
+# - Only query events when catching up, after that rely on events to be
+#   delivered through the pub/sub mechanism. Given events would be received out
+#   of order under concurrent writes there's potential for processors to
+#   process a given event twice if they shutdown after processing a sequence
+#   that was part of a gap.
+#
+# Usage
+#
+#     $ ./bin/demonstrate_event_sequence_id_gaps
+#     I, [2020-10-09T11:13:16.117787 #97791]  INFO -- : {:msg=>"event_framework.event_store.sink.retry", :tries=>2, :correlation_id=>nil}
+#     I, [2020-10-09T11:13:16.121125 #97773]  INFO -- : {:msg=>"event_framework.event_store.sink.retry", :tries=>3, :correlation_id=>nil}
+#     I, [2020-10-09T11:13:16.133678 #97775]  INFO -- : {:msg=>"event_framework.event_store.sink.retry", :tries=>2, :correlation_id=>nil}
+#     Processed to 100
+#     I, [2020-10-09T11:13:16.150880 #97780]  INFO -- : {:msg=>"event_framework.event_store.sink.retry", :tries=>1, :correlation_id=>nil}
+#     I, [2020-10-09T11:13:16.157430 #97781]  INFO -- : {:msg=>"event_framework.event_store.sink.retry", :tries=>3, :correlation_id=>nil}
+#     # ... Snip
+#     # Hit Control-c to stop script
+#     # <C-c>
+#     Fork finishing 17
+#     Fork finishing 16
+#     Fork finishing 8
+#     Waiting for remaining events...
+#     actual sequences:       1250
+#     processed sequences:    1250
+#     unprocessed sequences:  0
+#     Done
+#
+# Running this script should result in 0 "unprocessed sequences".
+#
+# To see the script fail, comment out the get_lock_with_retry method in the
+# Sink class.
+#
+# You can also use this script to adjust the lock-retry numbers in the Sink.
+#
+# [1]: https://github.com/envato/event_sourcery-postgres/blob/9fa5cec446e9335edb5b8d4aa2517d383c73b076/script/demonstrate_event_sequence_id_gaps.rb
+
+require "pathname"
+$LOAD_PATH.unshift Pathname.new(__dir__).join("..", "lib")
+
+require "bundler/setup"
+require "securerandom"
+require "event_framework"
+require_relative "../spec/support/test_domain.rb"
+
+EventFramework::Tasks.root_module = Object
+EventFramework::Tasks.registered_contexts = [:test_domain]
+
+module TestDomain
+  module Thing
+    class ThingImplemented < EventFramework::DomainEvent
+    end
+
+    class ThingAggregate < EventFramework::Aggregate
+      def implement_thing
+        stage_event ThingImplemented.new
+      end
+    end
+  end
+end
+
+stop = false
+Signal.trap(:INT) { stop = true }
+
+TestDomain.container["databases.event_store"][:events].truncate(restart: true)
+
+metadata = EventFramework::Event::Metadata.new(
+  user_id: SecureRandom.uuid,
+  account_id: SecureRandom.uuid
+)
+
+20.times do |n|
+  fork do
+    TestDomain.container["databases.event_store"].disconnect
+    TestDomain.container["databases.projections"].disconnect
+
+    repository = TestDomain.container["repository"]
+
+    until stop
+      aggregate_id = SecureRandom.uuid
+      aggregate = TestDomain::Thing::ThingAggregate.build(aggregate_id)
+      aggregate.implement_thing
+
+      repository.save_aggregate(aggregate, metadata: metadata)
+    end
+
+    puts "Fork finishing #{n}"
+  end
+end
+
+# This represents an event processor:
+
+# Get event source
+source = TestDomain.container["event_store.source"]
+
+bookmark = 0
+processed_sequences = []
+
+loop do
+  # Get latest events for bookmark
+  events = source.get_after(bookmark)
+
+  events.each do |event|
+    # Store all sequence numbers
+    processed_sequences << event.sequence
+    bookmark = event.sequence
+    puts "Processed to #{bookmark}" if (bookmark % 100) == 0
+  end
+
+  # Allow the forks to finish and wait for remaining events
+  if stop
+    puts "Waiting for remaining events..."
+    Process.waitall
+    break if source.get_after(bookmark).empty?
+  end
+end
+
+# Check sequence numbers we processed against the sequence numbers from the
+# events table.
+
+actual_sequences = TestDomain.container["databases.event_store"][:events].all.map { |r| r[:sequence] }
+
+puts "actual sequences:\t#{actual_sequences.count}"
+puts "processed sequences:\t#{processed_sequences.count}"
+puts "unprocessed sequences:\t#{(actual_sequences - processed_sequences).count}"
+
+puts "Done"
