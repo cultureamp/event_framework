@@ -4,19 +4,19 @@ module EventFramework
       AggregateIdMismatchError = Class.new(Error)
       ConcurrencyError = Class.new(RetriableException)
 
-      LOCK_RETRY_COUNT = 100
-      LOCK_RETRY_SLEEP = 0.1
+      # 10 seconds
+      LOCK_TIMEOUT_MILLISECONDS = 10_000
 
       def initialize(
-        database:, event_type_resolver:, logger: Logger.new(STDOUT),
-        lock_retry_count: LOCK_RETRY_COUNT, lock_retry_sleep: LOCK_RETRY_SLEEP
+        database:, event_type_resolver:,
+        logger: Logger.new(STDOUT),
+        lock_timeout_milliseconds: LOCK_TIMEOUT_MILLISECONDS
       )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
-        @lock_retry_count = lock_retry_count
-        @lock_retry_sleep = lock_retry_sleep
+        @lock_timeout_milliseconds = lock_timeout_milliseconds
       end
 
       def transaction
@@ -40,14 +40,12 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_retry_count, :lock_retry_sleep
+      attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_timeout_milliseconds
 
       def sink_staged_events(staged_events)
         new_event_rows = []
 
-        database.transaction do
-          get_lock_with_retry(correlation_id: staged_events.first.metadata.correlation_id)
-
+        with_lock(correlation_id: staged_events.first.metadata.correlation_id) do
           staged_events.each do |staged_event|
             serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
 
@@ -68,29 +66,20 @@ module EventFramework
         new_event_rows
       end
 
-      def get_lock_with_retry(correlation_id:)
-        tries = 0
-        begin
-          lock_result = try_lock(database)
-          raise ConcurrencyError, "error obtaining lock" unless locked?(lock_result)
-        rescue ConcurrencyError => e
-          tries += 1
-          if tries > lock_retry_count
-            logger.info(msg: "event_framework.event_store.sink.max_retries_reached", tries: tries, correlation_id: correlation_id)
-            raise e
-          end
-          logger.info(msg: "event_framework.event_store.sink.retry", tries: tries, correlation_id: correlation_id)
-          sleep lock_retry_sleep
-          retry
+      # Set a local lock_timeout within a transaction then get an exclusive
+      # advisory lock so that we're the only database connection that can sink
+      # an event.
+      #
+      # If you're modifing the locking logic you can test that it's working
+      # correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
+      def with_lock(correlation_id:)
+        database.transaction do
+          database.execute("SET LOCAL lock_timeout = '#{lock_timeout_milliseconds}ms'; SELECT pg_advisory_xact_lock(-1)")
+          yield
         end
-      end
-
-      def try_lock(database)
-        database.select(Sequel.function(:pg_try_advisory_xact_lock, -1)).first
-      end
-
-      def locked?(lock_result)
-        lock_result && lock_result[:pg_try_advisory_xact_lock]
+      rescue Sequel::DatabaseLockTimeout => e
+        logger.info(msg: "event_framework.event_store.sink.lock_error", correlation_id: correlation_id)
+        raise ConcurrencyError, "error obtaining lock"
       end
     end
   end
