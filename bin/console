@@ -3,6 +3,11 @@
 require "bundler/setup"
 require "event_framework"
 
+require_relative "../spec/support/test_domain.rb"
+
+EventFramework::Tasks.root_module = Object
+EventFramework::Tasks.registered_contexts = [:test_domain]
+
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
 
