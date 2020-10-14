@@ -143,6 +143,7 @@ metadata = EventFramework::Event::Metadata.new(
     TestDomain.container["databases.projections"].disconnect
 
     repository = TestDomain.container["repository"]
+    repository.send(:sink).instance_variable_set("@logger", Logger.new(IO::NULL))
 
     until stop
       aggregate_id = SecureRandom.uuid
