@@ -26,7 +26,7 @@ module EventFramework
       def sink(staged_events)
         return if staged_events.empty?
 
-        new_event_rows = sink_staged_events(staged_events, database)
+        new_event_rows = sink_staged_events(staged_events)
 
         # NOTE: This is the "ugly" part of the framework that is only here to
         # support our current use-case where we need to update our MongoDB
@@ -42,7 +42,7 @@ module EventFramework
 
       attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_retry_count, :lock_retry_sleep
 
-      def sink_staged_events(staged_events, database)
+      def sink_staged_events(staged_events)
         new_event_rows = []
 
         database.transaction do
