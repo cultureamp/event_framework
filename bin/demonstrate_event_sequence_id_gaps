@@ -150,7 +150,11 @@ metadata = EventFramework::Event::Metadata.new(
       aggregate = TestDomain::Thing::ThingAggregate.build(aggregate_id)
       aggregate.implement_thing
 
-      repository.save_aggregate(aggregate, metadata: metadata)
+      begin
+        repository.save_aggregate(aggregate, metadata: metadata)
+      rescue EventFramework::EventStore::Sink::ConcurrencyError
+        puts "ConcurrencyError from #{n}"
+      end
     end
 
     puts "Fork finishing #{n}"
