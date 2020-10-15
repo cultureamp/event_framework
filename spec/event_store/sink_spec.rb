@@ -1,3 +1,5 @@
+require "fork_break"
+
 module TestDomain
   module Thing
     EventHappened = Class.new(EventFramework::DomainEvent) {
@@ -193,8 +195,14 @@ module EventFramework
       let(:d1_transaction_sleep) { 0.4 }
       let(:lock_timeout_milliseconds) { nil }
       let(:t1) {
-        Thread.new {
+        ForkBreak::Process.new { |breakpoints|
+          d1 = Sequel.connect(database.connection_url).tap do |db|
+            db.extension :pg_json
+          end
+
           Thread.current.report_on_exception = false # Don't double report RSpec failures
+
+          breakpoints << :after_thread_1_started
 
           sink_args = {
             database: d1,
@@ -205,25 +213,40 @@ module EventFramework
           # Compact here so we use defaults of the supplied argument is nil.
           sink = described_class.new(sink_args.compact)
 
+          print_flush "thread 1 sink"
           d1.transaction do
             sink.sink([build_staged_event(aggregate_id: aggregate_id_1)])
 
             # Sleep inside the transaction so we hold onto the lock longer.
-            sleep d1_transaction_sleep
+            print_flush "thread 1 sleep"
+            breakpoints << :before_thread_1_transaction_finished
+            sleep_spin_ms 100
+            print_flush "thread 1 sleep finish"
           end
+          print_flush "thread 1 sink finish"
 
           # Aggregate 2 should not be saved yet because it doesn't have a lock
           expect(database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
+
+          # thread_1 finished = true
+          d1.disconnect
+          Sequel.synchronize { ::Sequel::DATABASES.delete(d1) }
         }
       }
       let(:t2) {
-        Thread.new {
+        ForkBreak::Process.new { |breakpoints|
+          d2 = Sequel.connect(database.connection_url).tap do |db|
+            db.extension :pg_json
+          end
+
           Thread.current.report_on_exception = false # Don't double report RSpec failures
 
           # Sleep to ensure this thread gets the lock last, but less than the
           # sleep inside the transaction so that we try to get the lock while
           # the other lock is held.
-          sleep d1_transaction_sleep / 2
+          print_flush "thread 2 sleep"
+          sleep_spin_ms 20
+          print_flush "thread 2 sleep finish"
 
           sink_args = {
             database: d2,
@@ -234,13 +257,45 @@ module EventFramework
           # Compact here so we use defaults of the supplied argument is nil.
           sink = described_class.new(sink_args.compact)
 
+          print_flush "thread 2 sink"
           sink.sink([build_staged_event(aggregate_id: aggregate_id_2)])
+          print_flush "thread 2 sink finish"
+
+          breakpoints << :after_thread_2_finished_sink
+
+          d2.disconnect
+          Sequel.synchronize { ::Sequel::DATABASES.delete(d2) }
         }
       }
 
+      def sleep_spin_ms(ms)
+        (0..ms).each do
+          sleep 0.01
+        end
+      end
+
+      def print_flush(msg)
+        p msg
+        $stdout.flush
+      end
+
       # Expectation is in the t1 thread.
       def run_threads_with_expectation
-        [t1, t2].each(&:join)
+        t1.run_until(:before_thread_1_transaction_finished).wait
+        t2.finish
+        t1.finish.wait
+        t2.finish.wait
+
+        # loop do
+        #   # [t1, t2].each { |t| t.join(0.1) }.all? { |x| x }
+        #   r1 = t1.join(0.1)
+        #   r2 = t2.join(0.1)
+        #
+        #   print_flush 1 => r1
+        #   print_flush 2 => r2
+        #
+        #   break if r1 && r2
+        # end
       end
 
       it "ensures events are sunk sequentially by locking the database" do
@@ -248,7 +303,7 @@ module EventFramework
 
         expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1, aggregate_id_2]
       ensure
-        disconnect_other_database_connection
+        # disconnect_other_database_connection
       end
 
       context "hitting the lock timeout" do
