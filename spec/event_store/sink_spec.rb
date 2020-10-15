@@ -244,6 +244,13 @@ module EventFramework
       end
 
       it "ensures events are sunk sequentially by locking the database" do
+        # XXX: Unfortunately the expecation contained in t1 does not fail 100%
+        # of the time if locking is disabled in the implementation. We should
+        # look at fixing this in the future but we've decided the value we'll
+        # get from making it fail isn't worth it at this point.
+        #
+        # If you're modifing the locking logic you can test that it's working
+        # correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
         run_threads_with_expectation
 
         expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1, aggregate_id_2]
