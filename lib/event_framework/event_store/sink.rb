@@ -74,7 +74,7 @@ module EventFramework
       # correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
       def with_lock(correlation_id:)
         database.transaction do
-          database.execute("SET LOCAL lock_timeout = '#{lock_timeout_milliseconds}ms'; SELECT pg_advisory_xact_lock(-1)")
+          # database.execute("SET LOCAL lock_timeout = '#{lock_timeout_milliseconds}ms'; SELECT pg_advisory_xact_lock(-1)")
           yield
         end
       rescue Sequel::DatabaseLockTimeout => e

@@ -195,14 +195,14 @@ module EventFramework
       let(:d1_transaction_sleep) { 0.4 }
       let(:lock_timeout_milliseconds) { nil }
       let(:t1) {
-        ForkBreak::Process.new { |breakpoints|
+        fork {
           d1 = Sequel.connect(database.connection_url).tap do |db|
             db.extension :pg_json
           end
 
           Thread.current.report_on_exception = false # Don't double report RSpec failures
 
-          breakpoints << :after_thread_1_started
+          # breakpoints << :after_thread_1_started
 
           sink_args = {
             database: d1,
@@ -219,7 +219,7 @@ module EventFramework
 
             # Sleep inside the transaction so we hold onto the lock longer.
             print_flush "thread 1 sleep"
-            breakpoints << :before_thread_1_transaction_finished
+            # breakpoints << :before_thread_1_transaction_finished
             sleep_spin_ms 100
             print_flush "thread 1 sleep finish"
           end
@@ -234,7 +234,7 @@ module EventFramework
         }
       }
       let(:t2) {
-        ForkBreak::Process.new { |breakpoints|
+        fork {
           d2 = Sequel.connect(database.connection_url).tap do |db|
             db.extension :pg_json
           end
@@ -261,7 +261,7 @@ module EventFramework
           sink.sink([build_staged_event(aggregate_id: aggregate_id_2)])
           print_flush "thread 2 sink finish"
 
-          breakpoints << :after_thread_2_finished_sink
+          # breakpoints << :after_thread_2_finished_sink
 
           d2.disconnect
           Sequel.synchronize { ::Sequel::DATABASES.delete(d2) }
@@ -281,10 +281,22 @@ module EventFramework
 
       # Expectation is in the t1 thread.
       def run_threads_with_expectation
-        t1.run_until(:before_thread_1_transaction_finished).wait
-        t2.finish
-        t1.finish.wait
-        t2.finish.wait
+        # t1.run_until(:before_thread_1_transaction_finished).wait
+        # t2.run_until(:after_thread_2_finished_sink)
+        # sleep 1
+        # t1.finish.wait
+        # t2.finish.wait
+        initial_dbs = ::Sequel::DATABASES
+
+        t1
+        t2
+        Process.waitall
+
+        ::Sequel::DATABASES.replace(initial_dbs)
+        # t1.run_until(:before_thread_1_transaction_finished).wait
+        # t2.finish
+        # t1.finish.wait
+        # t2.finish.wait
 
         # loop do
         #   # [t1, t2].each { |t| t.join(0.1) }.all? { |x| x }
