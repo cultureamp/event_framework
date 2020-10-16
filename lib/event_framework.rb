@@ -38,6 +38,7 @@ module EventFramework
   autoload :Repository, "event_framework/repository"
   autoload :StagedEvent, "event_framework/staged_event"
   autoload :Tasks, "event_framework/tasks"
+  autoload :Tracer, "event_framework/tracer"
   autoload :Types, "event_framework/types"
 
   # The root path of the EventFramework files
