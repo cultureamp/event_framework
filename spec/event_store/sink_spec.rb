@@ -174,85 +174,109 @@ module EventFramework
     end
 
     describe "locking" do
-      let(:database_wrapper) do
-        # Testing concurrency can be painful, however there are some direct
-        # metrics we can reasonably expect to occur, given our implementation.
-        #
-        # We know that we're relying on PostgreSQL's table-locking feature[1]
-        # to ensure sequentiality when sinking events.
-        #
-        # Givent the way we've implemented locking, it's reasonable to assume
-        # that given a series of connections (c1, c2... cn), the number of
-        # times each connection has to call `pg_try_advisory_xact_lock` will be
-        # greater than that of the connection that preceded it.
-        #
-        # We can measure this by injecting an object that delegates all
-        # behaviour to the actual connection object, but also measures the data
-        # we need to be able to assert our expectations.
-        #
-        # In addition, we can also use the same object to introduce an
-        # artificial delay, in order to make measurement more reliable.
-        #
-        # [1]: https://www.postgresql.org/docs/10/explicit-locking.html
-        Class.new(SimpleDelegator) do
-          attr_reader :__try_lock_count
-
-          def select(pg_function)
-            @__try_lock_count ||= 0
-            @__try_lock_count += 1 if pg_function.name == :pg_try_advisory_xact_lock
-
-            __getobj__.select(pg_function)
-          end
-
-          def transaction
-            __getobj__.transaction do
-              yield
-              sleep 0.2
-            end
-          end
-        end
-      end
-
+      # A second database connection. The locking we're using,
+      # pg_advisory_xact_lock, can be shared across the same connection.
+      # Therefore we need to use a separate database connection to test that a
+      # second connection cannot get the lock.
       let(:other_database_connection) do
         Sequel.connect(database.connection_url).tap do |db|
           db.extension :pg_json
         end
       end
 
-      let(:d1) { database_wrapper.new(database) }
-      let(:d2) { database_wrapper.new(other_database_connection) }
+      let(:d1) { database }
+      let(:d2) { other_database_connection }
       let(:logger_1) { instance_spy(Logger) }
       let(:logger_2) { instance_spy(Logger) }
       let(:aggregate_id_1) { "00000000-0000-4000-a000-000000000001" }
       let(:aggregate_id_2) { "00000000-0000-4000-a000-000000000002" }
-
-      it "ensures events are sunk sequentially by locking the database" do
-        t1 = Thread.new {
-          sinker = described_class.new(database: d1, event_type_resolver: event_type_resolver, logger: logger_1)
+      let(:d1_transaction_sleep) { 0.4 }
+      let(:lock_timeout_milliseconds) { nil }
+      let(:t1) {
+        Thread.new {
           Thread.current.report_on_exception = false # Don't double report RSpec failures
-          sinker.sink([build_staged_event(aggregate_id: aggregate_id_1)])
+
+          sink_args = {
+            database: d1,
+            event_type_resolver: event_type_resolver,
+            logger: logger_1,
+            lock_timeout_milliseconds: lock_timeout_milliseconds
+          }
+          # Compact here so we use defaults of the supplied argument is nil.
+          sink = described_class.new(sink_args.compact)
+
+          d1.transaction do
+            sink.sink([build_staged_event(aggregate_id: aggregate_id_1)])
+
+            # Sleep inside the transaction so we hold onto the lock longer.
+            sleep d1_transaction_sleep
+          end
 
           # Aggregate 2 should not be saved yet because it doesn't have a lock
           expect(database[:events].select_map(:aggregate_id)).not_to include(aggregate_id_2)
         }
+      }
+      let(:t2) {
+        Thread.new {
+          Thread.current.report_on_exception = false # Don't double report RSpec failures
 
-        t2 = Thread.new {
-          sinker = described_class.new(database: d2, event_type_resolver: event_type_resolver, logger: logger_2)
-          sleep 0.1 # Ensure this thread gets the lock last
-          sinker.sink([build_staged_event(aggregate_id: aggregate_id_2)])
+          # Sleep to ensure this thread gets the lock last, but less than the
+          # sleep inside the transaction so that we try to get the lock while
+          # the other lock is held.
+          sleep d1_transaction_sleep / 2
+
+          sink_args = {
+            database: d2,
+            event_type_resolver: event_type_resolver,
+            logger: logger_2,
+            lock_timeout_milliseconds: lock_timeout_milliseconds
+          }
+          # Compact here so we use defaults of the supplied argument is nil.
+          sink = described_class.new(sink_args.compact)
+
+          sink.sink([build_staged_event(aggregate_id: aggregate_id_2)])
+        }
+      }
+
+      # Expectation is in the t1 thread.
+      def run_threads_with_expectation
+        [t1, t2].each(&:join)
+      end
+
+      it "ensures events are sunk sequentially by locking the database" do
+        # XXX: Unfortunately the expecation contained in t1 does not fail 100%
+        # of the time if locking is disabled in the implementation. We should
+        # look at fixing this in the future but we've decided the value we'll
+        # get from making it fail isn't worth it at this point.
+        #
+        # If you're modifing the locking logic you can test that it's working
+        # correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
+        run_threads_with_expectation
+
+        expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1, aggregate_id_2]
+      ensure
+        disconnect_other_database_connection
+      end
+
+      context "hitting the lock timeout" do
+        let(:lock_timeout_milliseconds) {
+          lock_timeout = d1_transaction_sleep + 0.1
+          (lock_timeout * 10).round
         }
 
-        [t1, t2].each(&:join)
+        it "raises an exception" do
+          expect { run_threads_with_expectation }.to raise_error described_class::ConcurrencyError
 
-        expect(d1.__try_lock_count).to be < d2.__try_lock_count
+          expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1]
 
-        expect(logger_1).to_not have_received(:info)
-        expect(logger_2).to have_received(:info).with(
-          msg: "event_framework.event_store.sink.retry",
-          tries: an_instance_of(Integer),
-          correlation_id: metadata.correlation_id
-        ).at_least(:once)
-      ensure
+          expect(logger_1).to_not have_received(:info)
+          expect(logger_2).to have_received(:info).with(msg: "event_framework.event_store.sink.lock_error", correlation_id: metadata.correlation_id)
+        ensure
+          disconnect_other_database_connection
+        end
+      end
+
+      def disconnect_other_database_connection
         # NOTE: Clean up the separate database connection so DatabaseCleaner
         # doesn't try to clean it.
         other_database_connection.disconnect

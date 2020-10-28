@@ -137,7 +137,7 @@ metadata = EventFramework::Event::Metadata.new(
   account_id: SecureRandom.uuid
 )
 
-20.times do |n|
+pids = 20.times.map do |n|
   fork do
     TestDomain.container["databases.event_store"].disconnect
     TestDomain.container["databases.projections"].disconnect
@@ -178,6 +178,15 @@ loop do
     processed_sequences << event.sequence
     bookmark = event.sequence
     puts "Processed to #{bookmark}" if (bookmark % 100) == 0
+  end
+
+  if bookmark > 10_000
+    stop = true
+    # Use delete_if and return true so the PID gets removed from the list
+    pids.delete_if do |pid|
+      Process.kill(:INT, pid)
+      true
+    end
   end
 
   # Allow the forks to finish and wait for remaining events
