@@ -158,14 +158,14 @@ module EventFramework
           subject.sink(staged_events)
         end
 
-        it "raises a concurrency error" do
-          expect { subject.sink(staged_events) }.to raise_error described_class::ConcurrencyError
+        it "raises a stale aggregate error" do
+          expect { subject.sink(staged_events) }.to raise_error described_class::StaleAggregateError
         end
 
         it "does not persist the event" do
           begin
             subject.sink(staged_events)
-          rescue described_class::ConcurrencyError
+          rescue described_class::StaleAggregateError
           end
 
           expect(persisted_tuples_for_aggregate(staged_events.first.aggregate_id).length).to eql 1
@@ -265,7 +265,7 @@ module EventFramework
         }
 
         it "raises an exception" do
-          expect { run_threads_with_expectation }.to raise_error described_class::ConcurrencyError
+          expect { run_threads_with_expectation }.to raise_error described_class::UnableToGetLockError
 
           expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1]
 

@@ -2,7 +2,8 @@ module EventFramework
   module EventStore
     class Sink
       AggregateIdMismatchError = Class.new(Error)
-      ConcurrencyError = Class.new(RetriableException)
+      UnableToGetLockError = Class.new(RetriableException)
+      StaleAggregateError = Class.new(RetriableException)
 
       # 10 seconds
       LOCK_TIMEOUT_MILLISECONDS = 10_000
@@ -58,7 +59,7 @@ module EventFramework
               metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
             )
           rescue Sequel::UniqueConstraintViolation
-            raise ConcurrencyError,
+            raise StaleAggregateError,
               "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
           end
         end
@@ -79,7 +80,7 @@ module EventFramework
         end
       rescue Sequel::DatabaseLockTimeout => e
         logger.info(msg: "event_framework.event_store.sink.lock_error", correlation_id: correlation_id)
-        raise ConcurrencyError, "error obtaining lock"
+        raise UnableToGetLockError, "error obtaining lock"
       end
     end
   end
