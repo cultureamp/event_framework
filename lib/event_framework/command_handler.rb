@@ -10,7 +10,6 @@ module EventFramework
     FAILURE_RETRY_SLEEP_INTERVAL = 0.5
 
     MismatchedCommandError = Class.new(Error)
-    RetryFailureThresholdExceededException = Class.new(Error)
 
     # Public: Returns the instance of Repository used by `with_aggregate`
     # and `with_new_aggregate`
@@ -91,7 +90,6 @@ module EventFramework
     # Raises MismatchedCommandError if `command` is not an instance of the
     # expected command class.
     # Raises NotImplementedError if no handler has been defined.
-    # Raises RetryFailureThresholdExceededException if the number of automatic
     # retries exceeds the designated threshold.
     def call(command:, metadata:)
       raise NotImplementedError if command_class.nil? || handler_proc.nil?
@@ -104,9 +102,9 @@ module EventFramework
       begin
         execution_attempts ||= FAILURE_RETRY_THRESHOLD
         instance_exec(command, metadata, &handler_proc)
-      rescue RetriableException
+      rescue RetriableException => e
         if (execution_attempts -= 1).zero?
-          raise RetryFailureThresholdExceededException
+          raise e
         else
           sleep FAILURE_RETRY_SLEEP_INTERVAL
           retry

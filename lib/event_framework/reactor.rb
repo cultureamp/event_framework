@@ -57,7 +57,7 @@ module EventFramework
       metadata = metadata.new(causation_id: metadata.causation_id || _current_event.id)
 
       repository.save_aggregate(aggregate, metadata: metadata)
-    rescue EventStore::Sink::ConcurrencyError
+    rescue EventStore::Sink::UnableToGetLockError, EventStore::Sink::StaleAggregateError
       if execution_attempts.zero?
         raise
       else

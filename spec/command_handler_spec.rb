@@ -206,7 +206,7 @@ module EventFramework
 
           it "raises an error" do
             expect { instance.call(command: command_instance, metadata: nil) }
-              .to raise_error(described_class::RetryFailureThresholdExceededException)
+              .to raise_error(RetriableException)
 
             expect(instance.instance_variable_get(:@attempt_count)).to eql 1
           end
