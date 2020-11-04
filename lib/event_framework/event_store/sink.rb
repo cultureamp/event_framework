@@ -2,7 +2,7 @@ module EventFramework
   module EventStore
     class Sink
       AggregateIdMismatchError = Class.new(Error)
-      UnableToGetLockError = Class.new(RetriableException)
+      UnableToGetLockError = Class.new(Error)
       StaleAggregateError = Class.new(RetriableException)
 
       # 10 seconds
