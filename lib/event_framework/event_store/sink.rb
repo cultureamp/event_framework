@@ -11,11 +11,13 @@ module EventFramework
       def initialize(
         database:, event_type_resolver:,
         logger: Logger.new(STDOUT),
+        tracer: EventFramework::Tracer::NullTracer.new,
         lock_timeout_milliseconds: LOCK_TIMEOUT_MILLISECONDS
       )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
+        @tracer = tracer
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
         @lock_timeout_milliseconds = lock_timeout_milliseconds
       end
@@ -41,7 +43,7 @@ module EventFramework
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_timeout_milliseconds
+      attr_reader :database, :event_type_resolver, :logger, :tracer, :event_builder, :lock_timeout_milliseconds
 
       def sink_staged_events(staged_events)
         new_event_rows = []
