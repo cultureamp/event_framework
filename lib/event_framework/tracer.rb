@@ -1,7 +1,7 @@
 module EventFramework
   module Tracer
     class NullTracer
-      def trace(_span_label, resource:)
+      def trace(_span_label, resource: nil)
         yield(NullSpan.new)
       end
     end
