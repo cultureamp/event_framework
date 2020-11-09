@@ -20,6 +20,8 @@ module EventFramework
         @tracer = tracer
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
         @lock_timeout_milliseconds = lock_timeout_milliseconds
+
+        logger.info(msg: "event_framework.event_store.sink.initialize", tracer: tracer.class.name)
       end
 
       def transaction
