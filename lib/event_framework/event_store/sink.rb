@@ -17,11 +17,10 @@ module EventFramework
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
-        @tracer = tracer
+        # @tracer = tracer
+        @tracer = Datadog.tracer # Hard-coding this to see if it gives us what we want
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
         @lock_timeout_milliseconds = lock_timeout_milliseconds
-
-        logger.info(msg: "event_framework.event_store.sink.initialize", tracer: tracer.class.name)
       end
 
       def transaction
