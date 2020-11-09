@@ -82,7 +82,6 @@ module EventFramework
                       event_type: serialized_event_type.event_type,
                       body: body,
                       metadata: metadata)
-                    )
                   end
                 end
               rescue Sequel::UniqueConstraintViolation
