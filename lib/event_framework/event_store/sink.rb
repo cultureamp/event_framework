@@ -28,11 +28,11 @@ module EventFramework
       end
 
       def sink(staged_events)
-        tracer.trace("event_store.sink") do
+        Datadog.tracer.trace("event_store.sink") do
           return if staged_events.empty?
 
           new_event_rows = []
-          tracer.trace("event_store.sink.sink_staged_events") do
+          Datadog.tracer.trace("event_store.sink.sink_staged_events") do
             new_event_rows = sink_staged_events(staged_events)
           end
 
@@ -40,11 +40,11 @@ module EventFramework
           # support our current use-case where we need to update our MongoDB
           # synchronously.
           new_events = []
-          tracer.trace("event_store.sink.build_events") do
+          Datadog.tracer.trace("event_store.sink.build_events") do
             new_events = new_event_rows.map { |row| event_builder.call(row) }
           end
 
-          tracer.trace("event_store.sink.after_sink_hook") do
+          Datadog.tracer.trace("event_store.sink.after_sink_hook") do
             EventFramework.config.after_sink_hook.call(new_events)
           end
 
@@ -59,23 +59,23 @@ module EventFramework
       def sink_staged_events(staged_events)
         new_event_rows = []
 
-        tracer.trace("event_store.sink.sink_staged_events.obtain_lock") do
+        Datadog.tracer.trace("event_store.sink.sink_staged_events.obtain_lock") do
           with_lock(correlation_id: staged_events.first.metadata.correlation_id) do
-            tracer.trace("event_store.sink.sink_staged_events.with_lock") do
+            Datadog.tracer.trace("event_store.sink.sink_staged_events.with_lock") do
               staged_events.each do |staged_event|
-                tracer.trace("event_store.sink.sink_staged_events.sink_event", resource: staged_event.domain_event.class.name) do
-                  serialized_event_type = tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_event") do
+                Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event", resource: staged_event.domain_event.class.name) do
+                  serialized_event_type = Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_event") do
                     event_type_resolver.serialize(staged_event.domain_event.class)
                   end
 
                   body, metadata = nil
 
-                  tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_json_event_attributes") do
+                  Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_json_event_attributes") do
                     body = Sequel.pg_jsonb(staged_event.body)
                     metadata = Sequel.pg_jsonb(staged_event.metadata.to_h)
                   end
 
-                  tracer.trace("event_store.sink.sink_staged_events.sink_event.insert_event") do
+                  Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.insert_event") do
                     new_event_rows += database[:events].returning.insert(
                       aggregate_id: staged_event.aggregate_id,
                       aggregate_sequence: staged_event.aggregate_sequence,
