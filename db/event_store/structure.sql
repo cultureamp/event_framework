@@ -27,24 +27,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
---
--- Name: refresh_events_sequence_stats(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.refresh_events_sequence_stats() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-
-INSERT INTO events_sequence_stats(event_type, aggregate_type, max_sequence)
-VALUES(NEW.event_type, NEW.aggregate_type, NEW.sequence)
-ON CONFLICT(event_type, aggregate_type) DO
-UPDATE SET max_sequence = NEW.sequence;
-
-RETURN NULL;
-END $$;
-
-
 SET default_tablespace = '';
 
 --
@@ -62,6 +44,66 @@ CREATE TABLE public.events (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     metadata jsonb NOT NULL
 );
+
+
+--
+-- Name: insert_events(uuid, text[], text[], integer[], jsonb[], jsonb[], integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_events(_aggregateid uuid, _eventtypes text[], _aggregatetypes text[], _aggregatesequences integer[], _bodies jsonb[], _metadatas jsonb[], _locktimeoutmilliseconds integer) RETURNS SETOF public.events
+    LANGUAGE plpgsql
+    AS $$
+  DECLARE
+    aggregate_sequence int;
+    index int := 1;
+  BEGIN
+    -- Set a local lock_timeout within a transaction then get an exclusive
+    -- advisory lock so that we're the only database connection that can
+    -- sink an event.
+    --
+    -- If you're modifing the locking logic you can test that it's working
+    -- correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
+    EXECUTE 'SET LOCAL lock_timeout TO ' || _lockTimeoutMilliseconds;
+    PERFORM pg_advisory_xact_lock(-1);
+
+    foreach aggregate_sequence IN ARRAY(_aggregateSequences)
+      loop
+        RETURN QUERY INSERT INTO EVENTS
+          (aggregate_id, aggregate_sequence, event_type, aggregate_type, body, metadata)
+        VALUES
+          (
+            _aggregateId,
+            _aggregateSequences[index],
+            _eventTypes[index],
+            _aggregateTypes[index],
+            _bodies[index],
+            _metadatas[index]
+          )
+        RETURNING *;
+        index := index + 1;
+      end loop;
+
+    RETURN;
+  END;
+$$;
+
+
+--
+-- Name: refresh_events_sequence_stats(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_events_sequence_stats() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+INSERT INTO events_sequence_stats(event_type, aggregate_type, max_sequence)
+VALUES(NEW.event_type, NEW.aggregate_type, NEW.sequence)
+ON CONFLICT(event_type, aggregate_type) DO
+UPDATE SET max_sequence = NEW.sequence;
+
+RETURN NULL;
+END $$;
 
 
 --
