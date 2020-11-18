@@ -80,10 +80,15 @@ module EventFramework
         end
 
         container.register("event_store.sink") do
-          EventStore::Sink.new(
+          tracer = container.key?("tracer") ? container["tracer"] : nil
+
+          sink_options = {
             database: database(event_store_database),
-            event_type_resolver: container.resolve("event_store.event_type_resolver")
-          )
+            event_type_resolver: container.resolve("event_store.event_type_resolver"),
+            tracer: tracer
+          }.compact
+
+          EventStore::Sink.new(**sink_options)
         end
 
         container.register("event_store.source") do

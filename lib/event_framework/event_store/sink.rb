@@ -11,11 +11,14 @@ module EventFramework
       def initialize(
         database:, event_type_resolver:,
         logger: Logger.new(STDOUT),
+        tracer: EventFramework::Tracer::NullTracer.new,
         lock_timeout_milliseconds: LOCK_TIMEOUT_MILLISECONDS
       )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
+        # @tracer = tracer
+        @tracer = Datadog.tracer # Hard-coding this to see if it gives us what we want
         @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
         @lock_timeout_milliseconds = lock_timeout_milliseconds
       end
@@ -25,42 +28,68 @@ module EventFramework
       end
 
       def sink(staged_events)
-        return if staged_events.empty?
+        Datadog.tracer.trace("event_store.sink") do
+          return if staged_events.empty?
 
-        new_event_rows = sink_staged_events(staged_events)
+          new_event_rows = []
+          Datadog.tracer.trace("event_store.sink.sink_staged_events") do
+            new_event_rows = sink_staged_events(staged_events)
+          end
 
-        # NOTE: This is the "ugly" part of the framework that is only here to
-        # support our current use-case where we need to update our MongoDB
-        # synchronously.
-        new_events = new_event_rows.map { |row| event_builder.call(row) }
+          # NOTE: This is the "ugly" part of the framework that is only here to
+          # support our current use-case where we need to update our MongoDB
+          # synchronously.
+          new_events = []
+          Datadog.tracer.trace("event_store.sink.build_events") do
+            new_events = new_event_rows.map { |row| event_builder.call(row) }
+          end
 
-        EventFramework.config.after_sink_hook.call(new_events)
+          Datadog.tracer.trace("event_store.sink.after_sink_hook") do
+            EventFramework.config.after_sink_hook.call(new_events)
+          end
 
-        nil
+          nil
+        end
       end
 
       private
 
-      attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_timeout_milliseconds
+      attr_reader :database, :event_type_resolver, :logger, :tracer, :event_builder, :lock_timeout_milliseconds
 
       def sink_staged_events(staged_events)
         new_event_rows = []
 
-        with_lock(correlation_id: staged_events.first.metadata.correlation_id) do
-          staged_events.each do |staged_event|
-            serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
+        Datadog.tracer.trace("event_store.sink.sink_staged_events.obtain_lock") do
+          with_lock(correlation_id: staged_events.first.metadata.correlation_id) do
+            Datadog.tracer.trace("event_store.sink.sink_staged_events.with_lock") do
+              staged_events.each do |staged_event|
+                Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event", resource: staged_event.domain_event.class.name) do
+                  serialized_event_type = Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_event") do
+                    event_type_resolver.serialize(staged_event.domain_event.class)
+                  end
 
-            new_event_rows += database[:events].returning.insert(
-              aggregate_id: staged_event.aggregate_id,
-              aggregate_sequence: staged_event.aggregate_sequence,
-              aggregate_type: serialized_event_type.aggregate_type,
-              event_type: serialized_event_type.event_type,
-              body: Sequel.pg_jsonb(staged_event.body),
-              metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
-            )
-          rescue Sequel::UniqueConstraintViolation
-            raise StaleAggregateError,
-              "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
+                  body, metadata = nil
+
+                  Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.serialize_json_event_attributes") do
+                    body = Sequel.pg_jsonb(staged_event.body)
+                    metadata = Sequel.pg_jsonb(staged_event.metadata.to_h)
+                  end
+
+                  Datadog.tracer.trace("event_store.sink.sink_staged_events.sink_event.insert_event") do
+                    new_event_rows += database[:events].returning.insert(
+                      aggregate_id: staged_event.aggregate_id,
+                      aggregate_sequence: staged_event.aggregate_sequence,
+                      aggregate_type: serialized_event_type.aggregate_type,
+                      event_type: serialized_event_type.event_type,
+                      body: body,
+                      metadata: metadata)
+                  end
+                end
+              rescue Sequel::UniqueConstraintViolation
+                raise StaleAggregateError,
+                  "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
+              end
+            end
           end
         end
 
