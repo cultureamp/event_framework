@@ -3,11 +3,14 @@ module EventFramework
     class Source
       LIMIT = 1000
 
-      def initialize(database:, event_type_resolver:, logger: Logger.new(STDOUT))
+      def initialize(
+        database:, event_type_resolver:, logger: Logger.new(STDOUT),
+        event_builder: EventBuilder.new(event_type_resolver: event_type_resolver)
+      )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
-        @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
+        @event_builder = event_builder
       end
 
       def get_after(sequence, event_classes: nil)

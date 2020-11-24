@@ -11,12 +11,13 @@ module EventFramework
       def initialize(
         database:, event_type_resolver:,
         logger: Logger.new(STDOUT),
-        lock_timeout_milliseconds: LOCK_TIMEOUT_MILLISECONDS
+        lock_timeout_milliseconds: LOCK_TIMEOUT_MILLISECONDS,
+        event_builder: EventBuilder.new(event_type_resolver: event_type_resolver)
       )
         @database = database
         @event_type_resolver = event_type_resolver
         @logger = logger
-        @event_builder = EventBuilder.new(event_type_resolver: event_type_resolver)
+        @event_builder = event_builder
         @lock_timeout_milliseconds = lock_timeout_milliseconds
       end
 
