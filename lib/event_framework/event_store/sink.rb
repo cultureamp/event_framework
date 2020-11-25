@@ -91,7 +91,9 @@ module EventFramework
               lock_timeout_milliseconds
             )
 
-            new_event_rows = database.from(insert_events_function).select_all.to_a
+            Datadog.tracer.trace("event_store.sink.sink_staged_events.insert_events.invoke_function") do
+              new_event_rows = database.from(insert_events_function).select_all.to_a
+            end
           rescue Sequel::UniqueConstraintViolation
             logger.info(
               msg: "event_framework.event_store.sink.stale_aggregate_error",
