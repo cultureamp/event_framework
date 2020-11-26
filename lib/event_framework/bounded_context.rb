@@ -62,7 +62,7 @@ module EventFramework
       def database(label)
         container.resolve("databases.#{label}")
       rescue Dry::Container::Error
-        raise NoSuchDatabaseRegisteredError, "No database has been regisered for #{label}"
+        raise NoSuchDatabaseRegisteredError, "No database has been registered for #{label}"
       end
 
       def databases
