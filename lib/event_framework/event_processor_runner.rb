@@ -17,9 +17,14 @@ module EventFramework
       end
     end
 
-    def initialize(processor_class:, domain_context:)
+    def initialize(
+      processor_class:,
+      domain_context:,
+      tracer: EventFramework::Tracer::NullTracer.new
+    )
       @processor_class = processor_class
       @domain_context = domain_context
+      @tracer = tracer
     end
 
     def call
@@ -37,6 +42,7 @@ module EventFramework
             logger: logger,
             bookmark: bookmark,
             event_source: event_source,
+            tracer: @tracer,
             &ready_to_stop
           )
         end

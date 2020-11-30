@@ -10,6 +10,8 @@ module EventFramework
 
       let(:event_source) { instance_double(EventFramework::EventStore::Source) }
 
+      let(:bookmark_repository) { instance_double(BookmarkRepository) }
+
       before do
         allow(event_processor_class).to receive(:new).and_return(event_processor)
 
@@ -17,10 +19,8 @@ module EventFramework
 
         projection_database = instance_spy(EventFramework::DatabaseConnection)
         allow(TestDomain).to receive(:database).with(:projections).and_return(projection_database)
-        bookmark_repository = instance_double(BookmarkRepository)
         allow(BookmarkRepository).to receive(:new)
           .with(name: "FooProjector", database: projection_database).and_return(bookmark_repository)
-        allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
 
         container = double(:container)
         allow(TestDomain).to receive(:container).and_return(container)
@@ -29,16 +29,20 @@ module EventFramework
       end
 
       it "runs an event processor" do
+        allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
+        tracer = EventFramework::Tracer::NullTracer.new
         expect(EventFramework::EventProcessorWorker).to receive(:call).with(
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
+          tracer: tracer,
           event_source: event_source
         )
 
         EventProcessorRunner.new(
           processor_class: event_processor_class,
-          domain_context: TestDomain
+          domain_context: TestDomain,
+          tracer: tracer
         ).call
       end
     end
