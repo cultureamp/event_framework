@@ -17,16 +17,22 @@ module EventFramework
       end
     end
 
-    def initialize(processor_class:, domain_context:)
+    def initialize(
+      processor_class:,
+      domain_context:,
+      logger: Logger.new($stdout),
+      tracer: EventFramework::Tracer::NullTracer.new
+    )
       @processor_class = processor_class
       @domain_context = domain_context
+      @logger = logger
+      @tracer = tracer
     end
 
     def call
       set_process_name
 
       event_processor = processor_class.new
-      logger = Logger.new(STDOUT)
       bookmark = checkout_bookmark
       event_source = domain_context.container.resolve("event_store.source")
 
@@ -37,6 +43,7 @@ module EventFramework
             logger: logger,
             bookmark: bookmark,
             event_source: event_source,
+            tracer: @tracer,
             &ready_to_stop
           )
         end
@@ -45,7 +52,7 @@ module EventFramework
 
     private
 
-    attr_reader :processor_class, :domain_context
+    attr_reader :processor_class, :domain_context, :logger
 
     def checkout_bookmark
       projection_database = domain_context.database(:projections)
