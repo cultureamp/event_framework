@@ -18,7 +18,11 @@ module EventFramework
 
       it "forks each event processor" do
         expect(described_class::OnForkedError).to receive(:new).with("FooProjector").and_return(on_forked_error)
-        expect(process_manager).to receive(:fork).with("FooProjector", on_error: on_forked_error).and_yield(ready_to_stop_wrapper)
+        expect(process_manager).to receive(:fork).with(
+          "FooProjector",
+          on_error: on_forked_error,
+          retry_strategy: ExponentialBackoff
+        ).and_yield(ready_to_stop_wrapper)
         expect(Logger).to receive(:new).with(STDOUT).at_least(1).and_return(logger)
         expect(event_processor_class).to receive(:new).and_return(event_processor)
         expect(bookmark_repository_class).to receive(:new)
