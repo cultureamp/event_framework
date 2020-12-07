@@ -52,7 +52,8 @@ module EventFramework
         .all
     end
 
-    subject { described_class.new(database: database, event_type_resolver: event_type_resolver) }
+    let(:logger) { instance_spy(Logger) }
+    subject { described_class.new(database: database, event_type_resolver: event_type_resolver, logger: logger) }
 
     context "persisting a single event to the database" do
       let(:aggregate_id) { SecureRandom.uuid }

@@ -45,43 +45,43 @@ module EventFramework
       attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_timeout_milliseconds
 
       def sink_staged_events(staged_events)
-        new_event_rows = []
+        aggregate_id = staged_events.map(&:aggregate_id).first
 
-        with_lock(correlation_id: staged_events.first.metadata.correlation_id) do
-          staged_events.each do |staged_event|
-            serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
+        serialized_events = staged_events.map do |staged_event|
+          serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
+          {
+            aggregate_sequence: staged_event.aggregate_sequence,
+            aggregate_type: serialized_event_type.aggregate_type,
+            event_type: serialized_event_type.event_type,
+            body: Sequel.pg_jsonb(staged_event.body),
+            metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
+          }
+        end
 
-            new_event_rows += database[:events].returning.insert(
-              aggregate_id: staged_event.aggregate_id,
-              aggregate_sequence: staged_event.aggregate_sequence,
-              aggregate_type: serialized_event_type.aggregate_type,
-              event_type: serialized_event_type.event_type,
-              body: Sequel.pg_jsonb(staged_event.body),
-              metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
-            )
-          rescue Sequel::UniqueConstraintViolation
-            raise StaleAggregateError,
-              "error saving aggregate_id #{staged_event.aggregate_id.inspect}, aggregate_sequence mismatch"
-          end
+        begin
+          insert_events_function = Sequel.function(
+            :insert_events,
+            Sequel.cast(aggregate_id, "uuid"),
+            Sequel.pg_array(serialized_events.map { |e| Sequel.cast(e[:event_type], "text") }),
+            Sequel.pg_array(serialized_events.map { |e| Sequel.cast(e[:aggregate_type], "text") }),
+            Sequel.pg_array(serialized_events.map { |e| e[:aggregate_sequence] }),
+            Sequel.pg_array(serialized_events.map { |e| e[:body] }),
+            Sequel.pg_array(serialized_events.map { |e| e[:metadata] }),
+            lock_timeout_milliseconds
+          )
+
+          new_event_rows = database.from(insert_events_function).select_all.to_a
+        rescue Sequel::UniqueConstraintViolation
+          raise StaleAggregateError, "error saving aggregate_id #{aggregate_id}, aggregate_sequence mismatch"
+        rescue Sequel::DatabaseLockTimeout => e
+          logger.info(
+            msg: "event_framework.event_store.sink.lock_error",
+            correlation_id: staged_events.first.metadata.correlation_id
+          )
+          raise UnableToGetLockError, "error obtaining lock"
         end
 
         new_event_rows
-      end
-
-      # Set a local lock_timeout within a transaction then get an exclusive
-      # advisory lock so that we're the only database connection that can sink
-      # an event.
-      #
-      # If you're modifing the locking logic you can test that it's working
-      # correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
-      def with_lock(correlation_id:)
-        database.transaction do
-          database.execute("SET LOCAL lock_timeout = '#{lock_timeout_milliseconds}ms'; SELECT pg_advisory_xact_lock(-1)")
-          yield
-        end
-      rescue Sequel::DatabaseLockTimeout => e
-        logger.info(msg: "event_framework.event_store.sink.lock_error", correlation_id: correlation_id)
-        raise UnableToGetLockError, "error obtaining lock"
       end
     end
   end
