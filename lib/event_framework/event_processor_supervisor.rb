@@ -1,5 +1,6 @@
 require "forked"
 require "event_framework/event_processor_supervisor/on_forked_error"
+require "event_framework/exponential_backoff"
 
 module EventFramework
   # The EventProcessorSupervisor is responsible initializing each event
@@ -27,7 +28,12 @@ module EventFramework
       set_process_name
 
       processor_classes.each do |processor_class|
-        process_manager.fork(processor_class.name, on_error: OnForkedError.new(processor_class.name)) do |ready_to_stop|
+        fork_args = {
+          retry_strategy: ExponentialBackoff,
+          on_error: OnForkedError.new(processor_class.name)
+        }
+
+        process_manager.fork(processor_class.name, fork_args) do |ready_to_stop|
           # Disconnect from the database to ensure the fork will create it's
           # own connection
           projection_database.disconnect
