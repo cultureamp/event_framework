@@ -3,6 +3,7 @@ module EventFramework
     class Sink
       AggregateIdMismatchError = Class.new(Error)
       UnableToGetLockError = Class.new(Error)
+      MultipleAggregateIDs = Class.new(Error)
       StaleAggregateError = Class.new(RetriableException)
 
       # 10 seconds
@@ -45,7 +46,11 @@ module EventFramework
       attr_reader :database, :event_type_resolver, :logger, :event_builder, :lock_timeout_milliseconds
 
       def sink_staged_events(staged_events)
-        aggregate_id = staged_events.map(&:aggregate_id).first
+        aggregate_id = begin
+          ids = staged_events.map(&:aggregate_id)
+          raise MultipleAggregateIDs if ids.uniq.count != 1
+          ids.first
+        end
 
         serialized_events = staged_events.map do |staged_event|
           serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)

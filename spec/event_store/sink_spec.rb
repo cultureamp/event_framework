@@ -149,6 +149,19 @@ module EventFramework
 
         subject.sink(staged_events)
       end
+
+      context "with multiple aggregate IDs" do
+        let(:staged_events) do
+          [
+            build_staged_event(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1),
+            build_staged_event(aggregate_id: SecureRandom.uuid, aggregate_sequence: 2),
+          ]
+        end
+
+        it "raises an exception" do
+          expect { subject.sink(staged_events) }.to raise_error described_class::MultipleAggregateIDs
+        end
+      end
     end
 
     describe "optimistic locking" do
