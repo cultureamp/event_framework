@@ -56,8 +56,8 @@ module EventFramework
           serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
           {
             aggregate_sequence: staged_event.aggregate_sequence,
-            aggregate_type: serialized_event_type.aggregate_type,
-            event_type: serialized_event_type.event_type,
+            aggregate_type: Sequel.cast(serialized_event_type.aggregate_type, "text"),
+            event_type: Sequel.cast(serialized_event_type.event_type, "text"),
             body: Sequel.pg_jsonb(staged_event.body),
             metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
           }
@@ -67,8 +67,8 @@ module EventFramework
           insert_events_function = Sequel.function(
             :insert_events,
             Sequel.cast(aggregate_id, "uuid"),
-            Sequel.pg_array(serialized_events.map { |e| Sequel.cast(e[:event_type], "text") }),
-            Sequel.pg_array(serialized_events.map { |e| Sequel.cast(e[:aggregate_type], "text") }),
+            Sequel.pg_array(serialized_events.map { |e| e[:event_type] }),
+            Sequel.pg_array(serialized_events.map { |e| e[:aggregate_type] }),
             Sequel.pg_array(serialized_events.map { |e| e[:aggregate_sequence] }),
             Sequel.pg_array(serialized_events.map { |e| e[:body] }),
             Sequel.pg_array(serialized_events.map { |e| e[:metadata] }),
