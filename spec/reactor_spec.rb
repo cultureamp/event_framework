@@ -75,6 +75,11 @@ module EventFramework
       context "when a concurrency exception occurs" do
         let(:domain_event) { test_event_2.new }
 
+        before do
+          # Suppress out stale aggregate log message
+          allow_any_instance_of(Logger).to receive(:info)
+        end
+
         it "retries saving the event" do
           sink.sink [
             EventFramework::StagedEvent.new(

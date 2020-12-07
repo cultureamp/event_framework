@@ -161,6 +161,8 @@ module EventFramework
 
         it "raises a stale aggregate error" do
           expect { subject.sink(staged_events) }.to raise_error described_class::StaleAggregateError
+
+          expect(logger).to have_received(:info).with(msg: "event_framework.event_store.sink.stale_aggregate_error", correlation_id: metadata.correlation_id)
         end
 
         it "does not persist the event" do
