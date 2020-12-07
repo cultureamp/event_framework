@@ -79,7 +79,7 @@ module EventFramework
           raise StaleAggregateError, "error saving aggregate_id #{aggregate_id}, aggregate_sequence mismatch"
         rescue Sequel::DatabaseLockTimeout => e
           logger.info(
-            msg: "event_framework.event_store.sink.lock_error",
+            msg: "event_framework.event_store.sink.unable_to_get_lock_error",
             correlation_id: staged_events.first.metadata.correlation_id
           )
           raise UnableToGetLockError, "error obtaining lock"

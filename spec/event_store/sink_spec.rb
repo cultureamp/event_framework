@@ -273,7 +273,7 @@ module EventFramework
           expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1]
 
           expect(logger_1).to_not have_received(:info)
-          expect(logger_2).to have_received(:info).with(msg: "event_framework.event_store.sink.lock_error", correlation_id: metadata.correlation_id)
+          expect(logger_2).to have_received(:info).with(msg: "event_framework.event_store.sink.unable_to_get_lock_error", correlation_id: metadata.correlation_id)
         ensure
           disconnect_other_database_connection
         end
