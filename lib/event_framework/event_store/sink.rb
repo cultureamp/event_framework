@@ -54,24 +54,42 @@ module EventFramework
 
         serialized_events = staged_events.map do |staged_event|
           serialized_event_type = event_type_resolver.serialize(staged_event.domain_event.class)
-          {
-            aggregate_sequence: staged_event.aggregate_sequence,
-            aggregate_type: Sequel.cast(serialized_event_type.aggregate_type, "text"),
-            event_type: Sequel.cast(serialized_event_type.event_type, "text"),
-            body: Sequel.pg_jsonb(staged_event.body),
-            metadata: Sequel.pg_jsonb(staged_event.metadata.to_h)
-          }
+
+          # The order of this array matches the arguments
+          # for the Postgresql insert_events function.
+          [
+            Sequel.cast(serialized_event_type.event_type, "text"),
+            Sequel.cast(serialized_event_type.aggregate_type, "text"),
+            staged_event.aggregate_sequence,
+            Sequel.pg_jsonb(staged_event.body),
+            Sequel.pg_jsonb(staged_event.metadata.to_h)
+          ]
         end
+
+        # Transpose the serialized events into arrays of the same types.
+        #
+        #   [
+        #     ["MyEventType1", "MyAggregateType1", ...],
+        #     ["MyEventType2", "MyAggregateType2", ...]
+        #   ]
+        #
+        # =>
+        #
+        #   [
+        #     ["MyEventType1", "MyEventType2"],
+        #     ["MyAggregateType1", "MyAggregateType2"],
+        #     ...
+        #   ]
+        #
+        function_args = serialized_events
+          .transpose
+          .map { |a| Sequel.pg_array(a) }
 
         begin
           insert_events_function = Sequel.function(
             :insert_events,
             Sequel.cast(aggregate_id, "uuid"),
-            Sequel.pg_array(serialized_events.map { |e| e[:event_type] }),
-            Sequel.pg_array(serialized_events.map { |e| e[:aggregate_type] }),
-            Sequel.pg_array(serialized_events.map { |e| e[:aggregate_sequence] }),
-            Sequel.pg_array(serialized_events.map { |e| e[:body] }),
-            Sequel.pg_array(serialized_events.map { |e| e[:metadata] }),
+            *function_args,
             lock_timeout_milliseconds
           )
 
