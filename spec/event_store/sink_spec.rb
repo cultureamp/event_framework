@@ -159,7 +159,7 @@ module EventFramework
         end
 
         it "raises an exception" do
-          expect { subject.sink(staged_events) }.to raise_error described_class::MultipleAggregateIDs
+          expect { subject.sink(staged_events) }.to raise_error described_class::MultipleAggregateIDsError
         end
       end
     end
