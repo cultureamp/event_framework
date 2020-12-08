@@ -52,7 +52,8 @@ module EventFramework
         .all
     end
 
-    subject { described_class.new(database: database, event_type_resolver: event_type_resolver) }
+    let(:logger) { instance_spy(Logger) }
+    subject { described_class.new(database: database, event_type_resolver: event_type_resolver, logger: logger) }
 
     context "persisting a single event to the database" do
       let(:aggregate_id) { SecureRandom.uuid }
@@ -148,6 +149,19 @@ module EventFramework
 
         subject.sink(staged_events)
       end
+
+      context "with multiple aggregate IDs" do
+        let(:staged_events) do
+          [
+            build_staged_event(aggregate_id: SecureRandom.uuid, aggregate_sequence: 1),
+            build_staged_event(aggregate_id: SecureRandom.uuid, aggregate_sequence: 2),
+          ]
+        end
+
+        it "raises an exception" do
+          expect { subject.sink(staged_events) }.to raise_error described_class::MultipleAggregateIDsError
+        end
+      end
     end
 
     describe "optimistic locking" do
@@ -160,6 +174,8 @@ module EventFramework
 
         it "raises a stale aggregate error" do
           expect { subject.sink(staged_events) }.to raise_error described_class::StaleAggregateError
+
+          expect(logger).to have_received(:info).with(msg: "event_framework.event_store.sink.stale_aggregate_error", correlation_id: metadata.correlation_id)
         end
 
         it "does not persist the event" do
@@ -270,7 +286,7 @@ module EventFramework
           expect(database[:events].select_map(:aggregate_id)).to match [aggregate_id_1]
 
           expect(logger_1).to_not have_received(:info)
-          expect(logger_2).to have_received(:info).with(msg: "event_framework.event_store.sink.lock_error", correlation_id: metadata.correlation_id)
+          expect(logger_2).to have_received(:info).with(msg: "event_framework.event_store.sink.unable_to_get_lock_error", correlation_id: metadata.correlation_id)
         ensure
           disconnect_other_database_connection
         end

@@ -9,22 +9,9 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
 
 --
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
@@ -38,6 +25,67 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 --
 
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+SET default_tablespace = '';
+
+--
+-- Name: events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.events (
+    sequence bigint NOT NULL,
+    aggregate_sequence bigint NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    aggregate_id uuid NOT NULL,
+    aggregate_type character varying(255) NOT NULL,
+    event_type character varying(255) NOT NULL,
+    body jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    metadata jsonb NOT NULL
+);
+
+
+--
+-- Name: insert_events(uuid, text[], text[], integer[], jsonb[], jsonb[], integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_events(_aggregateid uuid, _eventtypes text[], _aggregatetypes text[], _aggregatesequences integer[], _bodies jsonb[], _metadatas jsonb[], _locktimeoutmilliseconds integer) RETURNS SETOF public.events
+    LANGUAGE plpgsql
+    AS $$
+  DECLARE
+    aggregate_sequence int;
+    index int := 1;
+  BEGIN
+    -- Set a local lock_timeout within a transaction then get an exclusive
+    -- advisory lock so that we're the only database connection that can
+    -- sink an event.
+    --
+    -- If you're modifing the locking logic you can test that it's working
+    -- correctly using the ./bin/demonstrate_event_sequence_id_gaps script.
+    EXECUTE 'SET LOCAL lock_timeout TO ' || _lockTimeoutMilliseconds;
+    PERFORM pg_advisory_xact_lock(-1);
+
+    foreach aggregate_sequence IN ARRAY(_aggregateSequences)
+      loop
+        RETURN QUERY INSERT INTO EVENTS
+          (aggregate_id, aggregate_sequence, event_type, aggregate_type, body, metadata)
+        VALUES
+          (
+            _aggregateId,
+            _aggregateSequences[index],
+            _eventTypes[index],
+            _aggregateTypes[index],
+            _bodies[index],
+            _metadatas[index]
+          )
+        RETURNING *;
+        index := index + 1;
+      end loop;
+
+    RETURN;
+  END;
+$$;
 
 
 --
@@ -56,27 +104,6 @@ UPDATE SET max_sequence = NEW.sequence;
 
 RETURN NULL;
 END $$;
-
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
-
---
--- Name: events; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.events (
-    sequence bigint NOT NULL,
-    aggregate_sequence bigint NOT NULL,
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    aggregate_id uuid NOT NULL,
-    aggregate_type character varying(255) NOT NULL,
-    event_type character varying(255) NOT NULL,
-    body jsonb NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    metadata jsonb NOT NULL
-);
 
 
 --
