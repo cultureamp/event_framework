@@ -187,6 +187,19 @@ module EventFramework
           expect(persisted_tuples_for_aggregate(staged_events.first.aggregate_id).length).to eql 1
         end
       end
+
+      context "when there is a different type of unique constraint violation" do
+        let(:staged_events) {[build_staged_event(aggregate_sequence: 2)]}
+        let(:non_unique_event_sequence_violation) { Sequel::UniqueConstraintViolation.new("this text does not match") }
+
+        before do
+          allow(Sequel).to receive(:function).and_raise(non_unique_event_sequence_violation)
+        end
+
+        it "raises the error itself" do
+          expect { subject.sink(staged_events) }.to raise_error non_unique_event_sequence_violation
+        end
+      end
     end
 
     describe "locking" do
