@@ -94,12 +94,16 @@ module EventFramework
           )
 
           new_event_rows = database.from(insert_events_function).select_all.to_a
-        rescue Sequel::UniqueConstraintViolation
-          logger.info(
-            msg: "event_framework.event_store.sink.stale_aggregate_error",
-            correlation_id: staged_events.first.metadata.correlation_id
-          )
-          raise StaleAggregateError, "error saving aggregate_id #{aggregate_id}, aggregate_sequence mismatch"
+        rescue Sequel::UniqueConstraintViolation => e
+          if e.message.include?("events_aggregate_id_aggregate_sequence_index")
+            logger.info(
+              msg: "event_framework.event_store.sink.stale_aggregate_error",
+              correlation_id: staged_events.first.metadata.correlation_id
+            )
+            raise StaleAggregateError, "error saving aggregate_id #{aggregate_id}, aggregate_sequence mismatch"
+          else
+            raise e
+          end
         rescue Sequel::DatabaseLockTimeout => e
           logger.info(
             msg: "event_framework.event_store.sink.unable_to_get_lock_error",
