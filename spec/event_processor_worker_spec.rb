@@ -42,7 +42,7 @@ module EventFramework
           tracer: EventFramework::Tracer::NullTracer.new
         }
       end
-      subject(:event_processor_worker) { described_class.new(event_processor_worker_arguments, &ready_to_stop) }
+      subject(:event_processor_worker) { described_class.new(**event_processor_worker_arguments, &ready_to_stop) }
 
       before do
         allow(logger).to receive(:info)

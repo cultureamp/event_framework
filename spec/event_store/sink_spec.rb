@@ -232,7 +232,7 @@ module EventFramework
             lock_timeout_milliseconds: lock_timeout_milliseconds
           }
           # Compact here so we use defaults of the supplied argument is nil.
-          sink = described_class.new(sink_args.compact)
+          sink = described_class.new(**sink_args.compact)
 
           d1.transaction do
             sink.sink([build_staged_event(aggregate_id: aggregate_id_1)])
@@ -261,7 +261,7 @@ module EventFramework
             lock_timeout_milliseconds: lock_timeout_milliseconds
           }
           # Compact here so we use defaults of the supplied argument is nil.
-          sink = described_class.new(sink_args.compact)
+          sink = described_class.new(**sink_args.compact)
 
           sink.sink([build_staged_event(aggregate_id: aggregate_id_2)])
         }
