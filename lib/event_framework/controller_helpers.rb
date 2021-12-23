@@ -5,9 +5,9 @@ module EventFramework
     extend Dry::Configurable
 
     setting :metadata_class
-    setting :user_id_resolver, -> {}
-    setting :account_id_resolver, -> {}
-    setting :request_id_resolver, -> {}
+    setting :user_id_resolver, default: -> {}
+    setting :account_id_resolver, default: -> {}
+    setting :request_id_resolver, default: -> {}
 
     module MetadataHelper
       MissingRequestIdError = Class.new(StandardError)
