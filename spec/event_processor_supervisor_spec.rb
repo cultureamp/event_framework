@@ -13,6 +13,7 @@ module EventFramework
       let(:event_source) { instance_double(EventFramework::EventStore::Source) }
       let(:tracer) { double(:tracer) }
       let(:projection_database) { instance_spy(EventFramework::DatabaseConnection) }
+      let(:worker) { instance_double(EventFramework::EventProcessorWorker)}
       let(:ready_to_stop) { -> {} }
       let(:ready_to_stop_wrapper) { double(to_proc: ready_to_stop) }
 
@@ -30,15 +31,16 @@ module EventFramework
         expect(bookmark_repository).to receive(:checkout)
           .and_return(bookmark)
         expect(process_manager).to receive(:wait_for_shutdown)
-        expect(EventFramework::EventProcessorWorker).to receive(:call).with(
+        expect(EventFramework::EventProcessorWorker).to receive(:new).with(
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
           event_source: event_source,
           tracer: tracer
-        ) do |&block|
+        ).and_return worker
+        expect(worker).to receive(:call) do |&block|
           expect(block).to eq ready_to_stop
-        end
+      end
 
         described_class.new(
           processor_classes: [event_processor_class],

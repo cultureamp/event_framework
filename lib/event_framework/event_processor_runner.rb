@@ -20,6 +20,7 @@ module EventFramework
     def initialize(
       processor_class:,
       domain_context:,
+      worker: nil,
       logger: Logger.new($stdout),
       tracer: EventFramework::Tracer::NullTracer.new
     )
@@ -27,32 +28,32 @@ module EventFramework
       @domain_context = domain_context
       @logger = logger
       @tracer = tracer
+      @worker = worker ||
+        begin
+          bookmark = checkout_bookmark
+          EventProcessorWorker.new(
+            event_processor: processor_class.new,
+            logger: logger,
+            bookmark: bookmark,
+            event_source: domain_context.container.resolve("event_store.source"),
+            tracer: tracer
+          )
+        end
     end
 
     def call
       set_process_name
 
-      event_processor = processor_class.new
-      bookmark = checkout_bookmark
-      event_source = domain_context.container.resolve("event_store.source")
-
       WithGracefulShutdown.run(logger: logger) do |ready_to_stop|
         ExponentialBackoff.new(logger: logger, on_error: OnError.new(logger)).run(ready_to_stop) do
-          EventProcessorWorker.call(
-            event_processor: event_processor,
-            logger: logger,
-            bookmark: bookmark,
-            event_source: event_source,
-            tracer: @tracer,
-            &ready_to_stop
-          )
+          worker.call(&ready_to_stop)
         end
       end
     end
 
     private
 
-    attr_reader :processor_class, :domain_context, :logger
+    attr_reader :processor_class, :domain_context, :logger, :worker
 
     def checkout_bookmark
       projection_database = domain_context.database(:projections)

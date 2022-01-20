@@ -8,6 +8,8 @@ module EventFramework
 
       let(:bookmark) { instance_double(Bookmark) }
 
+      let(:worker) { instance_double(EventFramework::EventProcessorWorker) }
+
       let(:event_source) { instance_double(EventFramework::EventStore::Source) }
 
       let(:bookmark_repository) { instance_double(BookmarkRepository) }
@@ -30,13 +32,14 @@ module EventFramework
       it "runs an event processor" do
         allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
         tracer = EventFramework::Tracer::NullTracer.new
-        expect(EventFramework::EventProcessorWorker).to receive(:call).with(
+        expect(EventFramework::EventProcessorWorker).to receive(:new).with(
           event_processor: event_processor,
           bookmark: bookmark,
           logger: logger,
           tracer: tracer,
           event_source: event_source
-        )
+        ).and_return worker
+        expect(worker).to receive(:call)
 
         EventProcessorRunner.new(
           processor_class: event_processor_class,
@@ -50,7 +53,8 @@ module EventFramework
         it "logs the error" do
           expect(bookmark_repository).to receive(:checkout).and_raise(BookmarkRepository::UnableToCheckoutBookmarkError)
           allow(bookmark_repository).to receive(:checkout).and_return(bookmark)
-          allow(EventFramework::EventProcessorWorker).to receive(:call)
+          allow(EventFramework::EventProcessorWorker).to receive(:new).and_return(worker)
+          allow(worker).to receive(:call)
 
           expect(logger).to receive(:info).with(
             processor_class_name: "FooProjector",

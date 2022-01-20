@@ -53,14 +53,13 @@ module EventFramework
 
           event_processor = processor_class.new
 
-          EventProcessorWorker.call(
+          EventProcessorWorker.new(
             event_processor: event_processor,
             logger: logger,
             bookmark: bookmark,
             event_source: event_source,
-            tracer: tracer,
-            &ready_to_stop
-          )
+            tracer: tracer
+          ).call(&ready_to_stop)
         end
       end
 

@@ -4,6 +4,12 @@ EventFramework is the event-sourcing framework developed by the Murmur team. The
 API has been designed to make the happy-path simple, and the complex-path
 uncomplicated.
 
+## Contributing to this framework
+The follow commands make it possible for you to run tests and develop this library further:
+- `bin/setup`
+- `bin/task_runner reset_all`
+- `rspec`
+
 ## Domain Objects
 
 In order to reduce the risk of naming collisions with existing murmur code, domain
