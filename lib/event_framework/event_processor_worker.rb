@@ -48,15 +48,24 @@ module EventFramework
               log("new_events", first_event_sequence: events.first.sequence, event_id: events.first.id, count: events.count)
 
               last_sequence = nil
-              events.each do |event|
-                tracer.trace("event.processor.handle_event", resource: event.domain_event.class.name) do |span|
-                  span.set_tag("event.id", event.id)
-
-                  event_processor.handle_event(event)
-                  last_sequence = event.sequence
-                  bookmark.sequence = event.sequence
+              exception = nil
+              bookmark.transaction do
+                events.each do |event|
+                  bookmark.transaction(savepoint: true) do
+                    tracer.trace("event.processor.handle_event", resource: event.domain_event.class.name) do |span|
+                      span.set_tag("event.id", event.id)
+                      event_processor.handle_event(event)
+                      bookmark.sequence = event.sequence
+                      last_sequence = event.sequence
+                    rescue Exception => e
+                      exception = e
+                      raise Sequel::Rollback
+                    end
+                  end
+                  break if exception
                 end
               end
+              raise exception if exception
 
               log("processed_up_to", last_processed_event_sequence: last_sequence, last_processed_event_id: events.last.id)
             end
