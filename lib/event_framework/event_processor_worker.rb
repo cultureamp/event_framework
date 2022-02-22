@@ -10,20 +10,19 @@ module EventFramework
 
     class << self
       def call(*args, &ready_to_stop)
-        new(*args, &ready_to_stop).call
+        new(*args).call(&ready_to_stop)
       end
     end
 
-    def initialize(event_processor:, logger:, event_source:, bookmark:, tracer:, &ready_to_stop)
+    def initialize(event_processor:, logger:, event_source:, bookmark:, tracer:)
       @event_processor = event_processor
       @logger = logger
       @event_source = event_source
       @bookmark = bookmark
       @tracer = tracer
-      @ready_to_stop = ready_to_stop
     end
 
-    def call
+    def call(&ready_to_stop)
       set_process_name
       log("forked")
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
@@ -67,7 +66,7 @@ module EventFramework
 
     private
 
-    attr_reader :event_processor, :logger, :event_source, :bookmark, :tracer, :ready_to_stop
+    attr_reader :event_processor, :logger, :event_source, :bookmark, :tracer
 
     def fetch_events(sequence)
       if event_processor.all_handler?
