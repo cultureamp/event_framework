@@ -33,7 +33,7 @@ module EventFramework
           on_error: OnForkedError.new(processor_class.name)
         }
 
-        process_manager.fork(processor_class.name, fork_args) do |ready_to_stop|
+        process_manager.fork(processor_class.name, **fork_args) do |ready_to_stop|
           # Disconnect from the database to ensure the fork will create it's
           # own connection
           projection_database.disconnect
