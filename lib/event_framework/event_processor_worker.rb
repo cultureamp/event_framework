@@ -9,8 +9,8 @@ module EventFramework
     DISABLED_SLEEP_INTERVAL = 10
 
     class << self
-      def call(*args, &ready_to_stop)
-        new(*args).call(&ready_to_stop)
+      def call(**args, &ready_to_stop)
+        new(**args).call(&ready_to_stop)
       end
     end
 
