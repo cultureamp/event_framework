@@ -1,4 +1,5 @@
 require "dry/struct"
+require "dry/validation"
 require "dry/validation/version"
 
 module EventFramework
