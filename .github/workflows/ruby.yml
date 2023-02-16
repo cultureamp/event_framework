@@ -7,12 +7,18 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - "3.1"
+          - "2.7"
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6
+        ruby-version: ${{ matrix.ruby }}
     - uses: harmon758/postgresql-action@v1
       with:
         postgresql version: '11' # See https://hub.docker.com/_/postgres for available versions
