@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "dry-auto_inject"
   spec.add_dependency "dry-struct", "~> 1.0"
   spec.add_dependency "dry-types", "~> 1.0"
-  spec.add_dependency "dry-configurable", "~> 0.13"
+  spec.add_dependency "dry-configurable", ">= 0.13", "< 2"
   spec.add_dependency "dry-container"
   spec.add_dependency "dry-validation", "~> 1.7"
   spec.add_dependency "forked"
