@@ -27,6 +27,12 @@ module EventFramework
       log("forked")
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
+      begin
+        CA::LaunchDarkly.connect!
+      rescue
+        # CA::LaunchDarkly may not be available
+      end
+
       loop do
         tracer.trace("event.processor", resource: event_processor.class.name.to_s) do |span|
           # We're in a safe place to stop if we need to.
@@ -61,6 +67,12 @@ module EventFramework
             end
           end
         end
+      end
+
+      begin
+        CA::LaunchDarkly.shutdown!
+      rescue
+        # CA::LaunchDarkly may not be available
       end
     end
 
