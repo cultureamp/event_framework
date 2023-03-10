@@ -65,6 +65,44 @@ module EventFramework
         run_event_processor_worker
       end
 
+      describe "on_fork" do
+        let(:on_fork) do
+          instance_spy("Proc")
+        end
+
+        context "when on_fork is passed to the initializer" do
+          let(:event_processor_worker_arguments) do
+            {
+              event_processor: event_processor,
+              logger: logger,
+              bookmark: bookmark,
+              event_source: event_source,
+              tracer: EventFramework::Tracer::NullTracer.new,
+              on_fork: on_fork
+            }
+          end
+
+
+          it "calls the given proc" do
+            run_event_processor_worker
+
+            expect(on_fork).to have_received(:call).with(event_processor_worker)
+          end
+        end
+
+        context "when on_fork not passed to the initalizer" do
+          before do
+            stub_const("EventFramework::EventProcessorWorker::DEFAULT_ON_FORK", on_fork)
+          end
+
+          it "calls DEFAULT_ON_FORK" do
+            run_event_processor_worker
+
+            expect(on_fork).to have_received(:call).with(event_processor_worker)
+          end
+        end
+      end
+
       context "with no events" do
         it "sleeps" do
           expect(event_processor_worker).to receive(:sleep)

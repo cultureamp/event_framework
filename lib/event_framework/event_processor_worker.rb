@@ -8,22 +8,28 @@ module EventFramework
     SLEEP_INTERVAL = 0.1
     DISABLED_SLEEP_INTERVAL = 10
 
+    DEFAULT_ON_FORK = Proc.new { |worker| true }
+
     class << self
       def call(**args, &ready_to_stop)
         new(**args).call(&ready_to_stop)
       end
     end
 
-    def initialize(event_processor:, logger:, event_source:, bookmark:, tracer:)
+    def initialize(event_processor:, logger:, event_source:, bookmark:, tracer:, on_fork: DEFAULT_ON_FORK)
       @event_processor = event_processor
       @logger = logger
       @event_source = event_source
       @bookmark = bookmark
       @tracer = tracer
+      @on_fork = on_fork
     end
 
     def call(&ready_to_stop)
       set_process_name
+
+      on_fork.call(self)
+
       log("forked")
       event_processor.logger = logger if event_processor.respond_to?(:logger=)
 
@@ -66,7 +72,7 @@ module EventFramework
 
     private
 
-    attr_reader :event_processor, :logger, :event_source, :bookmark, :tracer
+    attr_reader :event_processor, :logger, :event_source, :bookmark, :tracer, :on_fork
 
     def fetch_events(sequence)
       if event_processor.all_handler?
